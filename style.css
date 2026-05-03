@@ -24,7 +24,6 @@ body {
 /* === Light Section Overrides === */
 .light-section, .light-section *,
 .popup-content,
-.why-choose, .why-choose *,
 .card,
 .contact-form,
 footer.bg-light, section.bg-light, section.light {
@@ -32,8 +31,7 @@ footer.bg-light, section.bg-light, section.light {
   background-color: #ffffff;
 }
 
-.light-section h2, .light-section h3, .light-section h5,
-.why-choose h2, .why-choose h5 {
+.light-section h2, .light-section h3, .light-section h5 {
   color: var(--brand-orange) !important;
 }
 
