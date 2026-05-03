@@ -173,23 +173,82 @@ footer.bg-light, section.bg-light, section.light {
 
 /* === Why Choose Us === */
 .why-choose {
-  background-color: #f8f9fa;
-  color: #212529 !important;
+  background: linear-gradient(180deg, #0d0d0d 0%, #151515 100%);
+  color: #fff;
 }
-.why-choose * { color: #212529 !important; }
-.why-choose h2 { color: var(--brand-orange) !important; }
-.why-choose h5 { color: var(--brand-orange) !important; font-weight: 600; }
-.why-icon { font-size: 2.5rem; }
 
-.why-choose .p-4 {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+.why-choose h2 { color: #fff !important; }
+
+.why-choose-sub {
+  color: var(--text-muted-custom);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.why-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.why-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff4500, #e03e00);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.why-card:hover {
+  border-color: #ff4500;
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(255, 69, 0, 0.15);
+}
+
+.why-card:hover::before { transform: scaleX(1); }
+
+.why-icon-wrap {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: rgba(255, 69, 0, 0.08);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s ease;
 }
-.why-choose .p-4:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+
+.why-icon-wrap svg {
+  width: 38px;
+  height: 38px;
+}
+
+.why-card:hover .why-icon-wrap {
+  background: rgba(255, 69, 0, 0.15);
+  border-color: #ff4500;
+  box-shadow: 0 0 20px rgba(255, 69, 0, 0.2);
+}
+
+.why-card-title {
+  color: #ffffff !important;
+  font-size: 1.05rem;
+}
+
+.why-card-text {
+  color: #aaa !important;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 /* Why Choose animation */
@@ -206,7 +265,6 @@ footer.bg-light, section.bg-light, section.light {
   transform: translateY(30px);
   transition: opacity 0.8s ease, transform 0.8s ease;
   will-change: opacity, transform;
-  text-align: center;
 }
 #why-choose.visible .col-md-4 { opacity: 1; transform: translateY(0); }
 #why-choose.visible .col-md-4:nth-child(1) { transition-delay: 0.15s; }
