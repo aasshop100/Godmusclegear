@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Checkout - GOD MUSCLE GEARS">
+  <meta name="keywords" content="muscle supplements, bodybuilding, testosterone, fitness gear">
+  <meta property="og:title" content="GOD MUSCLE GEARS">
+  <meta property="og:description" content="Shop trusted fitness and supplement products.">
+  <meta property="og:image" content="images/logo.png">
+  <meta property="og:type" content="website">
+  <title>Checkout - GOD MUSCLE GEARS</title>
+  <link rel="icon" type="image/png" href="/Godmusclegearsample/images/logo.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">GOD MUSCLE GEARS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="products.html">Products</a></li>
+        <li class="nav-item"><a class="nav-link" href="cart.html">Cart <span id="cart-count">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="peptide-calculator.html">Peptide Calculator</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-5">
+  <h2 class="text-center mb-4 checkout-title">Checkout</h2>
+
+  <div class="row g-4">
+
+    <!-- Shipping Form -->
+    <div class="col-lg-8">
+      <form id="checkout-form">
+        <h5 class="mb-3 section-title">Shipping Information</h5>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="full-name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="full-name" name="full-name" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="phone" class="form-label">Phone Number</label>
+          <input type="tel" class="form-control" id="phone" name="phone" required>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="address" class="form-label">Street Address</label>
+            <input type="text" class="form-control" id="address" name="street-address" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="city" class="form-label">City</label>
+            <input type="text" class="form-control" id="city" name="city" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label for="state" class="form-label">State</label>
+            <input type="text" class="form-control" id="state" name="state" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="zip" class="form-label">ZIP Code</label>
+            <input type="text" class="form-control" id="zip" name="zip-code" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="country" class="form-label">Country</label>
+            <select class="form-select" id="country" name="country" required>
+              <option value="">Select Country</option>
+              <option value="US">United States</option>
+              <option value="PH">Philippines</option>
+              <option value="CA">Canada</option>
+              <option value="UK">United Kingdom</option>
+              <option value="AU">Australia</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="g-recaptcha my-3" data-sitekey="6LdoPQIsAAAAAHOHAJ1y3FE8ItQktY40jyYm5NFn"></div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-2 place-order-btn">
+          Place Order
+        </button>
+
+        <div id="secure-payment-notice" class="alert alert-success mt-4 d-none">
+          ✅ Your order has been successfully submitted!<br>
+          We will contact you soon with secure payment instructions via Email or Telegram.
+        </div>
+      </form>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-lg-4">
+      <div class="card order-summary">
+        <div class="card-header order-summary-header">
+          <h5 class="mb-0">Order Summary</h5>
+        </div>
+        <div class="card-body">
+          <div id="checkout-items-list" class="mb-3"></div>
+          <p>Total Items: <span id="checkout-items">0</span></p>
+          <hr>
+          <p>Subtotal: $<span id="checkout-subtotal">0.00</span></p>
+          <p>Shipping: $<span id="checkout-shipping">0.00</span></p>
+          <hr>
+          <h5>Total: $<span id="checkout-grand-total">0.00</span></h5>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ====== FOOTER ====== -->
+<footer class="text-center py-3">
+  <div class="container">
+    <p>&copy; 2025 GOD MUSCLE GEARS. All rights reserved.</p>
+    <div class="mt-2">
+      <a href="index.html" class="mx-3">Home</a>
+      <a href="contact.html" class="mx-3">Contact Us</a>
+      <a href="products.html" class="mx-3">Shop</a>
+      <a href="cart.html" class="mx-3">Cart</a>
+      <a href="policies.html" class="mx-3">Terms &amp; Policies</a>
+    </div>
+    <p class="small mt-3">
+      ⚠️ Disclaimer: All products are for research purposes only.<br>
+      Always consult a healthcare professional before using any supplement.
+    </p>
+  </div>
+</footer>
+
+<!-- Telegram Float -->
+<a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" class="telegram-float" title="Chat with us on Telegram">
+  <img src="images/telegramlogo.png" alt="Telegram Chat">
+</a>
+
+<!-- CAPTCHA Warning Modal -->
+<div id="captchaModal" class="captcha-modal">
+  <div class="captcha-modal-content">
+    <p>⚠️ Please verify that you are not a robot before placing your order.</p>
+    <button id="closeCaptchaModal">OK</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  (function() { emailjs.init("8tIW2RqhekSLKVqLT"); })();
+</script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="script.js"></script>
+</body>
+</html>
