@@ -4,165 +4,198 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Peptide reconstitution and dosage calculator - GOD MUSCLE GEARS">
-  <title>Peptide Calculator | GOD MUSCLE GEARS</title>
-  <link rel="icon" type="image/png" href="/Godmusclegearsample/images/logo.png">
+  <title>Peptide Calculator - GOD MUSCLE GEARS</title>
+  <link rel="icon" type="image/png" href="images/logo.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="peptide-page">
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
+<nav class="navbar navbar-expand-lg" aria-label="Main navigation">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="index.html">GOD MUSCLE GEARS</a>
+    <a class="navbar-brand" href="index.html">GOD <span>MUSCLE</span> GEARS</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="products.html">Products</a></li>
-        <li class="nav-item"><a class="nav-link" href="cart.html">Cart (<span id="cart-count">0</span>)</a></li>
-        <li class="nav-item"><a class="nav-link active" href="peptide-calculator.html">Peptide Calculator</a></li>
+        <li class="nav-item"><a class="nav-link active" href="peptide-calculator.html">Peptide Calc</a></li>
         <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        <li class="nav-item">
+          <a class="nav-link" href="cart.html" id="cart-nav">🛒 Cart <span id="cart-count">0</span></a>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- Page Title -->
-<section class="py-5 text-center">
+<!-- Page Header -->
+<div class="page-header">
   <div class="container">
-    <h1 class="fw-bold mb-3">Peptide Calculator</h1>
-    <p class="text-muted">Easily calculate peptide reconstitution and dosage to help plan your cycles accurately.</p>
+    <h2>Peptide <span>Calculator</span></h2>
+    <p>Reconstitution & dosage made easy</p>
+  </div>
+</div>
+
+<section style="padding:56px 0;">
+  <div class="container">
+
+    <div class="row g-4 mb-5">
+
+      <!-- Reconstitution Calculator -->
+      <div class="col-lg-6">
+        <div class="calculator-card p-4">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+            <div style="width:48px; height:48px; background:var(--orange-light); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">💉</div>
+            <div>
+              <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; text-transform:uppercase; margin:0; color:var(--black);">Reconstitution Calculator</h4>
+              <p style="font-size:0.78rem; color:var(--grey); margin:0;">Calculate concentration after mixing</p>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="peptideAmount">Peptide Amount (mg)</label>
+            <input type="number" id="peptideAmount" class="form-control" placeholder="e.g. 5" min="0">
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="bacterioWater">Bacteriostatic Water (mL)</label>
+            <input type="number" id="bacterioWater" class="form-control" placeholder="e.g. 2" min="0">
+          </div>
+          <button class="btn btn-primary w-100" onclick="calculateReconstitution()" style="background:var(--orange) !important; border:none !important; font-family:'DM Sans',sans-serif; font-weight:700; padding:12px; border-radius:10px; font-size:0.9rem; cursor:pointer;">
+            Calculate →
+          </button>
+          <div id="reconResult" class="result-card mt-3 p-3">
+            <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:8px;">Results</p>
+            <p id="reconOutput" style="font-size:0.9rem; color:var(--charcoal); margin:0; line-height:1.7;"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dosage Calculator -->
+      <div class="col-lg-6">
+        <div class="calculator-card p-4">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+            <div style="width:48px; height:48px; background:var(--orange-light); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">⚖️</div>
+            <div>
+              <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; text-transform:uppercase; margin:0; color:var(--black);">Dosage Calculator</h4>
+              <p style="font-size:0.78rem; color:var(--grey); margin:0;">Find your injection volume</p>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="desiredDose">Desired Dose (mcg)</label>
+            <input type="number" id="desiredDose" class="form-control" placeholder="e.g. 250" min="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="totalPeptide">Total Peptide (mg)</label>
+            <input type="number" id="totalPeptide" class="form-control" placeholder="e.g. 5" min="0">
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="totalVolume">Reconstitution Volume (mL)</label>
+            <input type="number" id="totalVolume" class="form-control" placeholder="e.g. 2" min="0">
+          </div>
+          <button class="btn btn-success w-100" onclick="calculateDosage()" style="font-family:'DM Sans',sans-serif; font-weight:700; padding:12px; border-radius:10px; font-size:0.9rem; cursor:pointer;">
+            Calculate →
+          </button>
+          <div id="doseResult" class="result-card mt-3 p-3">
+            <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:8px;">Results</p>
+            <p id="doseOutput" style="font-size:0.9rem; color:var(--charcoal); margin:0; line-height:1.7;"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- How To Use -->
+    <div style="background:var(--black); border-radius:var(--radius-lg); padding:2.5rem; color:rgba(255,255,255,0.7);">
+      <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; text-transform:uppercase; color:var(--white); text-align:center; margin-bottom:1.5rem;">💡 How to Use</h4>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">Reconstitution Calculator</h6>
+          <p style="font-size:0.875rem; line-height:1.7; margin:0;">Enter the peptide amount in mg and the volume of bacteriostatic water in mL. The calculator will show you the final concentration in mcg/mL and per IU on an insulin syringe.</p>
+        </div>
+        <div class="col-md-6">
+          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">Dosage Calculator</h6>
+          <p style="font-size:0.875rem; line-height:1.7; margin:0;">Enter your desired dose in mcg, total peptide amount, and reconstitution volume. The calculator tells you exactly how many mL to draw and the equivalent IU on your syringe.</p>
+        </div>
+      </div>
+      <p style="font-size:0.8rem; color:rgba(255,255,255,0.3); text-align:center; margin-top:1.5rem; margin-bottom:0;">⚠️ For educational purposes only. Always verify dosages with a medical professional.</p>
+    </div>
+
   </div>
 </section>
 
-<!-- Calculators -->
-<section class="container mb-5">
-  <div class="row g-4">
-
-    <!-- Reconstitution Calculator -->
-    <div class="col-lg-6">
-      <div class="card calculator-card p-4 shadow-sm">
-        <h4 class="fw-bold mb-3">💉 Reconstitution Calculator</h4>
-        <div class="mb-3">
-          <label class="form-label" for="peptideAmount">Peptide Amount (mg):</label>
-          <input type="number" id="peptideAmount" class="form-control" placeholder="e.g. 5" min="0">
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="bacterioWater">Bacteriostatic Water (mL):</label>
-          <input type="number" id="bacterioWater" class="form-control" placeholder="e.g. 2" min="0">
-        </div>
-        <button class="btn btn-primary w-100" onclick="calculateReconstitution()">Calculate</button>
-        <div id="reconResult" class="result-card mt-3 p-3 bg-light rounded border">
-          <h6 class="fw-bold">Results:</h6>
-          <p id="reconOutput"></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Dosage Calculator -->
-    <div class="col-lg-6">
-      <div class="card calculator-card p-4 shadow-sm">
-        <h4 class="fw-bold mb-3">⚖️ Dosage Calculator</h4>
-        <div class="mb-3">
-          <label class="form-label" for="desiredDose">Desired Dose (mcg):</label>
-          <input type="number" id="desiredDose" class="form-control" placeholder="e.g. 250" min="0">
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="totalPeptide">Total Peptide (mg):</label>
-          <input type="number" id="totalPeptide" class="form-control" placeholder="e.g. 5" min="0">
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="totalVolume">Total Reconstitution Volume (mL):</label>
-          <input type="number" id="totalVolume" class="form-control" placeholder="e.g. 2" min="0">
-        </div>
-        <button class="btn btn-success w-100" onclick="calculateDosage()">Calculate</button>
-        <div id="doseResult" class="result-card mt-3 p-3 bg-light rounded border">
-          <h6 class="fw-bold">Results:</h6>
-          <p id="doseOutput"></p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- How To Use -->
-  <section class="mt-5 text-light bg-dark p-4 rounded">
-    <h4 class="text-center mb-3">💡 How to Use the Peptide Calculator</h4>
-    <p class="mb-2">
-      The Peptide Calculator helps you accurately prepare and dose your peptides based on vial size, peptide amount, and desired dosage.
-    </p>
-    <ul>
-      <li><strong>Reconstitution Calculator:</strong> Enter the peptide amount (in mg) and the volume of bacteriostatic water (in mL) to determine the concentration per mL and per unit (IU).</li>
-      <li><strong>Dosage Calculator:</strong> Enter your peptide concentration and desired dose to find the volume you need to draw for each injection.</li>
-    </ul>
-    <p class="mt-3">
-      ⚠️ <em>Note:</em> This calculator is for educational purposes only. Always verify dosages and procedures with professional medical guidance.
-    </p>
-  </section>
-</section>
-
-<!-- ====== FOOTER ====== -->
-<footer class="text-center py-3">
+<!-- Footer -->
+<footer>
   <div class="container">
-    <p>&copy; 2025 GOD MUSCLE GEARS. All rights reserved.</p>
-    <div class="mt-2">
-      <a href="index.html" class="mx-3">Home</a>
-      <a href="contact.html" class="mx-3">Contact Us</a>
-      <a href="products.html" class="mx-3">Shop</a>
-      <a href="cart.html" class="mx-3">Cart</a>
-      <a href="policies.html" class="mx-3">Terms &amp; Policies</a>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <span class="footer-brand">GOD <span>MUSCLE</span> GEARS</span>
+        <p class="footer-desc">Premium gears for serious lifters.</p>
+      </div>
+      <div class="col-6 col-lg-2 offset-lg-2">
+        <span class="footer-heading">Shop</span>
+        <ul class="footer-links">
+          <li><a href="products.html">All Products</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="checkout.html">Checkout</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2">
+        <span class="footer-heading">Info</span>
+        <ul class="footer-links">
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="peptide-calculator.html">Peptide Calc</a></li>
+          <li><a href="policies.html">Terms &amp; Policies</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2">
+        <span class="footer-heading">Connect</span>
+        <ul class="footer-links">
+          <li><a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+          <li><a href="mailto:lester@beligas.org">Email Us</a></li>
+        </ul>
+      </div>
     </div>
-    <p class="small mt-3">
-      ⚠️ Disclaimer: All products are for research purposes only.<br>
-      Always consult a healthcare professional before using any supplement.
-    </p>
+    <div class="footer-bottom">
+      <p>© 2025 GOD MUSCLE GEARS. All rights reserved.</p>
+      <p class="footer-disclaimer">⚠️ All products are for research purposes only.</p>
+    </div>
   </div>
 </footer>
 
-<!-- Telegram Float -->
-<a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" class="telegram-float" title="Chat with us on Telegram">
-  <img src="images/telegramlogo.png" alt="Telegram Chat">
+<a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" class="telegram-float" title="Chat on Telegram">
+  <img src="images/telegramlogo.png" alt="Telegram">
 </a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   function calculateReconstitution() {
-    const mg = parseFloat(document.getElementById('peptideAmount').value);
-    const ml = parseFloat(document.getElementById('bacterioWater').value);
+    const mg  = parseFloat(document.getElementById('peptideAmount').value);
+    const ml  = parseFloat(document.getElementById('bacterioWater').value);
     const resultDiv = document.getElementById('reconResult');
-    const output = document.getElementById('reconOutput');
-
+    const output    = document.getElementById('reconOutput');
     if (!mg || !ml || mg <= 0 || ml <= 0) {
       output.textContent = 'Please enter valid positive numbers.';
     } else {
       const mcgPerMl = (mg * 1000) / ml;
-      output.innerHTML = `
-        Concentration: <strong>${mcgPerMl.toFixed(2)} mcg/mL</strong><br>
-        1 IU (0.01 mL) = <strong>${(mcgPerMl * 0.01).toFixed(2)} mcg</strong>
-      `;
+      output.innerHTML = `Concentration: <strong>${mcgPerMl.toFixed(2)} mcg/mL</strong><br>1 IU (0.01 mL) = <strong>${(mcgPerMl * 0.01).toFixed(2)} mcg</strong>`;
     }
     resultDiv.style.display = 'block';
   }
 
   function calculateDosage() {
-    const desired = parseFloat(document.getElementById('desiredDose').value);
+    const desired  = parseFloat(document.getElementById('desiredDose').value);
     const totalMg  = parseFloat(document.getElementById('totalPeptide').value);
     const totalMl  = parseFloat(document.getElementById('totalVolume').value);
     const resultDiv = document.getElementById('doseResult');
     const output    = document.getElementById('doseOutput');
-
     if (!desired || !totalMg || !totalMl || desired <= 0 || totalMg <= 0 || totalMl <= 0) {
       output.textContent = 'Please fill in all fields with positive values.';
     } else {
       const mcgPerMl = (totalMg * 1000) / totalMl;
       const mlNeeded = desired / mcgPerMl;
-      output.innerHTML = `
-        Draw Volume: <strong>${mlNeeded.toFixed(3)} mL</strong><br>
-        That's approximately <strong>${(mlNeeded * 100).toFixed(1)} IU</strong> on an insulin syringe.
-      `;
+      output.innerHTML = `Draw Volume: <strong>${mlNeeded.toFixed(3)} mL</strong><br>That's approximately <strong>${(mlNeeded * 100).toFixed(1)} IU</strong> on an insulin syringe.`;
     }
     resultDiv.style.display = 'block';
   }

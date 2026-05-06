@@ -4,105 +4,140 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Your shopping cart - GOD MUSCLE GEARS">
-  <meta name="keywords" content="muscle supplements, bodybuilding, testosterone, fitness gear">
   <meta property="og:title" content="GOD MUSCLE GEARS">
-  <meta property="og:description" content="Shop trusted fitness and supplement products.">
   <meta property="og:image" content="images/logo.png">
-  <meta property="og:type" content="website">
   <title>Cart - GOD MUSCLE GEARS</title>
-  <link rel="icon" type="image/png" href="/Godmusclegearsample/images/logo.png">
+  <link rel="icon" type="image/png" href="images/logo.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
+<nav class="navbar navbar-expand-lg" aria-label="Main navigation">
   <div class="container">
-    <a class="navbar-brand" href="index.html">GOD MUSCLE GEARS</a>
+    <a class="navbar-brand" href="index.html">GOD <span>MUSCLE</span> GEARS</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="products.html">Products</a></li>
-        <li class="nav-item"><a class="nav-link active" href="cart.html">Cart (<span id="cart-count">0</span>)</a></li>
         <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
-        <li class="nav-item"><a class="nav-link" href="peptide-calculator.html">Peptide Calculator</a></li>
+        <li class="nav-item"><a class="nav-link" href="peptide-calculator.html">Peptide Calc</a></li>
+        <li class="nav-item">
+          <a class="nav-link active" href="cart.html" id="cart-nav">🛒 Cart <span id="cart-count">0</span></a>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
 
-<section class="container my-5">
-  <h2>Shopping Cart</h2>
-
-  <div id="cart-items">
-    <p class="text-center text-muted py-4" id="empty-cart-message" style="display:none;">
-      Your cart is empty. <a href="products.html">Shop now</a>!
-    </p>
+<!-- Page Header -->
+<div class="page-header">
+  <div class="container">
+    <h2>Your <span>Cart</span></h2>
+    <p>Review your items before checkout</p>
   </div>
+</div>
 
-  <div class="row mt-4 justify-content-end">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Order Summary</h5>
+<section style="background: var(--light-grey); padding: 48px 0; min-height: 60vh;">
+  <div class="container">
+    <div class="row g-4">
 
-          <div class="d-flex justify-content-between mb-2">
-            <span>Subtotal:</span>
-            <span id="cart-subtotal">$0.00</span>
-          </div>
-          <div class="d-flex justify-content-between mb-3">
-            <span>Shipping Fee:</span>
-            <span id="shipping-fee">$20.00</span>
-          </div>
-
-          <!-- Promo Code -->
-          <div id="promo-section">
-            <h6 class="mt-3 mb-2">Have a Promo Code?</h6>
-            <div class="input-group mb-2">
-              <input type="text" id="promo-code-input" class="form-control" placeholder="Enter promo code">
-              <button id="apply-promo-btn" class="btn btn-primary">Apply</button>
-            </div>
-            <small id="promo-message" class="d-block mt-1 text-muted"></small>
-          </div>
-
-          <hr>
-          <div class="d-flex justify-content-between mb-3">
-            <strong>Grand Total:</strong>
-            <strong id="cart-grand-total">$20.00</strong>
-          </div>
-
-          <a href="checkout.html" class="btn btn-success w-100">Checkout</a>
-          <small class="text-muted d-block mt-2">Shipping: $20 per 10 items. Standard delivery in 4–10 business days.</small>
-          <small class="text-muted d-block mt-1">Consult a healthcare professional before starting any supplement regimen.</small>
+      <!-- Cart Items -->
+      <div class="col-lg-8">
+        <div id="cart-items">
+          <p class="text-center py-5" id="empty-cart-message" style="display:none; color: var(--grey);">
+            Your cart is empty. <a href="products.html" style="color:var(--orange); font-weight:600;">Shop now →</a>
+          </p>
         </div>
       </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-4">
+        <div class="card order-summary" style="border-radius: var(--radius-lg) !important; overflow:hidden;">
+          <div class="card-header" style="background:var(--black); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:14px 20px; border:none;">
+            Order Summary
+          </div>
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between mb-2" style="font-size:0.9rem;">
+              <span style="color:var(--grey);">Subtotal</span>
+              <span id="cart-subtotal" style="font-weight:600;">$0.00</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3" style="font-size:0.9rem;">
+              <span style="color:var(--grey);">Shipping Fee</span>
+              <span id="shipping-fee" style="font-weight:600;">$20.00</span>
+            </div>
+
+            <!-- Promo Code -->
+            <div id="promo-section" style="background:var(--light-grey); border-radius:10px; padding:14px; margin-bottom:16px;">
+              <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--charcoal); margin-bottom:10px;">Promo Code</p>
+              <div class="input-group" style="gap:8px;">
+                <input type="text" id="promo-code-input" placeholder="Enter code..." style="flex:1; border:1.5px solid var(--border); border-radius:8px; padding:9px 12px; font-size:0.875rem; font-family:'DM Sans',sans-serif; outline:none;">
+                <button id="apply-promo-btn" style="background:var(--orange); color:white; border:none; padding:9px 16px; border-radius:8px; font-weight:600; font-size:0.8rem; cursor:pointer; white-space:nowrap;">Apply</button>
+              </div>
+              <small id="promo-message" class="d-block mt-2" style="font-size:0.8rem;"></small>
+            </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:16px; margin-bottom:16px;">
+              <div class="d-flex justify-content-between align-items-center">
+                <strong style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; text-transform:uppercase; letter-spacing:0.5px;">Total</strong>
+                <strong id="cart-grand-total" style="font-family:'Barlow Condensed',sans-serif; font-size:1.6rem; color:var(--orange);">$20.00</strong>
+              </div>
+            </div>
+
+            <a href="checkout.html" class="btn btn-success w-100" style="display:block; text-align:center; text-decoration:none;">Checkout →</a>
+            <p style="font-size:0.75rem; color:var(--grey); margin-top:12px; text-align:center; line-height:1.5;">$20 shipping per 10 items · Standard delivery 4–10 business days</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- ====== FOOTER ====== -->
-<footer class="text-center py-3">
+<!-- Footer -->
+<footer>
   <div class="container">
-    <p>&copy; 2025 GOD MUSCLE GEARS. All rights reserved.</p>
-    <div class="mt-2">
-      <a href="index.html" class="mx-3">Home</a>
-      <a href="contact.html" class="mx-3">Contact Us</a>
-      <a href="products.html" class="mx-3">Shop</a>
-      <a href="policies.html" class="mx-3">Terms &amp; Policies</a>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <span class="footer-brand">GOD <span>MUSCLE</span> GEARS</span>
+        <p class="footer-desc">Premium gears for serious lifters.</p>
+      </div>
+      <div class="col-6 col-lg-2 offset-lg-2">
+        <span class="footer-heading">Shop</span>
+        <ul class="footer-links">
+          <li><a href="products.html">All Products</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="checkout.html">Checkout</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2">
+        <span class="footer-heading">Info</span>
+        <ul class="footer-links">
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="peptide-calculator.html">Peptide Calc</a></li>
+          <li><a href="policies.html">Terms &amp; Policies</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2">
+        <span class="footer-heading">Connect</span>
+        <ul class="footer-links">
+          <li><a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+          <li><a href="mailto:lester@beligas.org">Email Us</a></li>
+        </ul>
+      </div>
     </div>
-    <p class="small mt-3">
-      ⚠️ Disclaimer: All products are for research purposes only.<br>
-      Always consult a healthcare professional before using any supplement.
-    </p>
+    <div class="footer-bottom">
+      <p>© 2025 GOD MUSCLE GEARS. All rights reserved.</p>
+      <p class="footer-disclaimer">⚠️ All products are for research purposes only.</p>
+    </div>
   </div>
 </footer>
 
-<!-- Telegram Float -->
-<a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" class="telegram-float" title="Chat with us on Telegram">
-  <img src="images/telegramlogo.png" alt="Telegram Chat">
+<a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" class="telegram-float" title="Chat on Telegram">
+  <img src="images/telegramlogo.png" alt="Telegram">
 </a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

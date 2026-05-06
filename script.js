@@ -292,15 +292,16 @@ function handleCheckoutSubmit(event) {
   const orderId    = 'ORDER-' + Date.now();
   const promoCode  = localStorage.getItem('appliedPromoCode') || 'None';
 
-  const itemsTableHTML = storedCart.map(item => {
+  const itemsTableHTML = storedCart.map((item, i) => {
     const qty       = item.quantity || 1;
     const price     = Number(item.price).toFixed(2);
     const lineTotal = (Number(item.price) * qty).toFixed(2);
-    return `<tr>
-      <td style="padding:8px;border:1px solid #ddd;">${item.name}</td>
-      <td style="padding:8px;border:1px solid #ddd;">${qty}</td>
-      <td style="padding:8px;border:1px solid #ddd;">$${price}</td>
-      <td style="padding:8px;border:1px solid #ddd;">$${lineTotal}</td>
+    const rowBg     = i % 2 === 0 ? '#111c2d' : '#0d1825';
+    return `<tr style="background-color:${rowBg};">
+      <td style="padding:10px 14px;font-size:13px;color:#ffffff;border-bottom:1px solid rgba(0,200,255,0.07);">${item.name}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#7a9ab0;text-align:center;border-bottom:1px solid rgba(0,200,255,0.07);">${qty}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#7a9ab0;text-align:right;border-bottom:1px solid rgba(0,200,255,0.07);">$${price}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#00c8ff;font-weight:600;text-align:right;border-bottom:1px solid rgba(0,200,255,0.07);">$${lineTotal}</td>
     </tr>`;
   }).join('');
 
@@ -517,6 +518,13 @@ function initInventorySync() {
       }
     } catch (error) {
       console.error('❌ Error fetching inventory:', error);
+      // Restore all buttons to default if fetch fails
+      document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.innerHTML = 'Add to Cart';
+        btn.disabled  = false;
+        btn.classList.remove('btn-warning', 'btn-secondary');
+        btn.classList.add('btn-primary');
+      });
     }
   }
 
@@ -754,6 +762,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initProductFilter();
   initScrollAnimations();
   initBackToTop();
+  initScrollAnimations();
+  // Hero entrance animation
+  const heroContent = document.querySelector('.hero-content');
+  if (heroContent) setTimeout(() => heroContent.classList.add('visible'), 100);
   initProductModal();
   initTelegramPopup();
   initPromoCode();
