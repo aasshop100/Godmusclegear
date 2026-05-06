@@ -1204,6 +1204,34 @@ footer {
 /* ================================================
    RESPONSIVE
    ================================================ */
+
+/* === MOBILE NAVBAR FIX === */
+@media (max-width: 991px) {
+  .navbar-collapse {
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    padding: 12px 0 16px;
+    margin-top: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .navbar-nav {
+    padding: 0 8px;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 10px 14px !important;
+    border-radius: 8px;
+    margin-bottom: 2px;
+  }
+
+  .navbar-nav .nav-link#cart-nav {
+    margin-left: 0 !important;
+    margin-top: 6px;
+    text-align: center;
+  }
+}
+
 @media (max-width: 991px) {
   .order-summary { margin-top: 40px; }
 }
