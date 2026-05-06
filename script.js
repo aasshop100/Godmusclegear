@@ -452,12 +452,10 @@ function initInventorySync() {
 
   async function updateInventory() {
     try {
-      if (isProductPage) {
-        allButtons.forEach(btn => {
-          btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Checking stock...`;
-          btn.disabled = true;
-        });
-      }
+      allButtons.forEach(btn => {
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Checking stock...`;
+        btn.disabled = true;
+      });
 
       const response = await fetch(sheetURL);
       const data     = await response.json();
@@ -467,7 +465,7 @@ function initInventorySync() {
         if (item.ID) inventoryMap[item.ID.trim().toLowerCase()] = parseInt(item.Stock);
       });
 
-      const allCards = Array.from(document.querySelectorAll('.card.h-100'));
+      const allCards = Array.from(document.querySelectorAll('.card'));
       allCards.forEach(card => {
         const button    = card.querySelector('.add-to-cart');
         if (!button) return;
@@ -504,7 +502,7 @@ function initInventorySync() {
 
       // Sort product cards (product page only)
       if (isProductPage) {
-        const sortedCards = Array.from(productList.querySelectorAll('.card.h-100')).sort((a, b) => {
+        const sortedCards = Array.from(productList.querySelectorAll('.card')).sort((a, b) => {
           const brandA = (a.dataset.brand || '').toLowerCase();
           const brandB = (b.dataset.brand || '').toLowerCase();
           if (brandA !== brandB) return brandA.localeCompare(brandB);
