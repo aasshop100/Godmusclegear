@@ -1236,6 +1236,18 @@ footer {
   .order-summary { margin-top: 40px; }
 }
 
+
+/* === WHY CARDS CENTER ON MOBILE === */
+@media (max-width: 767px) {
+  .why-card {
+    text-align: center;
+  }
+  .why-icon-wrap {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 @media (max-width: 768px) {
   .hero h1 { font-size: 3.2rem; }
   .hero-stats { gap: 24px; }
