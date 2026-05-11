@@ -507,25 +507,30 @@ function initInventorySync() {
         }
       });
 
-      // Sort product cards: by brand first (Beligas, Sixpex, Xeno), then by stock status
+      // Sort: stock status first (in stock > low > out), then brand (Beligas > Sixpex > Xeno)
       if (isProductPage) {
         const brandOrder = { beligas: 1, sixpex: 2, xeno: 3 };
+        const getStockRank = s => {
+          if (isNaN(s) || s === 999) return 1; // unknown = treat as in stock
+          if (s < 20) return 3;                // out of stock = last
+          if (s <= 30) return 2;               // low stock = middle
+          return 1;                            // in stock = first
+        };
         const sortedCards = Array.from(productList.querySelectorAll('.card')).sort((a, b) => {
+          const stockA = parseInt(a.dataset.stockLevel ?? 999);
+          const stockB = parseInt(b.dataset.stockLevel ?? 999);
+          const stockRankA = getStockRank(stockA);
+          const stockRankB = getStockRank(stockB);
+
+          // Stock status is the primary sort
+          if (stockRankA !== stockRankB) return stockRankA - stockRankB;
+
+          // Within same stock group, sort by brand (Beligas > Sixpex > Xeno)
           const brandA = (a.dataset.brand || '').toLowerCase();
           const brandB = (b.dataset.brand || '').toLowerCase();
           const brandRankA = brandOrder[brandA] || 99;
           const brandRankB = brandOrder[brandB] || 99;
-          if (brandRankA !== brandRankB) return brandRankA - brandRankB;
-
-          const stockA = parseInt(a.dataset.stockLevel ?? 999);
-          const stockB = parseInt(b.dataset.stockLevel ?? 999);
-          const getStockRank = s => {
-            if (isNaN(s) || s === 999) return 1; // unknown = treat as in stock
-            if (s < 20) return 3;                // out of stock = last
-            if (s <= 30) return 2;               // low stock = middle
-            return 1;                            // in stock = first
-          };
-          return getStockRank(stockA) - getStockRank(stockB);
+          return brandRankA - brandRankB;
         });
         sortedCards.forEach(card => {
           const col = card.closest('.col-6, .col-md-4');
