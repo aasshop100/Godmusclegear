@@ -398,7 +398,7 @@ function initProductFilter() {
   const brandFilter  = document.getElementById('brand-filter');
   const typeFilter   = document.getElementById('type-filter');
   const clearBtn     = document.getElementById('clear-filters');
-  const productCards = document.querySelectorAll('#product-list .card.h-100');
+  const productCards = document.querySelectorAll('#product-list .card');
 
   if (!productCards.length) return;
 
@@ -500,14 +500,18 @@ function initInventorySync() {
         }
       });
 
-      // Sort product cards (product page only)
+      // Sort product cards by stock status (in stock first, low stock middle, out of stock last)
       if (isProductPage) {
         const sortedCards = Array.from(productList.querySelectorAll('.card')).sort((a, b) => {
-          const brandA = (a.dataset.brand || '').toLowerCase();
-          const brandB = (b.dataset.brand || '').toLowerCase();
-          if (brandA !== brandB) return brandA.localeCompare(brandB);
-          const getRank = s => (s > 30 ? 1 : s >= 20 ? 2 : 3);
-          return getRank(parseInt(a.dataset.stockLevel || 0)) - getRank(parseInt(b.dataset.stockLevel || 0));
+          const stockA = parseInt(a.dataset.stockLevel ?? 999);
+          const stockB = parseInt(b.dataset.stockLevel ?? 999);
+          const getRank = s => {
+            if (isNaN(s) || s === 999) return 0; // unknown = treat as in stock
+            if (s < 20) return 3;                // out of stock = last
+            if (s <= 30) return 2;               // low stock = middle
+            return 1;                            // in stock = first
+          };
+          return getRank(stockA) - getRank(stockB);
         });
         sortedCards.forEach(card => {
           const col = card.closest('.col-6, .col-md-4');
