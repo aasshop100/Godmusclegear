@@ -500,18 +500,25 @@ function initInventorySync() {
         }
       });
 
-      // Sort product cards by stock status (in stock first, low stock middle, out of stock last)
+      // Sort product cards: by brand first (Beligas, Sixpex, Xeno), then by stock status
       if (isProductPage) {
+        const brandOrder = { beligas: 1, sixpex: 2, xeno: 3 };
         const sortedCards = Array.from(productList.querySelectorAll('.card')).sort((a, b) => {
+          const brandA = (a.dataset.brand || '').toLowerCase();
+          const brandB = (b.dataset.brand || '').toLowerCase();
+          const brandRankA = brandOrder[brandA] || 99;
+          const brandRankB = brandOrder[brandB] || 99;
+          if (brandRankA !== brandRankB) return brandRankA - brandRankB;
+
           const stockA = parseInt(a.dataset.stockLevel ?? 999);
           const stockB = parseInt(b.dataset.stockLevel ?? 999);
-          const getRank = s => {
-            if (isNaN(s) || s === 999) return 0; // unknown = treat as in stock
+          const getStockRank = s => {
+            if (isNaN(s) || s === 999) return 1; // unknown = treat as in stock
             if (s < 20) return 3;                // out of stock = last
             if (s <= 30) return 2;               // low stock = middle
             return 1;                            // in stock = first
           };
-          return getRank(stockA) - getRank(stockB);
+          return getStockRank(stockA) - getStockRank(stockB);
         });
         sortedCards.forEach(card => {
           const col = card.closest('.col-6, .col-md-4');
