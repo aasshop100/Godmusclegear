@@ -1317,3 +1317,23 @@ footer {
 .navbar .dropdown-toggle::after {
   vertical-align: middle;
 }
+
+/* Remove Bootstrap dropdown background completely */
+.navbar .dropdown-menu,
+.navbar .dropdown-menu.show {
+  background-color: var(--white) !important;
+  border: none !important;
+  border-top: 2px solid var(--orange) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.09) !important;
+}
+
+/* Remove the pink/orange background on the Brands toggle button */
+.navbar .nav-item.dropdown .nav-link.show,
+.navbar .nav-item.dropdown .nav-link:focus,
+.navbar .nav-item.dropdown .dropdown-toggle.show {
+  background: transparent !important;
+  color: var(--orange) !important;
+}
