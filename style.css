@@ -1255,12 +1255,14 @@ footer {
 
 /* === BRANDS DROPDOWN MENU === */
 .navbar .dropdown-menu {
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  padding: 6px 0;
+  border: none;
+  border-top: 2px solid var(--orange);
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  padding: 8px 0;
   min-width: 160px;
-  margin-top: 6px;
+  margin-top: 0;
+  background: var(--white);
 }
 
 .navbar .dropdown-item {
@@ -1268,24 +1270,47 @@ footer {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--charcoal);
-  padding: 8px 18px;
+  padding: 9px 20px;
   transition: var(--transition);
+  position: relative;
+  background: transparent;
+}
+
+.navbar .dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 60%;
+  background: var(--orange);
+  border-radius: 0 3px 3px 0;
+  transition: width 0.2s ease;
+}
+
+.navbar .dropdown-item:hover::before,
+.navbar .dropdown-item:focus::before {
+  width: 3px;
 }
 
 .navbar .dropdown-item:hover,
 .navbar .dropdown-item:focus {
-  background: var(--orange-light);
+  background: transparent;
   color: var(--orange);
+  padding-left: 26px;
 }
 
 .navbar .dropdown-item.active {
-  background: var(--orange);
-  color: var(--white);
+  background: transparent;
+  color: var(--orange);
+  font-weight: 700;
 }
 
 .navbar .dropdown-divider {
   border-color: var(--border);
   margin: 4px 0;
+  opacity: 0.5;
 }
 
 .navbar .dropdown-toggle::after {
