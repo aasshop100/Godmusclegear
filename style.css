@@ -1255,14 +1255,15 @@ footer {
 
 /* === BRANDS DROPDOWN MENU === */
 .navbar .dropdown-menu {
-  border: none;
-  border-top: 2px solid var(--orange);
-  border-radius: 0 0 var(--radius) var(--radius);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  padding: 8px 0;
-  min-width: 160px;
-  margin-top: 0;
-  background: var(--white);
+  border: none !important;
+  border-top: 2px solid var(--orange) !important;
+  border-radius: 0 0 var(--radius) var(--radius) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+  padding: 8px 0 !important;
+  min-width: 160px !important;
+  margin-top: 0 !important;
+  background: var(--white) !important;
+  outline: none !important;
 }
 
 .navbar .dropdown-item {
