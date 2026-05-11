@@ -1252,3 +1252,42 @@ footer {
   .hero h1 { font-size: 3.2rem; }
   .hero-stats { gap: 24px; }
 }
+
+/* === BRANDS DROPDOWN MENU === */
+.navbar .dropdown-menu {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 6px 0;
+  min-width: 160px;
+  margin-top: 6px;
+}
+
+.navbar .dropdown-item {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  padding: 8px 18px;
+  transition: var(--transition);
+}
+
+.navbar .dropdown-item:hover,
+.navbar .dropdown-item:focus {
+  background: var(--orange-light);
+  color: var(--orange);
+}
+
+.navbar .dropdown-item.active {
+  background: var(--orange);
+  color: var(--white);
+}
+
+.navbar .dropdown-divider {
+  border-color: var(--border);
+  margin: 4px 0;
+}
+
+.navbar .dropdown-toggle::after {
+  vertical-align: middle;
+}

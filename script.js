@@ -435,6 +435,13 @@ function initProductFilter() {
     });
   }
 
+  // Auto-filter by brand if URL has ?brand=X
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlBrand  = urlParams.get('brand');
+  if (urlBrand && brandFilter) {
+    brandFilter.value = urlBrand;
+  }
+
   filterProducts();
 }
 
