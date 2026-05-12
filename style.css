@@ -3,7 +3,7 @@
    Fonts: Barlow Condensed (headings) + DM Sans (body)
    ================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+/* Google Fonts loaded via <link> tags in HTML for performance */
 
 /* === CSS Variables === */
 :root {
@@ -1144,31 +1144,6 @@ body.order-success {
 }
 #closeCaptchaModal:hover { background: var(--orange-dark); }
 
-
-/* ================================================
-   VIEW ALL BUTTON (light bg context)
-   ================================================ */
-.btn-view-all {
-  background: transparent;
-  color: var(--charcoal);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  padding: 10px 22px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-}
-.btn-view-all:hover {
-  border-color: var(--orange);
-  color: var(--orange);
-  background: var(--orange-light);
-}
 /* ================================================
    FOOTER
    ================================================ */
