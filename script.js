@@ -112,8 +112,19 @@ function updateCart() {
     shipping = Math.max(0, shipping - Math.min(20, shipping));
   }
 
-  const grandTotal = subtotal + shipping;
-  if (subtotalEl)   subtotalEl.textContent   = `$${subtotal.toFixed(2)}`;
+  // Apply percentage discount to subtotal only (not shipping)
+  let discountedSubtotal = subtotal;
+  const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
+  let discountAmount = 0;
+  if (pctDiscount > 0) {
+    discountAmount = subtotal * (pctDiscount / 100);
+    discountedSubtotal = subtotal - discountAmount;
+  }
+
+  const grandTotal = discountedSubtotal + shipping;
+  if (subtotalEl)   subtotalEl.textContent   = pctDiscount > 0
+    ? `$${subtotal.toFixed(2)} → $${discountedSubtotal.toFixed(2)} (-${pctDiscount}%)`
+    : `$${subtotal.toFixed(2)}`;
   if (shippingEl)   shippingEl.textContent   = `$${shipping.toFixed(2)}`;
   if (grandTotalEl) grandTotalEl.textContent = `$${grandTotal.toFixed(2)}`;
 
@@ -160,6 +171,7 @@ function removeFromCart(index) {
   if (cart.length === 0) {
     localStorage.removeItem('appliedPromoCode');
     localStorage.removeItem('freeShipping');
+    localStorage.removeItem('percentageDiscount');
     const promoMsg = document.getElementById('promo-message');
     if (promoMsg) { promoMsg.textContent = ''; promoMsg.style.opacity = 0; }
   }
@@ -229,9 +241,16 @@ function renderCheckoutSummary() {
     shipping = Math.max(0, shipping - Math.min(20, shipping));
   }
 
-  const grandTotal = subtotal + shipping;
+  // Apply percentage discount to subtotal only
+  const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
+  let discountedSubtotal = subtotal;
+  if (pctDiscount > 0) {
+    discountedSubtotal = subtotal - (subtotal * (pctDiscount / 100));
+  }
+
+  const grandTotal = discountedSubtotal + shipping;
   if (itemsCountEl)  itemsCountEl.textContent  = totalQuantity;
-  if (subtotalEl)    subtotalEl.textContent    = subtotal.toFixed(2);
+  if (subtotalEl)    subtotalEl.textContent    = discountedSubtotal.toFixed(2);
   if (shippingEl)    shippingEl.textContent    = shipping.toFixed(2);
   if (grandTotalEl)  grandTotalEl.textContent  = grandTotal.toFixed(2);
 }
@@ -570,6 +589,7 @@ function initPromoCode() {
   // ─── Single declaration of code lists ───
   const freeItemCodes     = ['BELIGAS101', 'SIXPEX202', 'XENO303'];
   const freeShippingCodes = ['SHIPFREE20', 'FREESHIP2025'];
+  const percentageCodes   = { 'NEWCLIENT10': 10 }; // code: % discount on subtotal only
 
   const freeItem = {
     id: 'free-testc200mg',
@@ -612,6 +632,17 @@ function initPromoCode() {
       localStorage.setItem('appliedPromoCode', enteredCode);
       localStorage.removeItem('freeShipping');
       showMessage(`✅ Promo "${enteredCode}" applied! Free Testosterone Cypionate 200mg added.`, 'text-success');
+      promoInput.value = '';
+      updateCart();
+      return;
+    }
+
+    if (percentageCodes[enteredCode] !== undefined) {
+      const discount = percentageCodes[enteredCode];
+      localStorage.setItem('appliedPromoCode', enteredCode);
+      localStorage.setItem('percentageDiscount', discount);
+      localStorage.removeItem('freeShipping');
+      showMessage('✅ Promo applied! ' + discount + '% off your subtotal.', 'text-success');
       promoInput.value = '';
       updateCart();
       return;
