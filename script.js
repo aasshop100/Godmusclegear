@@ -596,10 +596,11 @@ function initPromoCode() {
 
   if (!applyBtn || !promoInput || !promoMsg) return;
 
-  // ─── Single declaration of code lists ───
-  const freeItemCodes     = ['BELIGAS101', 'SIXPEX202', 'XENO303'];
-  const freeShippingCodes = ['SHIPFREE20', 'FREESHIP2025'];
-  const percentageCodes   = { 'NEWCLIENT10': 10 }; // code: % discount on subtotal only
+  // ─── Promo code lists (obfuscated) ───
+  const _d = (s) => atob(s);
+  const freeItemCodes     = [_d('QkVMSUdBUzEwMQ=='), _d('U0lYUEVYMjAy'), _d('WEVOTzMwMw==')];
+  const freeShippingCodes = [_d('U0hJUEZSRUUyMA=='), _d('RlJFRVNISVAyMDI1')];
+  const percentageCodes   = { [_d('TkVXQ0xJRU5UMTA=')]: 10 };
 
   const freeItem = {
     id: 'free-testc200mg',
