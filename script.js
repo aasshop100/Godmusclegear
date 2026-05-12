@@ -307,9 +307,18 @@ function handleCheckoutSubmit(event) {
     shipping = Math.max(0, shipping - Math.min(20, shipping));
   }
 
-  const grandTotal = subtotal + shipping;
-  const orderId    = 'ORDER-' + Date.now();
-  const promoCode  = localStorage.getItem('appliedPromoCode') || 'None';
+  // Apply percentage discount to subtotal only
+  const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
+  let discountedSubtotal = subtotal;
+  let discountAmount = 0;
+  if (pctDiscount > 0) {
+    discountAmount = subtotal * (pctDiscount / 100);
+    discountedSubtotal = subtotal - discountAmount;
+  }
+  const grandTotal   = discountedSubtotal + shipping;
+  const orderId      = 'ORDER-' + Date.now();
+  const promoCode    = localStorage.getItem('appliedPromoCode') || 'None';
+  const discountLine = pctDiscount > 0 ? `-${pctDiscount}% off items (-$${discountAmount.toFixed(2)})` : 'None';
 
   const itemsTableHTML = storedCart.map((item, i) => {
     const qty       = item.quantity || 1;
@@ -335,8 +344,8 @@ function handleCheckoutSubmit(event) {
     template_params: {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       full_address: fullAddress, items_table_html: itemsTableHTML,
-      subtotal: subtotal.toFixed(2), shipping: shipping.toFixed(2),
-      total: grandTotal.toFixed(2), promo_code: promoCode
+      subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
+      total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine
     }
   };
 
@@ -347,8 +356,8 @@ function handleCheckoutSubmit(event) {
     template_params: {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       phone, full_address: fullAddress, items_table_html: itemsTableHTML,
-      subtotal: subtotal.toFixed(2), shipping: shipping.toFixed(2),
-      total: grandTotal.toFixed(2), promo_code: promoCode,
+      subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
+      total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       to_email: 'aasshop100@gmail.com'
     }
   };
