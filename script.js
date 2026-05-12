@@ -382,6 +382,7 @@ function handleCheckoutSubmit(event) {
         localStorage.removeItem('cart');
         localStorage.removeItem('appliedPromoCode');
         localStorage.removeItem('freeShipping');
+        localStorage.removeItem('percentageDiscount');
         updateCartCount();
         setTimeout(() => { window.location.href = 'order-success.html'; }, 600);
       } else {
