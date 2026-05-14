@@ -1256,9 +1256,109 @@ footer {
   }
 }
 
-@media (max-width: 768px) {
-  .hero h1 { font-size: 3.2rem; }
-  .hero-stats { gap: 24px; }
+/* hero h1 and hero-stats mobile overrides moved to COMPREHENSIVE MOBILE OPTIMIZATIONS below */
+
+/* ================================================
+   COMPREHENSIVE MOBILE OPTIMIZATIONS
+   ================================================ */
+
+/* 1. iOS Safari auto-zoom prevention
+   Any input with font-size < 16px triggers auto-zoom on iPhone — override globally */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  .form-control,
+  .form-select,
+  #product-search,
+  #brand-filter,
+  #type-filter,
+  #promo-code-input {
+    font-size: 16px !important;
+  }
+}
+
+/* 2. Hero: auto height on mobile so content doesn't get buried */
+@media (max-width: 767px) {
+  .hero { min-height: auto; }
+  .hero .container { padding-top: 52px; padding-bottom: 52px; }
+  .hero h1 { font-size: 2.6rem; }
+  .hero-sub { font-size: 0.875rem; max-width: 100%; }
+  .hero-cta-group { gap: 10px; }
+  .btn-hero-primary,
+  .btn-hero-secondary { padding: 12px 20px; font-size: 0.85rem; }
+  .hero-stats { gap: 16px; margin-top: 28px; padding-top: 20px; }
+  .hero-stat-number { font-size: 1.7rem; }
+  .hero-stat-label { font-size: 0.62rem; letter-spacing: 1.5px; }
+}
+
+/* 3. Section padding reduction on mobile */
+@media (max-width: 767px) {
+  #featured-products { padding: 56px 0; }
+  .brands-section { padding: 40px 0; }
+  .page-header { padding: 36px 0 28px; }
+}
+
+/* 4. Cart notification: allow wrapping on narrow screens */
+@media (max-width: 480px) {
+  .cart-notification {
+    white-space: normal;
+    text-align: center;
+    max-width: 88vw;
+    padding: 12px 18px;
+    line-height: 1.5;
+  }
+}
+
+/* 5. Floating buttons: tighter on small screens */
+@media (max-width: 575px) {
+  .floating-cart,
+  .telegram-float,
+  .back-to-top {
+    width: 46px;
+    height: 46px;
+    right: 16px;
+  }
+  .telegram-float { bottom: 128px; }
+  .floating-cart { bottom: 74px; }
+  .back-to-top { bottom: 16px; }
+  .floating-cart span { top: 3px; right: 3px; width: 17px; height: 17px; font-size: 10px; }
+}
+
+/* 6. Modal adjustments on mobile */
+@media (max-width: 575px) {
+  .modal-dialog { margin: 0.5rem; }
+  .modal-body { padding: 1rem !important; }
+  #modalProductImage { max-height: 200px; }
+}
+
+/* 7. Page title scaling on mobile */
+@media (max-width: 767px) {
+  .checkout-title { font-size: 2rem; }
+  .policies-title { font-size: 2rem; }
+  .success-box { padding: 32px 20px; }
+  .success-box h2 { font-size: 2rem; }
+}
+
+/* 8. Trust bar: tighten on very small screens */
+@media (max-width: 380px) {
+  .trust-item { font-size: 0.6rem; gap: 4px; }
+  .trust-item svg { width: 12px; height: 12px; }
+}
+
+/* 9. Brand logos on mobile */
+@media (max-width: 575px) {
+  .brand-logo { height: 36px; }
+}
+
+/* 10. Minimum 44px touch targets for interactive elements */
+.add-to-cart,
+.btn-hero-primary,
+.btn-hero-secondary,
+.place-order-btn,
+#apply-promo-btn,
+#clear-filters {
+  min-height: 44px;
 }
 
 /* === BRANDS DROPDOWN MENU === */
