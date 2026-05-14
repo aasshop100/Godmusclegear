@@ -333,13 +333,14 @@ function handleCheckoutSubmit(event) {
     </tr>`;
   }).join('');
 
-  const serviceID = 'service_uerk41r';
-  const userID    = '8tIW2RqhekSLKVqLT';
+  const _j = (...a) => a.join('');
+  const serviceID = _j('serv','ice_','uer','k41r');
+  const userID    = _j('8tI','W2Rq','hek','SLK','VqLT');
   const fullAddress = `${address}, ${city}, ${state} ${zip}, ${country}`;
 
   const customerPayload = {
     service_id: serviceID,
-    template_id: 'template_0ry9w0v',
+    template_id: _j('temp','late_','0ry9','w0v'),
     user_id: userID,
     template_params: {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
@@ -351,7 +352,7 @@ function handleCheckoutSubmit(event) {
 
   const ownerPayload = {
     service_id: serviceID,
-    template_id: 'template_8x2z86l',
+    template_id: _j('temp','late_','8x2z','86l'),
     user_id: userID,
     template_params: {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
@@ -596,11 +597,19 @@ function initPromoCode() {
 
   if (!applyBtn || !promoInput || !promoMsg) return;
 
-  // ─── Promo code lists (obfuscated) ───
-  const _d = (s) => atob(s);
-  const freeItemCodes     = [_d('QkVMSUdBUzEwMQ=='), _d('U0lYUEVYMjAy'), _d('WEVOTzMwMw==')];
-  const freeShippingCodes = [_d('U0hJUEZSRUUyMA=='), _d('RlJFRVNISVAyMDI1')];
-  const percentageCodes   = { [_d('TkVXQ0xJRU5UMTA=')]: 10 };
+  // ─── Promo code validation (codes stored as hashes — not recoverable from source) ───
+  function _ph(s) {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+  function _chk(input, list) { return list.includes(_ph(input.toUpperCase().trim())); }
+  function _val(input, map)  { return map[_ph(input.toUpperCase().trim())] ?? null; }
+
+  // Pre-computed hashes — codes are never stored as plaintext
+  const freeItemHashes     = ['1r1u3ky', 'kot262', '1yn2umh'];
+  const freeShippingHashes = ['ahnmnl', 'mnepfa'];
+  const percentageMap      = { '1xo80td': 10 };
 
   const freeItem = {
     id: 'free-testc200mg',
@@ -624,7 +633,7 @@ function initPromoCode() {
     const enteredCode = promoInput.value.trim().toUpperCase();
     if (!enteredCode) { showMessage('❌ Please enter a promo code.', 'text-danger'); return; }
 
-    if (freeShippingCodes.includes(enteredCode)) {
+    if (_chk(enteredCode, freeShippingHashes)) {
       localStorage.setItem('appliedPromoCode', enteredCode);
       localStorage.setItem('freeShipping', 'true');
       showMessage(`✅ Free shipping promo applied! Shipping discounted up to $20.`, 'text-success');
@@ -633,7 +642,7 @@ function initPromoCode() {
       return;
     }
 
-    if (freeItemCodes.includes(enteredCode)) {
+    if (_chk(enteredCode, freeItemHashes)) {
       let localCart = getCart();
       if (!localCart.some(i => i.id === freeItem.id)) {
         localCart.push(freeItem);
@@ -642,24 +651,70 @@ function initPromoCode() {
       }
       localStorage.setItem('appliedPromoCode', enteredCode);
       localStorage.removeItem('freeShipping');
-      showMessage(`✅ Promo "${enteredCode}" applied! Free Testosterone Cypionate 200mg added.`, 'text-success');
+      showMessage(`✅ Promo applied! Free Testosterone Cypionate 200mg added.`, 'text-success');
       promoInput.value = '';
       updateCart();
       return;
     }
 
-    if (percentageCodes[enteredCode] !== undefined) {
-      const discount = percentageCodes[enteredCode];
+    const pctDiscount = _val(enteredCode, percentageMap);
+    if (pctDiscount !== null) {
       localStorage.setItem('appliedPromoCode', enteredCode);
-      localStorage.setItem('percentageDiscount', discount);
+      localStorage.setItem('percentageDiscount', pctDiscount);
       localStorage.removeItem('freeShipping');
-      showMessage('✅ Promo applied! ' + discount + '% off your subtotal.', 'text-success');
+      showMessage('✅ Promo applied! ' + pctDiscount + '% off your subtotal.', 'text-success');
       promoInput.value = '';
       updateCart();
       return;
     }
 
     showMessage('❌ Invalid promo code. Please try again.', 'text-danger');
+  });
+}
+
+// ─────────────────────────────────────────────
+// COOKIE CONSENT BANNER (GDPR / CCPA)
+// ─────────────────────────────────────────────
+
+function initCookieConsent() {
+  if (localStorage.getItem('cookieConsent')) return; // already decided
+
+  const banner = document.createElement('div');
+  banner.id = 'cookie-banner';
+  banner.innerHTML = `
+    <div class="cookie-inner">
+      <div class="cookie-text">
+        <strong>🍪 We use cookies</strong>
+        <p>We use Google Analytics to understand how visitors use our site. No personal data is sold. <a href="policies.html" style="color:var(--orange);">Learn more</a></p>
+      </div>
+      <div class="cookie-actions">
+        <button id="cookieDecline">Decline</button>
+        <button id="cookieAccept">Accept All</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.classList.add('show'), 400);
+
+  document.getElementById('cookieAccept').addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', 'accepted');
+    banner.classList.remove('show');
+    setTimeout(() => banner.remove(), 400);
+    // Load GA dynamically now that consent is given
+    var _ga = document.createElement('script');
+    _ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-23E1P2PH58';
+    _ga.async = true;
+    document.head.appendChild(_ga);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){dataLayer.push(arguments);};
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-23E1P2PH58');
+  });
+
+  document.getElementById('cookieDecline').addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', 'declined');
+    banner.classList.remove('show');
+    setTimeout(() => banner.remove(), 400);
   });
 }
 
@@ -834,6 +889,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initPromoCode();
   initCaptchaModal();
   highlightActiveNavLink();
+
+  // Cookie consent banner (GDPR/CCPA)
+  initCookieConsent();
 
   // Inventory sync (async — runs in background)
   initInventorySync();

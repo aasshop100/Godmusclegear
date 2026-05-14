@@ -26,6 +26,90 @@
 }
 
 /* ================================================
+   COOKIE CONSENT BANNER
+   ================================================ */
+#cookie-banner {
+  position: fixed;
+  bottom: -180px;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  z-index: 10000;
+  transition: bottom 0.4s ease;
+  padding: 16px 20px;
+}
+
+#cookie-banner.show { bottom: 0; }
+
+.cookie-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.cookie-text strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--black);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.cookie-text p {
+  font-size: 0.8rem;
+  color: var(--grey);
+  margin: 0;
+  max-width: 580px;
+}
+
+.cookie-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cookie-actions button {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 44px;
+}
+
+#cookieDecline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--grey);
+}
+
+#cookieDecline:hover { background: var(--light-grey); color: var(--charcoal); }
+
+#cookieAccept {
+  background: var(--orange);
+  border: none;
+  color: var(--white);
+}
+
+#cookieAccept:hover { background: var(--orange-dark); }
+
+@media (max-width: 575px) {
+  .cookie-inner { flex-direction: column; gap: 12px; }
+  .cookie-actions { width: 100%; }
+  .cookie-actions button { flex: 1; }
+}
+
+/* ================================================
    PROMO ANNOUNCEMENT BAR
    ================================================ */
 #promo-bar {
