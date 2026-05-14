@@ -226,45 +226,70 @@
         View All →
       </a>
     </div>
-    <div class="row g-4">
+    <!-- Featured Product Carousel -->
+    <div id="featuredCarousel" class="carousel slide featured-carousel" data-bs-ride="carousel" data-bs-interval="3500" data-bs-touch="true">
+      <div class="carousel-inner">
 
-      <div class="col-6 col-md-4 product-card">
-        <div class="card" data-brand="Beligas" data-type="Injectable">
-          <img src="images/testp100mg.png" class="card-img-top" alt="Testosterone Propionate 100mg">
-          <div class="card-body">
-            <h5 class="card-title">Testosterone Propionate, 100mg</h5>
-            <p class="card-text">Active: Testosterone Propionate · MCT oil · 100mg/mL</p>
-            <span class="fw-bold">$48.30</span>
-            <button class="add-to-cart" data-name="Testosterone Propionate, 100mg (1 vial)" data-id="testp100mg" data-price="48.30" data-image="images/testp100mg.png">Add to Cart</button>
+        <div class="carousel-item active">
+          <div class="featured-slide">
+            <div class="card" data-brand="Beligas" data-type="Injectable">
+              <img src="images/testp100mg.png" class="card-img-top" alt="Testosterone Propionate 100mg">
+              <div class="card-body">
+                <h5 class="card-title">Testosterone Propionate, 100mg</h5>
+                <p class="card-text">Active: Testosterone Propionate · MCT oil · 100mg/mL</p>
+                <span class="fw-bold">$48.30</span>
+                <button class="add-to-cart" data-name="Testosterone Propionate, 100mg (1 vial)" data-id="testp100mg" data-price="48.30" data-image="images/testp100mg.png">Add to Cart</button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-6 col-md-4 product-card">
-        <div class="card" data-brand="Beligas" data-type="Injectable">
-          <img src="images/teste300mg.png" class="card-img-top" alt="Testosterone Enanthate 300mg">
-          <div class="card-body">
-            <h5 class="card-title">Testosterone Enanthate, 300mg</h5>
-            <p class="card-text">Active: Testosterone Enanthate · MCT Oil · 300mg/mL</p>
-            <span class="fw-bold">$65.55</span>
-            <button class="add-to-cart" data-name="Testosterone Enanthate, 300mg (1 vial)" data-id="teste300mg" data-price="65.55" data-image="images/teste300mg.png">Add to Cart</button>
+        <div class="carousel-item">
+          <div class="featured-slide">
+            <div class="card" data-brand="Beligas" data-type="Injectable">
+              <img src="images/teste300mg.png" class="card-img-top" alt="Testosterone Enanthate 300mg">
+              <div class="card-body">
+                <h5 class="card-title">Testosterone Enanthate, 300mg</h5>
+                <p class="card-text">Active: Testosterone Enanthate · MCT Oil · 300mg/mL</p>
+                <span class="fw-bold">$65.55</span>
+                <button class="add-to-cart" data-name="Testosterone Enanthate, 300mg (1 vial)" data-id="teste300mg" data-price="65.55" data-image="images/teste300mg.png">Add to Cart</button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-6 col-md-4 product-card">
-        <div class="card" data-brand="Beligas" data-type="Injectable">
-          <img src="images/testc200mg.png" class="card-img-top" alt="Testosterone Cypionate 200mg">
-          <div class="card-body">
-            <h5 class="card-title">Testosterone Cypionate, 200mg</h5>
-            <p class="card-text">Active: Testosterone Cypionate · MCT oil · 200mg/mL</p>
-            <span class="fw-bold">$62.10</span>
-            <button class="add-to-cart" data-name="Testosterone Cypionate, 200mg (1 vial)" data-id="testc200mg" data-price="62.10" data-image="images/testc200mg.png">Add to Cart</button>
+        <div class="carousel-item">
+          <div class="featured-slide">
+            <div class="card" data-brand="Beligas" data-type="Injectable">
+              <img src="images/testc200mg.png" class="card-img-top" alt="Testosterone Cypionate 200mg">
+              <div class="card-body">
+                <h5 class="card-title">Testosterone Cypionate, 200mg</h5>
+                <p class="card-text">Active: Testosterone Cypionate · MCT oil · 200mg/mL</p>
+                <span class="fw-bold">$62.10</span>
+                <button class="add-to-cart" data-name="Testosterone Cypionate, 200mg (1 vial)" data-id="testc200mg" data-price="62.10" data-image="images/testc200mg.png">Add to Cart</button>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
 
+      <!-- Dot indicators -->
+      <div class="carousel-indicators featured-indicators">
+        <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Product 1"></button>
+        <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="1" aria-label="Product 2"></button>
+        <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="2" aria-label="Product 3"></button>
+      </div>
     </div>
+
+    <!-- Shop Now CTA -->
+    <div class="text-center" style="margin-top: 2.5rem;">
+      <a href="products.html" class="btn-hero-primary">
+        Shop Now
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
   </div>
 </section>
 

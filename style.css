@@ -1259,6 +1259,43 @@ footer {
 /* hero h1 and hero-stats mobile overrides moved to COMPREHENSIVE MOBILE OPTIMIZATIONS below */
 
 /* ================================================
+   FEATURED PRODUCTS CAROUSEL
+   ================================================ */
+.featured-carousel {
+  max-width: 420px;
+  margin: 0 auto;
+  padding-bottom: 48px; /* space for dot indicators */
+}
+
+.featured-slide {
+  padding: 0 4px;
+}
+
+/* Dot indicators — repositioned below the card */
+.featured-indicators {
+  bottom: 6px;
+  margin: 0;
+}
+
+.featured-indicators [data-bs-target] {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border);
+  border-top: none;
+  border-bottom: none;
+  opacity: 1;
+  margin: 0 5px;
+  transition: all 0.3s ease;
+}
+
+.featured-indicators .active {
+  background-color: var(--orange);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ================================================
    COMPREHENSIVE MOBILE OPTIMIZATIONS
    ================================================ */
 
