@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add index.html style.css)",
+      "Bash(git -C 'c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main' commit -m ' *)",
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" push origin main)",
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add -A)"
+    ]
+  }
+}
