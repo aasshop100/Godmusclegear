@@ -840,4 +840,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Checkout summary update
   if (document.getElementById('checkout-grand-total')) updateCheckoutSummary();
+
+  // ── Promo Announcement Bar (homepage only) ──
+  const promoBar = document.getElementById('promo-bar');
+  if (promoBar) {
+    // Hide if user already closed it this session
+    if (sessionStorage.getItem('promoBarClosed')) {
+      promoBar.style.display = 'none';
+    }
+
+    // Close button
+    document.getElementById('closePromoBar').addEventListener('click', () => {
+      promoBar.style.display = 'none';
+      sessionStorage.setItem('promoBarClosed', '1');
+    });
+
+    // Copy promo code on click
+    document.getElementById('copyPromoCode').addEventListener('click', () => {
+      navigator.clipboard.writeText('NEWCLIENT10').then(() => {
+        const btn = document.getElementById('copyPromoCode');
+        const original = btn.innerHTML;
+        btn.textContent = 'Copied! ✓';
+        btn.style.background = 'rgba(255,255,255,0.4)';
+        setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 2000);
+      });
+    });
+  }
 });

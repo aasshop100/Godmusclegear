@@ -25,6 +25,99 @@
   --transition:    all 0.25s ease;
 }
 
+/* ================================================
+   PROMO ANNOUNCEMENT BAR
+   ================================================ */
+#promo-bar {
+  background: var(--orange);
+  color: var(--white);
+  text-align: center;
+  padding: 10px 16px;
+  position: relative;
+  z-index: 1100;
+}
+
+.promo-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: 960px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.promo-bar-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.promo-code-chip {
+  background: rgba(255,255,255,0.2);
+  border: 1.5px dashed rgba(255,255,255,0.7);
+  color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.promo-code-chip:hover {
+  background: rgba(255,255,255,0.35);
+  border-color: var(--white);
+}
+
+.promo-code-chip::after {
+  content: '📋';
+  font-size: 0.75rem;
+}
+
+.promo-bar-cta {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.promo-bar-cta:hover { opacity: 0.8; }
+
+.promo-bar-close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+  transition: var(--transition);
+}
+
+.promo-bar-close:hover { color: var(--white); }
+
+@media (max-width: 575px) {
+  .promo-bar-text { font-size: 0.78rem; }
+  .promo-code-chip { font-size: 0.9rem; }
+}
+
 /* === Reset === */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
