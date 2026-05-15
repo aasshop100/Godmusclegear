@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add products.html)",
+      "Bash(git -C 'c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main' commit -m ' *)",
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add -u)"
+    ]
+  }
+}

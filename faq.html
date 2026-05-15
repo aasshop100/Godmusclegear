@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ | Frequently Asked Questions - GOD MUSCLE GEARS</title>
+  <meta name="description" content="Frequently asked questions about ordering, shipping, payment, and products at GOD MUSCLE GEARS. Fast answers to everything you need to know.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.godmusclegears.com/faq.html">
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .faq-section {
+      background: var(--light-grey);
+      padding: 64px 0;
+    }
+
+    .faq-category-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--orange);
+      margin-bottom: 16px;
+      margin-top: 48px;
+    }
+
+    .faq-category-title:first-of-type {
+      margin-top: 0;
+    }
+
+    .faq-item {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .faq-item:hover {
+      border-color: var(--orange);
+    }
+
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--black);
+      transition: var(--transition);
+    }
+
+    .faq-question:hover {
+      color: var(--orange);
+    }
+
+    .faq-question.open {
+      color: var(--orange);
+    }
+
+    .faq-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      background: var(--orange-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--orange);
+      font-weight: 700;
+      transition: var(--transition);
+    }
+
+    .faq-question.open .faq-icon {
+      background: var(--orange);
+      color: var(--white);
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 0 24px 20px 24px;
+      font-size: 0.9rem;
+      color: var(--grey);
+      line-height: 1.75;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .faq-answer.open {
+      display: block;
+    }
+
+    .faq-answer a {
+      color: var(--orange);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .faq-answer a:hover {
+      text-decoration: underline;
+    }
+
+    .faq-cta {
+      background: var(--black);
+      padding: 56px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">GOD <span>MUSCLE</span> GEARS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Brands</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="products.html">All Products</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="products.html?brand=Beligas">Beligas</a></li>
+            <li><a class="dropdown-item" href="products.html?brand=Sixpex">Sixpex</a></li>
+            <li><a class="dropdown-item" href="products.html?brand=Xeno">Xeno Labs</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="blog.html">Blog</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="proofs.html">Proof of Delivery</a></li>
+        <li class="nav-item"><a class="nav-link" href="peptide-calculator.html">Peptide Calculator</a></li>
+        <li class="nav-item">
+          <a class="nav-link" href="cart.html" id="cart-nav">
+            🛒 Cart <span id="cart-count">0</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <p style="color:var(--orange); font-size:0.75rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; position:relative;">Got Questions?</p>
+    <h2 style="position:relative;">Frequently Asked <span>Questions</span></h2>
+    <p style="position:relative;">Everything you need to know about ordering, shipping, and our products.</p>
+  </div>
+</div>
+
+<!-- FAQ SECTION -->
+<section class="faq-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+
+        <!-- ORDERING & PAYMENT -->
+        <p class="faq-category-title">Ordering &amp; Payment</p>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How do I place an order?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Browse our <a href="products.html">products page</a>, add items to your cart, and proceed to checkout. Once your order is placed, you will receive a confirmation. For any assistance, reach us on <a href="https://t.me/Godmusclegears" target="_blank">Telegram</a>.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            What payment methods do you accept?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            We accept cryptocurrency payments including Bitcoin and other major coins. This ensures fast, secure, and private transactions. Payment details are provided at checkout.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Is my personal information kept private?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Absolutely. We take your privacy seriously. Your personal details are never shared with third parties. All orders are handled with full discretion. See our <a href="policies.html">Privacy Policy</a> for more details.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Can I cancel or change my order?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            All orders are final once processed. Please make sure your order is correct before completing your purchase. If you have any concerns, contact us via <a href="https://t.me/Godmusclegears" target="_blank">Telegram</a> before placing your order.
+          </div>
+        </div>
+
+        <!-- SHIPPING & DELIVERY -->
+        <p class="faq-category-title">Shipping &amp; Delivery</p>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Where do you ship to?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            We primarily ship to the United States. All orders are dispatched from our warehouse and delivered directly to your door.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How long does shipping take?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Domestic USA orders typically arrive within 4–7 business days after payment confirmation. You will receive a tracking number once your order has been dispatched.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Is the packaging discreet?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Yes. All orders are shipped in plain, unmarked packaging with no indication of the contents. There is no GOD MUSCLE GEARS branding on the outside of the package.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            What happens if my package gets seized or lost?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            We offer a reship guarantee. If your package is seized or lost in transit, contact us on <a href="https://t.me/Godmusclegears" target="_blank">Telegram</a> and we will arrange a replacement shipment at no extra cost.
+          </div>
+        </div>
+
+        <!-- PRODUCTS -->
+        <p class="faq-category-title">Products</p>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Are your products genuine and pharmaceutical grade?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Yes. We only carry products from trusted, established pharmaceutical brands — Beligas, Sixpex, and Xeno Labs. All products are authentic and sourced directly from the manufacturers.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            What is the difference between Beligas, Sixpex, and Xeno Labs?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            All three are reputable pharmaceutical brands. <strong>Beligas</strong> is known for its wide range of injectables and orals. <strong>Sixpex</strong> offers a comprehensive catalog including peptides and PCT. <strong>Xeno Labs</strong> is a premium brand popular for its consistent quality and clean formulations.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Do you sell peptides and HGH?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Yes. We carry a full range of peptides including BPC-157, TB-500, Semaglutide, Ipamorelin, Sermorelin, and HGH from Sixpex and Xeno Labs. Browse our <a href="products.html">products page</a> for the full list.
+          </div>
+        </div>
+
+        <!-- GENERAL -->
+        <p class="faq-category-title">General</p>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Do I need a prescription to order?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            No prescription is required to place an order. All products on our site are sold for research purposes only. Please refer to our <a href="policies.html">Terms &amp; Policies</a> for full details.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            What if I receive a wrong or damaged item?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            We apologize if this happens. Please contact us immediately via <a href="https://t.me/Godmusclegears" target="_blank">Telegram</a> or our <a href="contact.html">contact page</a> with your order details and a photo, and we will resolve it as quickly as possible.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How do I contact you?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            The fastest way to reach us is via <a href="https://t.me/Godmusclegears" target="_blank">Telegram</a>. You can also email us at <a href="mailto:admin@godmusclegears.com">admin@godmusclegears.com</a> or use our <a href="contact.html">contact form</a>.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STILL HAVE QUESTIONS CTA -->
+<section class="faq-cta">
+  <div class="container">
+    <span class="section-eyebrow">Still Have Questions?</span>
+    <h2 class="section-title" style="color:var(--white); margin-bottom:16px;">We're Here to <span>Help</span></h2>
+    <p style="color:rgba(255,255,255,0.5); font-size:0.95rem; margin-bottom:32px;">Reach out to us anytime on Telegram — we respond fast.</p>
+    <a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" style="background:#0088cc; color:white; font-family:'DM Sans',sans-serif; font-weight:700; padding:13px 28px; border-radius:10px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
+      Chat on Telegram
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <span class="footer-brand">GOD <span>MUSCLE</span> GEARS</span>
+        <p class="footer-desc">Premium gears for serious lifters.</p>
+      </div>
+      <div class="col-6 col-lg-2 offset-lg-2">
+        <span class="footer-heading">Shop</span>
+        <ul class="footer-links">
+          <li><a href="products.html">All Products</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="checkout.html">Checkout</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2">
+        <span class="footer-heading">Info</span>
+        <ul class="footer-links">
+          <li><a href="proofs.html">Proof of Delivery</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="policies.html">Terms &amp; Policies</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2">
+        <span class="footer-heading">Connect</span>
+        <ul class="footer-links">
+          <li><a href="https://t.me/Godmusclegears" target="_blank">Telegram</a></li>
+          <li><a href="contact.html">Email Us</a></li>
+          <li><a href="mailto:admin@godmusclegears.com">admin@godmusclegears.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 GOD MUSCLE GEARS. All rights reserved.</p>
+      <p class="footer-disclaimer">⚠️ All products are for research purposes only.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating Buttons -->
+<a href="cart.html" class="floating-cart" title="View Cart">🛒<span id="floating-cart-count">0</span></a>
+<button id="backToTop" class="back-to-top" title="Go to top">↑</button>
+<a href="https://t.me/Godmusclegears" target="_blank" rel="noopener noreferrer" class="telegram-float">
+  <img src="images/telegramlogo.png" alt="Telegram">
+</a>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+<script>
+  function toggleFaq(btn) {
+    const answer = btn.nextElementSibling;
+    const isOpen = btn.classList.contains('open');
+
+    // Close all open items
+    document.querySelectorAll('.faq-question.open').forEach(q => {
+      q.classList.remove('open');
+      q.nextElementSibling.classList.remove('open');
+    });
+
+    // Open clicked item if it was closed
+    if (!isOpen) {
+      btn.classList.add('open');
+      answer.classList.add('open');
+    }
+  }
+</script>
+</body>
+</html>
