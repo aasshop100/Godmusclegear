@@ -311,7 +311,12 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 991px) {
-  .hero-video { display: none; }
+  .hero-video {
+    object-fit: contain;
+    object-position: center center;
+    opacity: 0.35;
+    transform: scale(1.5);
+  }
 }
 
 .hero::before {
