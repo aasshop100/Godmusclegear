@@ -740,12 +740,13 @@ img { max-width: 100%; display: block; }
 .brand-logo {
   height: 48px;
   object-fit: contain;
-  filter: grayscale(100%) opacity(35%);
+  filter: none;
+  opacity: 0.85;
   transition: var(--transition);
 }
 
-.brand-logo:hover, .brand-logo.no-filter:hover {
-  filter: grayscale(0%) opacity(100%);
+.brand-logo:hover {
+  opacity: 1;
   transform: scale(1.08);
 }
 
