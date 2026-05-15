@@ -310,6 +310,10 @@ img { max-width: 100%; display: block; }
   opacity: 0.3;
 }
 
+@media (max-width: 991px) {
+  .hero-video { display: none; }
+}
+
 .hero::before {
   content: '';
   position: absolute;
