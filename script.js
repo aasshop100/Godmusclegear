@@ -862,10 +862,14 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCheckoutButton();
 
   // Bind Add-to-Cart buttons (clone to remove any stale listeners)
-  document.querySelectorAll('.add-to-cart').forEach(btn => {
+  document.querySelectorAll('.add-to-cart, .pcard-btn').forEach(btn => {
     const fresh = btn.cloneNode(true);
     btn.replaceWith(fresh);
-    fresh.addEventListener('click', function () { addToCart(this); });
+    fresh.addEventListener('click', function () {
+      addToCart(this);
+      updateCartDrawer();
+      updateStickyBar();
+    });
   });
 
   // Page-specific initialisation
@@ -881,9 +885,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollAnimations();
   initBackToTop();
   initScrollAnimations();
-  // Hero entrance animation
-  const heroContent = document.querySelector('.hero-content');
+  // Hero entrance animation (old hero + new pink hero)
+  const heroContent = document.querySelector('.hero-content, .hero-pink-content');
   if (heroContent) setTimeout(() => heroContent.classList.add('visible'), 100);
+
+  // New homepage features
+  initCartDrawer();
+  initStickyBar();
+  initCategoryTabs();
+
   initProductModal();
   initTelegramPopup();
   initPromoCode();
@@ -925,3 +935,176 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ─────────────────────────────────────────────
+// CART DRAWER
+// ─────────────────────────────────────────────
+
+function updateCartDrawer() {
+  const cartData = JSON.parse(localStorage.getItem('cart')) || [];
+  const totalQty = cartData.reduce((s, i) => s + (i.quantity || 1), 0);
+  let subtotal = 0;
+  cartData.forEach(i => { subtotal += Number(i.price) * (i.quantity || 1); });
+  const shipping = cartData.length ? Math.ceil(totalQty / 10) * BASE_SHIPPING_PER_10 : 0;
+  const grandTotal = subtotal + shipping;
+
+  const countEl    = document.getElementById('cart-drawer-count');
+  const bodyEl     = document.getElementById('cart-drawer-items');
+  const emptyEl    = document.getElementById('cart-drawer-empty');
+  const footerEl   = document.getElementById('cart-drawer-footer');
+  const subtotalEl = document.getElementById('cart-drawer-subtotal');
+  const shippingEl = document.getElementById('cart-drawer-shipping');
+  const totalEl    = document.getElementById('cart-drawer-total');
+
+  if (countEl) countEl.textContent = totalQty;
+
+  if (!bodyEl) return;
+
+  // Remove old drawer items (keep the empty state el)
+  bodyEl.querySelectorAll('.drawer-item').forEach(el => el.remove());
+
+  if (cartData.length === 0) {
+    if (emptyEl)  emptyEl.style.display = 'flex';
+    if (footerEl) footerEl.classList.remove('visible');
+  } else {
+    if (emptyEl)  emptyEl.style.display = 'none';
+    if (footerEl) footerEl.classList.add('visible');
+
+    cartData.forEach((item, idx) => {
+      const qty       = item.quantity || 1;
+      const lineTotal = (Number(item.price) * qty).toFixed(2);
+      const imgSrc    = item.image || 'images/default-supplement.png';
+
+      const el = document.createElement('div');
+      el.className = 'drawer-item';
+      el.innerHTML = `
+        <img src="${imgSrc}" alt="${item.name}" class="drawer-item-img">
+        <div class="drawer-item-info">
+          <p class="drawer-item-name">${item.name}</p>
+          <p class="drawer-item-price">$${Number(item.price).toFixed(2)} each</p>
+          <div class="drawer-item-controls">
+            <button class="drawer-qty-btn" onclick="drawerQty(${idx},-1)">−</button>
+            <span class="drawer-qty-num">${qty}</span>
+            <button class="drawer-qty-btn" onclick="drawerQty(${idx},1)">+</button>
+            <button class="drawer-remove-btn" onclick="drawerRemove(${idx})">Remove</button>
+          </div>
+        </div>
+        <span class="drawer-item-line-total">$${lineTotal}</span>
+      `;
+      bodyEl.appendChild(el);
+    });
+
+    if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    if (shippingEl) shippingEl.textContent = `$${shipping.toFixed(2)}`;
+    if (totalEl)    totalEl.textContent    = `$${grandTotal.toFixed(2)}`;
+  }
+
+  updateStickyBar();
+}
+
+function drawerQty(index, delta) {
+  cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const newQty = (cart[index].quantity || 1) + delta;
+  if (newQty < 1) { drawerRemove(index); return; }
+  cart[index].quantity = newQty;
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartCount();
+  updateCartDrawer();
+}
+
+function drawerRemove(index) {
+  cart = JSON.parse(localStorage.getItem('cart')) || [];
+  cart.splice(index, 1);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartCount();
+  updateCartDrawer();
+}
+
+function openCartDrawer() {
+  document.getElementById('cartDrawer')?.classList.add('open');
+  document.getElementById('cartOverlay')?.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCartDrawer() {
+  document.getElementById('cartDrawer')?.classList.remove('open');
+  document.getElementById('cartOverlay')?.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function initCartDrawer() {
+  const openBtn  = document.getElementById('cartDrawerOpen');
+  const closeBtn = document.getElementById('cartDrawerClose');
+  const overlay  = document.getElementById('cartOverlay');
+
+  if (openBtn)  openBtn.addEventListener('click',  openCartDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeCartDrawer);
+  if (overlay)  overlay.addEventListener('click',  closeCartDrawer);
+
+  updateCartDrawer();
+}
+
+// ─────────────────────────────────────────────
+// STICKY BOTTOM BAR
+// ─────────────────────────────────────────────
+
+function updateStickyBar() {
+  const bar      = document.getElementById('stickyBar');
+  if (!bar) return;
+
+  const cartData = JSON.parse(localStorage.getItem('cart')) || [];
+  const totalQty = cartData.reduce((s, i) => s + (i.quantity || 1), 0);
+  let subtotal   = cartData.reduce((s, i) => s + Number(i.price) * (i.quantity || 1), 0);
+  const shipping = cartData.length ? Math.ceil(totalQty / 10) * BASE_SHIPPING_PER_10 : 0;
+  const grandTotal = subtotal + shipping;
+
+  const labelEl = document.getElementById('sticky-bar-label');
+  const totalEl = document.getElementById('sticky-bar-total');
+  const badgeEl = document.getElementById('sticky-bar-count');
+
+  if (labelEl) labelEl.textContent = `${totalQty} item${totalQty !== 1 ? 's' : ''}`;
+  if (totalEl) totalEl.textContent = `$${grandTotal.toFixed(2)}`;
+  if (badgeEl) badgeEl.textContent = totalQty;
+
+  if (totalQty > 0) {
+    bar.classList.add('visible');
+    document.body.classList.add('sticky-bar-visible');
+  } else {
+    bar.classList.remove('visible');
+    document.body.classList.remove('sticky-bar-visible');
+  }
+}
+
+function initStickyBar() {
+  const btn = document.getElementById('stickyBarBtn');
+  if (btn) btn.addEventListener('click', openCartDrawer);
+  updateStickyBar();
+}
+
+// ─────────────────────────────────────────────
+// CATEGORY TABS (homepage)
+// ─────────────────────────────────────────────
+
+function initCategoryTabs() {
+  const tabs  = document.querySelectorAll('.cat-tab');
+  const items = document.querySelectorAll('#homeProductGrid .pgrid-item');
+
+  if (!tabs.length || !items.length) return;
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const cat = tab.dataset.cat;
+      items.forEach(item => {
+        if (cat === 'all' || item.dataset.cat === cat) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    });
+  });
+}
+
