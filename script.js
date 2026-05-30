@@ -476,6 +476,221 @@ function initProductFilter() {
 }
 
 // ─────────────────────────────────────────────
+// FULL PRODUCT CATALOG (for featured carousel)
+// ─────────────────────────────────────────────
+
+const FEATURED_CATALOG = (function () {
+  // [id, cartName, price, image, brand, type]
+  const raw = [
+    // Beligas — Injectables
+    ['sustanon400mg',              'Testosterone Esters Blend, 400mg (1 vial)',  86.25, 'images/sustanon400mg.jpg',              'Beligas', 'Injectable'],
+    ['testc250mg',                 'Testosterone Cypionate, 250mg (1 vial)',     63.84, 'images/testc250mg.jpg',                 'Beligas', 'Injectable'],
+    ['teste450mg',                 'Testosterone Enanthate, 450mg (1 vial)',     75.90, 'images/teste450mg.jpg',                 'Beligas', 'Injectable'],
+    ['trena100mg',                 'Trenbolone Acetate, 100mg (1 vial)',         86.25, 'images/trena100mg.jpg',                 'Beligas', 'Injectable'],
+    ['trene200mg',                 'Trenbolone Enanthate, 200mg (1 vial)',      103.50, 'images/trene200mg.jpg',                 'Beligas', 'Injectable'],
+    ['tritestpro400mg',            'TriTest Pro, 400mg (1 vial)',                89.70, 'images/tritestpro400mg.jpg',            'Beligas', 'Injectable'],
+    ['quanteq300mg',               'Quant Equipoise, 300mg (1 vial)',            75.90, 'images/quanteq300mg.jpg',               'Beligas', 'Injectable'],
+    ['quanteq500mg',               'Quant Equipoise, 500mg (1 vial)',           120.75, 'images/quanteq500mg.jpg',               'Beligas', 'Injectable'],
+    ['helioclenyohimbine40mcg55mg','Clenbuterol 40mcg Yohimbine 5.5mg (1 vial)', 75.90,'images/helioclenyohimbine40mcg55mg.jpg','Beligas', 'Injectable'],
+    ['maste200mg',                 'Masteron Enanthate, 200mg (1 vial)',         96.60, 'images/maste200mg.jpg',                 'Beligas', 'Injectable'],
+    ['dhb1TestC100mg',             'Dihydroboldenone Cypionate, 100mg (1 vial)', 69.00, 'images/dhb1TestC100mg.jpg',             'Beligas', 'Injectable'],
+    ['mastp100mg',                 'Masteron Propionate, 100mg (1 vial)',        82.80, 'images/mastp100mg.jpg',                 'Beligas', 'Injectable'],
+    ['primoe100mg',                'Primobolan Enanthate, 100mg (1 vial)',      120.75, 'images/primoe100mg.jpg',                'Beligas', 'Injectable'],
+    ['primoe200mg',                'Primobolan Enanthate, 200mg (1 vial)',      189.75, 'images/primoe200mg.jpg',                'Beligas', 'Injectable'],
+    ['npp100mg',                   'Npp, 100mg (1 vial)',                        58.65, 'images/npp100mg.jpg',                   'Beligas', 'Injectable'],
+    ['npp150mg',                   'Npp, 150mg (1 vial)',                        75.90, 'images/npp150mg.jpg',                   'Beligas', 'Injectable'],
+    ['hexotren100mg',              'Hexo Trenbolone, 100mg',                    120.75, 'images/hexotren100mg.jpg',              'Beligas', 'Injectable'],
+    ['testc200mg',                 'Testosterone Cypionate, 200mg (1 vial)',     62.10, 'images/testc200mg.png',                 'Beligas', 'Injectable'],
+    ['teste300mg',                 'Testosterone Enanthate, 300mg (1 vial)',     65.55, 'images/teste300mg.png',                 'Beligas', 'Injectable'],
+    ['testnpp1500mg',              'Testosterone NPP Blend, 150mg (1 vial)',     86.25, 'images/testnpp1500mg.jpg',              'Beligas', 'Injectable'],
+    ['testp100mg',                 'Testosterone Propionate, 100mg (1 vial)',    48.30, 'images/testp100mg.png',                 'Beligas', 'Injectable'],
+    ['testsuspension100mg',        'Testosterone Suspension, 100mg (1 vial)',    51.75, 'images/testsuspension100mg.jpg',        'Beligas', 'Injectable'],
+    ['testtrenboldblend400mg',     'Test Tren Bold Blend, 400mg (1 vial)',      162.15, 'images/testtrenboldblend400mg.jpg',     'Beligas', 'Injectable'],
+    ['testtrenlong300mg',          'Test Tren Long, 300mg (1 vial)',            138.00, 'images/testtrenlong300mg.jpg',          'Beligas', 'Injectable'],
+    ['trentestmastlong300mg',      'Tren Test Mast Long, 300mg (1 vial)',       155.25, 'images/trentestmastlong300mg.jpg',      'Beligas', 'Injectable'],
+    ['ttrentestmastshort150mg',    'Tren Test Mast Short, 150mg (1 vial)',      120.75, 'images/trentestmastshort150mg.jpg',     'Beligas', 'Injectable'],
+    ['triren150mg',                'Tri Trenbolone, 150mg (1 vial)',            155.25, 'images/triren150mg.jpg',                'Beligas', 'Injectable'],
+    ['tritestlite350mg',           'Tri Testosterone Lite, 350mg (1 vial)',      82.80, 'images/tritestlite350mg.jpg',           'Beligas', 'Injectable'],
+    ['winstrolsuspension50mg',     'Winstrol Suspension, 50mg (1 vial)',         79.35, 'images/winstrolsuspension50mg.jpg',     'Beligas', 'Injectable'],
+    // Beligas — Orals
+    ['5amino1mq',                  '5-Amino 1MQ, 50mg (100 tabs)',             217.35, 'images/5amino1mq.jpg',                  'Beligas', 'Oral'],
+    ['anadrol50mg100tabs',         'Anadrol, 50mg (100 tabs)',                  144.90, 'images/anadrol50mg100tabs.jpg',         'Beligas', 'Oral'],
+    ['anavar10mg100tabs',          'Anavar lite, 10mg (100 tabs)',              110.40, 'images/anavar10mg100tabs.jpg',          'Beligas', 'Oral'],
+    ['anavar50mg100tabs',          'Anavar, 50mg (100 tabs)',                   248.40, 'images/anavar50mg100tabs.jpg',          'Beligas', 'Oral'],
+    ['arimidex1mg',                'Arimidex, 1mg (50 tabs)',                    65.55, 'images/arimidex1mg.webp',               'Beligas', 'Oral'],
+    ['clen40mcg100tabs',           'Clenbuterol, 40mcg (100 tabs)',             117.30, 'images/clen40mcg100tabs.jpg',           'Beligas', 'Oral'],
+    ['dianabol20mg100tabs',        'Dianabol, 20mg (100 tabs)',                 138.00, 'images/dianabol20mg100tabs.jpg',        'Beligas', 'Oral'],
+    ['dianabol50mg100tabs',        'Dianabol, 50mg (100 tabs)',                 193.20, 'images/dianabol50mg100tabs.jpg',        'Beligas', 'Oral'],
+    ['prodostinex1mg',             'Pro-Dostinex, 1mg (Bottle of 10 tablets)', 117.30, 'images/prodostinex1mg.jpg',             'Beligas', 'Oral'],
+    ['primo25mg100tabs',           'Primobolan, 25mg (100tabs)',                317.40, 'images/primo25mg100tabs.jpg',           'Beligas', 'Oral'],
+    ['superdrol10mg100tabs',       'Superdrol, 10mg (100tabs)',                  93.15, 'images/superdrol10mg100tabs.jpg',       'Beligas', 'Oral'],
+    ['winstrol20mg100tabs',        'Winstrol, 20mg (100tabs)',                  120.75, 'images/winstrol20mg100tabs.jpg',        'Beligas', 'Oral'],
+    ['winstrol50mg100tabs',        'Winstrol, 50mg (100tabs)',                  193.20, 'images/winstrol50mg100tabs.jpg',        'Beligas', 'Oral'],
+    ['cialis25mg50tabs',           'Cialis, 25mg (50 Tabs)',                     48.00, 'images/cialis25mg50tabs.jpg',           'Beligas', 'Oral'],
+    ['cialis5mg100tabs',           'Cialis, 5mg (100 Tabs)',                     59.34, 'images/cialis5mg100tabs.jpg',           'Beligas', 'Oral'],
+    ['t4100mcg',                   'T4, 100mcg (100 Tabs)',                      86.25, 'images/t4100mcg.jpg',                   'Beligas', 'Oral'],
+    ['turinabol10mg',              'Turinabol, 10mg (100 Tabs)',                 89.70, 'images/turinabol10mg.webp',             'Beligas', 'Oral'],
+    ['viagra50mg100tabs',          'Viagra, 50mg (100 Tabs)',                    59.34, 'images/viagra50mg100tabs.jpg',          'Beligas', 'Oral'],
+    // Sixpex — Injectables
+    ['sixpex-bolde',               'BOLDEPEX 200',                              94.50, 'images/sixpex-bolde.jpg',               'Sixpex', 'Injectable'],
+    ['sixpex-cutpex',              'CUTPEX B320',                              189.00, 'images/sixpex-cutpex.jpg',              'Sixpex', 'Injectable'],
+    ['sixpex-decapex',             'DECAPEX 200',                               81.00, 'images/sixpex-decapex.jpg',             'Sixpex', 'Injectable'],
+    ['sixpex-durapex',             'DURAPEX 100',                               81.00, 'images/sixpex-durapex.jpg',             'Sixpex', 'Injectable'],
+    ['sixpex-mastepex-e200',       'MASTEPEX E200',                            121.50, 'images/sixpex-mastepex-e200.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-mastepex-p100',       'MASTEPEX P100',                            108.00, 'images/sixpex-mastepex-p100.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-parabopex',           'PARABOPEX 75',                             202.50, 'images/sixpex-parabopex.jpg',           'Sixpex', 'Injectable'],
+    ['sixpex-testopex-b300',       'TESTOPEX B300',                             94.50, 'images/sixpex-testopex-b300.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-testopex-b500',       'TESTOPEX B500',                            162.00, 'images/sixpex-testopex-b500.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-testopex-c200',       'TESTOPEX C200',                             67.50, 'images/sixpex-testopex-c200.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-testopex-e250',       'TESTOPEX E250',                             67.50, 'images/sixpex-testopex-e250.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-testopex-p100',       'TESTOPEX P100',                             59.40, 'images/sixpex-testopex-p100.jpg',       'Sixpex', 'Injectable'],
+    ['sixpex-trenbopex-a100',      'TRENBOPEX A100',                           108.00, 'images/sixpex-trenbopex-a100.jpg',      'Sixpex', 'Injectable'],
+    ['sixpex-trenbopex-e200',      'TRENBOPEX E200',                           121.50, 'images/sixpex-trenbopex-e200.jpg',      'Sixpex', 'Injectable'],
+    ['sixpex-hcg5000',             'GONADOPEX 5000 (HCG)',                      94.50, 'images/sixpex-hcg5000.jpg',             'Sixpex', 'Injectable'],
+    ['sixpex-hgh100',              'SOMATROPEX 100',                           350.00, 'images/sixpex-hgh100.jpg',              'Sixpex', 'Injectable'],
+    // Sixpex — Peptides
+    ['sixpex-bpc157',              'BPC-157 5MG',                               48.60, 'images/sixpex-bpc157.jpg',              'Sixpex', 'Peptide'],
+    ['sixpex-igf1-lr3-01',         'IGF-1 LR-3 0.1MG',                          75.60, 'images/sixpex-igf1-lr3-01.jpg',         'Sixpex', 'Peptide'],
+    ['sixpex-ipamorelin',          'IPAMORELIN 5MG',                            48.60, 'images/sixpex-ipamorelin.jpg',          'Sixpex', 'Peptide'],
+    ['sixpex-semaglutide',         'SEMAGLUTIDE 5MG',                          102.60, 'images/sixpex-semaglutide.jpg',         'Sixpex', 'Peptide'],
+    ['sixpex-sermorelin',          'SERMORELIN 5MG',                            94.50, 'images/sixpex-sermorelin.jpg',          'Sixpex', 'Peptide'],
+    ['sixpex-tb500',               'TB-500 5MG',                                67.50, 'images/sixpex-tb500.jpg',               'Sixpex', 'Peptide'],
+    // Sixpex — Orals
+    ['sixpex-cialipex',            'CIALIPEX 20',                               54.00, 'images/sixpex-cialipex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-clen40',              'CLENPEX 40',                                94.50, 'images/sixpex-clen40.jpg',              'Sixpex', 'Oral'],
+    ['sixpex-halopex',             'HALOPEX 10',                                94.50, 'images/sixpex-halopex.jpg',             'Sixpex', 'Oral'],
+    ['sixpex-methapex-20',         'METHAPEX 20',                               86.40, 'images/sixpex-methapex-20.jpg',         'Sixpex', 'Oral'],
+    ['sixpex-methapex50',          'METHAPEX 50',                              108.00, 'images/sixpex-methapex50.jpg',          'Sixpex', 'Oral'],
+    ['sixpex-oxapex10',            'OXAPEX 10',                                121.50, 'images/sixpex-oxapex10.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-oxapex25',            'OXAPEX 25',                                162.00, 'images/sixpex-oxapex25.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-oxypex',              'OXYPEX 50',                                 67.50, 'images/sixpex-oxypex.jpg',              'Sixpex', 'Oral'],
+    ['sixpex-primopex25',          'PRIMOPEX 25',                               67.50, 'images/sixpex-primopex25.jpg',          'Sixpex', 'Oral'],
+    ['sixpex-provipex',            'PROVIPEX 25',                              162.00, 'images/sixpex-provipex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-sildepex-100',        'SILDEPEX 100',                              48.60, 'images/sixpex-sildepex-100.jpg',        'Sixpex', 'Oral'],
+    ['sixpex-stanopex10',          'STANOPEX 10',                               67.50, 'images/sixpex-stanopex10.jpg',          'Sixpex', 'Oral'],
+    ['sixpex-stanopex50',          'STANOPEX 50',                              108.00, 'images/sixpex-stanopex50.jpg',          'Sixpex', 'Oral'],
+    ['sixpex-turipex',             'TURIPEX 10',                               108.00, 'images/sixpex-turipex.jpg',             'Sixpex', 'Oral'],
+    ['sixpex-arimipex',            'ARIMIPEX 1',                                67.50, 'images/sixpex-arimipex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-aromapex',            'AROMAPEX 25',                               81.00, 'images/sixpex-aromapex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-caberpex1',           'CABERPEX 1',                                94.50, 'images/sixpex-caberpex1.jpg',           'Sixpex', 'Oral'],
+    ['sixpex-clomipex',            'CLOMIPEX 50',                               54.00, 'images/sixpex-clomipex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-t3',                  'CYTOPEX T3',                                40.50, 'images/sixpex-t3.jpg',                  'Sixpex', 'Oral'],
+    ['sixpex-finapex',             'FINAPEX 1',                                 67.50, 'images/sixpex-finapex.jpg',             'Sixpex', 'Oral'],
+    ['sixpex-letropex',            'LETROPEX 2.5',                              67.50, 'images/sixpex-letropex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-nolvapex',            'NOLVAPEX 20',                               54.00, 'images/sixpex-nolvapex.jpg',            'Sixpex', 'Oral'],
+    ['sixpex-t4',                  'THYROPEX T4',                               40.50, 'images/sixpex-t4.jpg',                  'Sixpex', 'Oral'],
+    // Xeno — Injectables
+    ['xeno-testosterone-enanthate',   'Testosterone Enanthate',                 63.00, 'images/xeno-testosterone-propionate.jpg', 'Xeno', 'Injectable'],
+    ['xeno-testosterone-cypionate',   'Testosterone Cypionate',                 63.00, 'images/xeno-testosterone-cypionate.jpg',  'Xeno', 'Injectable'],
+    ['xeno-testosterone-propionate',  'Testosterone Propionate',                38.00, 'images/xeno-testosterone-propionate.jpg', 'Xeno', 'Injectable'],
+    ['xeno-supertest',                'SuperTest',                             100.00, 'images/xeno-supertest.jpg',               'Xeno', 'Injectable'],
+    ['xeno-megatest',                 'MegaTest',                              125.00, 'images/xeno-megatest.jpg',                'Xeno', 'Injectable'],
+    ['xeno-nandrolone-phenylpropionate','Nandrolone Phenylpropionate',           70.00, 'images/xeno-nandrolone-phenylpropionate.jpg','Xeno','Injectable'],
+    ['xeno-nandrolone-decanoate',     'Nandrolone Decanoate',                   75.00, 'images/xeno-nandrolone-decanoate.jpg',    'Xeno', 'Injectable'],
+    ['xeno-equipoise300',             'Equipoise',                             105.00, 'images/xeno-equipoise300.jpg',            'Xeno', 'Injectable'],
+    ['xeno-masteron-depot',           'Masteron Depot',                        113.00, 'images/xeno-masteron-depot.jpg',          'Xeno', 'Injectable'],
+    ['xeno-mastp100mg',               'Masteron',                              100.00, 'images/xeno-mastp100mg.jpg',              'Xeno', 'Injectable'],
+    ['xeno-parabolan',                'Parabolan',                             138.00, 'images/xeno-parabolan.jpg',               'Xeno', 'Injectable'],
+    ['xeno-trenbolone-acetate',       'Trenbolone Acetate',                    100.00, 'images/xeno-trenbolone-acetate.jpg',      'Xeno', 'Injectable'],
+    ['xeno-trenbolone-enanthate',     'Trenbolone Enanthate',                  113.00, 'images/xeno-trenbolone-enanthate.jpg',    'Xeno', 'Injectable'],
+    ['xeno-dhb',                      'DHB',                                   125.00, 'images/xeno-dhb.jpg',                     'Xeno', 'Injectable'],
+    ['xeno-primobolan',               'Primobolan',                            138.00, 'images/xeno-primobolan.jpg',              'Xeno', 'Injectable'],
+    ['xeno-solaris',                  'Solaris',                               100.00, 'images/xeno-solaris.jpg',                 'Xeno', 'Injectable'],
+    ['xeno-omnicut',                  'Omnicut',                               113.00, 'images/xeno-omnicut.jpg',                 'Xeno', 'Injectable'],
+    ['xeno-omnimass',                 'OmniMass',                              125.00, 'images/xeno-omnimass.jpg',                'Xeno', 'Injectable'],
+    ['xeno-hcg',                      'HCG',                                    88.00, 'images/xeno-hcg.jpg',                     'Xeno', 'Injectable'],
+    ['xeno-hmg',                      'HMG',                                   100.00, 'images/xeno-hmg.jpg',                     'Xeno', 'Injectable'],
+    // Xeno — Peptides
+    ['xeno-semaglutide',              'Semaglutide',                           150.00, 'images/xeno-semaglutide.jpg',             'Xeno', 'Peptide'],
+    ['xeno-epitalon',                 'Epitalon',                               38.00, 'images/xeno-epitalon.jpg',                'Xeno', 'Peptide'],
+    ['xeno-bpc-15710mg',              'BPC-157',                                88.00, 'images/xeno-bpc-15710mg.jpg',             'Xeno', 'Peptide'],
+    ['xeno-semax',                    'Semax',                                  63.00, 'images/xeno-semax.jpg',                   'Xeno', 'Peptide'],
+    // Xeno — Orals
+    ['xeno-arimidex',                 'Arimidex',                               63.00, 'images/xeno-arimidex.jpg',                'Xeno', 'Oral'],
+    ['xeno-t3',                       'T3',                                     38.00, 'images/xeno-t3.jpg',                      'Xeno', 'Oral'],
+    ['xeno-t4',                       'T4',                                     38.00, 'images/xeno-t4.jpg',                      'Xeno', 'Oral'],
+    ['xeno-dbol-20',                  'Dbol 20',                                50.00, 'images/xeno-dbol-20.jpg',                 'Xeno', 'Oral'],
+    ['xeno-winstrol-20',              'Winstrol 20',                            70.00, 'images/xeno-winstrol-20.jpg',             'Xeno', 'Oral'],
+    ['xeno-anavar-20',                'Anavar 20',                             113.00, 'images/xeno-anavar-20.jpg',               'Xeno', 'Oral'],
+    ['xeno-finasteride',              'Finasteride',                            88.00, 'images/xeno-finasteride.jpg',             'Xeno', 'Oral'],
+    ['xeno-accutan',                  'Accutan',                                50.00, 'images/xeno-accutan.jpg',                 'Xeno', 'Oral'],
+    ['xeno-proviron',                 'Proviron',                               43.00, 'images/xeno-proviron.jpg',                'Xeno', 'Oral'],
+    ['xeno-femara',                   'Femara',                                 30.00, 'images/xeno-femara.jpg',                  'Xeno', 'Oral'],
+    ['xeno-primo-s',                  'Primo S',                                75.00, 'images/xeno-primo-s.jpg',                 'Xeno', 'Oral'],
+    ['xeno-superdrol',                'Superdrol',                              55.00, 'images/xeno-superdrol.jpg',               'Xeno', 'Oral'],
+    ['xeno-turinabol',                'Turinabol',                              68.00, 'images/xeno-turinabol.jpg',               'Xeno', 'Oral'],
+    ['xeno-tamox',                    'Tamox',                                  50.00, 'images/xeno-tamox.jpg',                   'Xeno', 'Oral'],
+    ['xeno-clomiphene',               'Clomiphene',                             80.00, 'images/xeno-clomiphene.jpg',              'Xeno', 'Oral'],
+    ['xeno-clenbuterol',              'Clenbuterol',                           138.00, 'images/xeno-clenbuterol.jpg',             'Xeno', 'Oral'],
+  ];
+  return raw.map(([id, cartName, price, image, brand, type]) => ({
+    id, cartName,
+    name: cartName.replace(/ \([^)]+\)$/, ''),
+    price, image, brand, type
+  }));
+})();
+
+// ─────────────────────────────────────────────
+// FEATURED CAROUSEL — dynamic, in-stock only
+// ─────────────────────────────────────────────
+
+function buildFeaturedCarousel(inventoryMap) {
+  const carouselInner = document.querySelector('#featuredCarousel .carousel-inner');
+  const indicators    = document.querySelector('#featuredCarousel .featured-indicators');
+  if (!carouselInner) return;
+
+  // Keep only products that are in stock (stock >= 20). Unknown stock = include.
+  const available = FEATURED_CATALOG.filter(p => {
+    const stock = inventoryMap[p.id.toLowerCase()];
+    return stock == null || isNaN(stock) || stock >= 20;
+  });
+
+  // Fallback: if somehow everything is out of stock, use the full catalog
+  const pool = available.length >= 3 ? available : FEATURED_CATALOG;
+
+  // Fisher-Yates shuffle for random picks every visit
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const picks = shuffled.slice(0, 3);
+
+  carouselInner.innerHTML = picks.map((p, i) => `
+    <div class="carousel-item${i === 0 ? ' active' : ''}">
+      <div class="featured-slide">
+        <div class="card" data-brand="${p.brand}" data-type="${p.type}">
+          <img src="${p.image}" class="card-img-top" alt="${p.name}">
+          <div class="card-body">
+            <h5 class="card-title">${p.name}</h5>
+            <p class="card-text">${p.brand} · ${p.type}</p>
+            <span class="fw-bold">$${p.price.toFixed(2)}</span>
+            <button class="add-to-cart" data-name="${p.cartName}" data-id="${p.id}" data-price="${p.price}" data-image="${p.image}">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  if (indicators) {
+    indicators.innerHTML = picks.map((_, i) => `
+      <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="${i}"${i === 0 ? ' class="active" aria-current="true"' : ''} aria-label="Product ${i + 1}"></button>`).join('');
+  }
+
+  // Re-initialize Bootstrap carousel after rebuilding DOM
+  const carouselEl = document.getElementById('featuredCarousel');
+  if (carouselEl && window.bootstrap) {
+    const existing = bootstrap.Carousel.getInstance(carouselEl);
+    if (existing) existing.dispose();
+    new bootstrap.Carousel(carouselEl, { interval: 3500, touch: true });
+  }
+
+  // Bind add-to-cart buttons on the new cards
+  carouselInner.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', function () { addToCart(this); });
+  });
+}
+
+// ─────────────────────────────────────────────
 // INVENTORY SYNC (Google Sheets)
 // ─────────────────────────────────────────────
 
@@ -501,6 +716,9 @@ function initInventorySync() {
       data.forEach(item => {
         if (item.ID) inventoryMap[item.ID.trim().toLowerCase()] = parseInt(item.Stock);
       });
+
+      // Rebuild the homepage featured carousel with in-stock products only
+      buildFeaturedCarousel(inventoryMap);
 
       const allCards = Array.from(document.querySelectorAll('.card'));
       allCards.forEach(card => {
@@ -893,7 +1111,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cookie consent banner (GDPR/CCPA)
   initCookieConsent();
 
-  // Inventory sync (async — runs in background)
+  // Show featured products immediately (no wait), then refresh after inventory loads
+  buildFeaturedCarousel({});
   initInventorySync();
 
   // Checkout summary update
