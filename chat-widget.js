@@ -1,9 +1,42 @@
 (function () {
   var WEBHOOK_URL = 'https://directory-tutorials-insights-comparisons.trycloudflare.com/webhook/godmuscle-trt-chatbot/chat';
-  var SESSION_ID = 'gmg-' + Math.random().toString(36).substr(2, 12);
+  var SESSION_ID = localStorage.getItem('gmg-session-id');
+  if (!SESSION_ID) {
+    SESSION_ID = 'gmg-' + Math.random().toString(36).substr(2, 12);
+    localStorage.setItem('gmg-session-id', SESSION_ID);
+  }
 
   var isOpen = false;
   var isTyping = false;
+
+  var STORAGE_KEY = 'gmg-chat-history';
+
+  function saveMessages() {
+    var msgs = document.getElementById('gmg-messages');
+    if (!msgs) return;
+    var items = [];
+    msgs.querySelectorAll('.gmg-msg-bot, .gmg-msg-user').forEach(function (el) {
+      items.push({ type: el.className, text: el.textContent });
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+
+  function loadMessages() {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return false;
+    try {
+      var items = JSON.parse(saved);
+      if (!items.length) return false;
+      items.forEach(function (item) {
+        var el = document.createElement('div');
+        el.className = item.type;
+        el.textContent = item.text;
+        document.getElementById('gmg-messages').appendChild(el);
+      });
+      scrollToBottom();
+      return true;
+    } catch (e) { return false; }
+  }
 
   function injectStyles() {
     var css = `
@@ -239,7 +272,9 @@
     document.body.appendChild(pulse);
     document.body.appendChild(win);
 
-    addBotMessage("Hey! I'm your TRT Specialist at God Muscle Gears. Ask me about cycles, compounds, peptides, or pricing.");
+    if (!loadMessages()) {
+      addBotMessage("Hey! I'm your TRT Specialist at God Muscle Gears. Ask me about cycles, compounds, peptides, or pricing.");
+    }
 
     btn.addEventListener('click', toggleChat);
     document.getElementById('gmg-close-btn').addEventListener('click', closeChat);
@@ -273,6 +308,7 @@
     el.textContent = text;
     document.getElementById('gmg-messages').appendChild(el);
     scrollToBottom();
+    saveMessages();
   }
 
   function addUserMessage(text) {
@@ -281,6 +317,7 @@
     el.textContent = text;
     document.getElementById('gmg-messages').appendChild(el);
     scrollToBottom();
+    saveMessages();
   }
 
   function showTyping() {
