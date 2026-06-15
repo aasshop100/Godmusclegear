@@ -1,5 +1,5 @@
 (function () {
-  var WEBHOOK_URL = 'http://193.122.248.225.nip.io:5678/webhook/godmuscle-trt-chatbot/chat';
+  var WEBHOOK_URL = 'https://directory-tutorials-insights-comparisons.trycloudflare.com/webhook/godmuscle-trt-chatbot/chat';
   var SESSION_ID = 'gmg-' + Math.random().toString(36).substr(2, 12);
 
   var isOpen = false;
