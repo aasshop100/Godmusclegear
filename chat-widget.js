@@ -11,6 +11,8 @@
 
   var STORAGE_KEY = 'gmg-chat-history';
 
+  var SESSION_EXPIRY = 60 * 60 * 1000; // 1 hour
+
   function saveMessages() {
     var msgs = document.getElementById('gmg-messages');
     if (!msgs) return;
@@ -18,16 +20,23 @@
     msgs.querySelectorAll('.gmg-msg-bot, .gmg-msg-user').forEach(function (el) {
       items.push({ type: el.className, text: el.textContent });
     });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), items: items }));
   }
 
   function loadMessages() {
     var saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return false;
     try {
-      var items = JSON.parse(saved);
-      if (!items.length) return false;
-      items.forEach(function (item) {
+      var data = JSON.parse(saved);
+      if (!data.items || !data.items.length) return false;
+      if (Date.now() - data.ts > SESSION_EXPIRY) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('gmg-session-id');
+        SESSION_ID = 'gmg-' + Math.random().toString(36).substr(2, 12);
+        localStorage.setItem('gmg-session-id', SESSION_ID);
+        return false;
+      }
+      data.items.forEach(function (item) {
         var el = document.createElement('div');
         el.className = item.type;
         el.textContent = item.text;
