@@ -359,6 +359,39 @@
     if (msgs) msgs.scrollTop = msgs.scrollHeight;
   }
 
+  function callWebhook(text, attempt) {
+    attempt = attempt || 1;
+    return fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'sendMessage', sessionId: SESSION_ID, chatInput: text })
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data && data.error && /rate limit|too many requests/i.test(JSON.stringify(data)) && attempt < 3) {
+        var delay = attempt * 20000;
+        updateTypingLabel('Rate limit — retrying in ' + (delay / 1000) + 's...');
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            updateTypingLabel('');
+            resolve(callWebhook(text, attempt + 1));
+          }, delay);
+        });
+      }
+      return data;
+    });
+  }
+
+  function updateTypingLabel(msg) {
+    var el = document.getElementById('gmg-typing');
+    if (!el) return;
+    if (msg) {
+      el.innerHTML = '<span style="font-size:11px;color:#888;">' + msg + '</span>';
+    } else {
+      el.innerHTML = '<div class="gmg-dot"></div><div class="gmg-dot"></div><div class="gmg-dot"></div>';
+    }
+  }
+
   function sendMessage() {
     if (isTyping) return;
     var input = document.getElementById('gmg-input');
@@ -370,16 +403,7 @@
     isTyping = true;
     showTyping();
 
-    fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'sendMessage',
-        sessionId: SESSION_ID,
-        chatInput: text
-      })
-    })
-    .then(function (res) { return res.json(); })
+    callWebhook(text)
     .then(function (data) {
       removeTyping();
       isTyping = false;
