@@ -311,10 +311,21 @@
     document.getElementById('gmg-chat-window').classList.remove('gmg-open');
   }
 
+  function formatBotText(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/(\d+)\.\s+/g, '<br><strong>$1.</strong> ')
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+      .replace(/^<br>/, '');
+  }
+
   function addBotMessage(text) {
     var el = document.createElement('div');
     el.className = 'gmg-msg-bot';
-    el.textContent = text;
+    el.innerHTML = formatBotText(text);
     document.getElementById('gmg-messages').appendChild(el);
     scrollToBottom();
     saveMessages();
