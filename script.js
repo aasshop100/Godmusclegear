@@ -284,6 +284,7 @@ function handleCheckoutSubmit(event) {
   const fullName      = (formData.get('full-name')      || '').toString().trim();
   const customerEmail = (formData.get('email')          || '').toString().trim();
   const phone         = (formData.get('phone')          || '').toString().trim();
+  const whatsapp      = (formData.get('whatsapp')       || '').toString().trim();
   const address       = (formData.get('street-address') || '').toString().trim();
   const city          = (formData.get('city')           || '').toString().trim();
   const state         = (formData.get('state')          || '').toString().trim();
@@ -356,7 +357,7 @@ function handleCheckoutSubmit(event) {
     user_id: userID,
     template_params: {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
-      phone, full_address: fullAddress, items_table_html: itemsTableHTML,
+      phone, whatsapp: whatsapp || 'Not provided', full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       to_email: 'aasshop100@gmail.com'
