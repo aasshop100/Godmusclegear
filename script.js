@@ -259,6 +259,19 @@ function renderCheckoutSummary() {
 function updateCheckoutSummary() { renderCheckoutSummary(); }
 
 // ─────────────────────────────────────────────
+// TELEGRAM ORDER NOTIFICATION (via Cloudflare Worker proxy)
+// ─────────────────────────────────────────────
+
+function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal) {
+  const WORKER_URL = 'https://gmg-telegram.beligas-crm.workers.dev';
+  fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal })
+  }).catch(() => {}); // fire-and-forget — never blocks the order
+}
+
+// ─────────────────────────────────────────────
 // CHECKOUT SUBMIT (EmailJS via fetch)
 // ─────────────────────────────────────────────
 
@@ -369,6 +382,9 @@ function handleCheckoutSubmit(event) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
+
+  // Telegram notification (fire-and-forget, token hidden in Cloudflare Worker)
+  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2));
 
   // Send customer email (fire-and-forget)
   sendEmail(customerPayload)
