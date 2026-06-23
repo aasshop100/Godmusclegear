@@ -1,5 +1,5 @@
 (function () {
-  var WEBHOOK_URL = 'https://n8n.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat';
+  var WEBHOOK_URL = 'https://ai.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat';
   var SESSION_ID = localStorage.getItem('gmg-session-id');
   if (!SESSION_ID) {
     SESSION_ID = 'gmg-' + Math.random().toString(36).substr(2, 12);
