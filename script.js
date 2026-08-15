@@ -262,12 +262,12 @@ function updateCheckoutSummary() { renderCheckoutSummary(); }
 // TELEGRAM ORDER NOTIFICATION (via Cloudflare Worker proxy)
 // ─────────────────────────────────────────────
 
-function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping) {
+function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod) {
   const WORKER_URL = 'https://gmg-telegram.beligas-crm.workers.dev';
   fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping })
+    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod })
   }).catch(() => {}); // fire-and-forget — never blocks the order
 }
 
@@ -298,6 +298,7 @@ function handleCheckoutSubmit(event) {
   const customerEmail = (formData.get('email')          || '').toString().trim();
   const phone         = (formData.get('phone')          || '').toString().trim();
   const whatsapp      = (formData.get('whatsapp')       || '').toString().trim();
+  const paymentMethod = (formData.get('payment-method') || '').toString().trim();
   const address       = (formData.get('street-address') || '').toString().trim();
   const city          = (formData.get('city')           || '').toString().trim();
   const state         = (formData.get('state')          || '').toString().trim();
@@ -360,7 +361,8 @@ function handleCheckoutSubmit(event) {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
-      total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine
+      total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
+      payment_method: paymentMethod
     }
   };
 
@@ -373,6 +375,7 @@ function handleCheckoutSubmit(event) {
       phone, whatsapp: whatsapp || 'Not provided', full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
+      payment_method: paymentMethod,
       to_email: 'aasshop100@gmail.com'
     }
   };
@@ -384,7 +387,7 @@ function handleCheckoutSubmit(event) {
   });
 
   // Telegram notification (fire-and-forget, token hidden in Cloudflare Worker)
-  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2));
+  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2), paymentMethod);
 
   // Send customer email (fire-and-forget)
   sendEmail(customerPayload)
