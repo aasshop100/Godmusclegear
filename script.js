@@ -361,6 +361,11 @@ function handleCheckoutSubmit(event) {
     .join(' | ');
   const packageCount = String(shippingResult.packageCount);
 
+  // Short customer-facing sentence. Always populated so the email never renders a blank line.
+  const shippingNote = shippingResult.packageCount > 1
+    ? `Your order ships in ${shippingResult.packageCount} separate packages — each brand ships separately.`
+    : 'Your order ships in 1 package.';
+
   // Apply percentage discount to subtotal only
   const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
   let discountedSubtotal = subtotal;
@@ -400,7 +405,7 @@ function handleCheckoutSubmit(event) {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
-      shipping_breakdown: shippingBreakdownText, package_count: packageCount,
+      shipping_note: shippingNote,
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       payment_method: paymentMethod
     }
