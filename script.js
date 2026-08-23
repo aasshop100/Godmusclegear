@@ -273,10 +273,10 @@ function renderCheckoutSummary() {
       </div><hr class="my-1">`;
   });
 
-  let shipping = Math.ceil(totalQuantity / 10) * BASE_SHIPPING_PER_10;
-  if (localStorage.getItem('freeShipping') === 'true') {
-    shipping = Math.max(0, shipping - Math.min(20, shipping));
-  }
+  const shippingResult = computeShipping(storedCart, {
+    freeShipping: localStorage.getItem('freeShipping') === 'true'
+  });
+  const shipping = shippingResult.total;
 
   // Apply percentage discount to subtotal only
   const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
@@ -289,6 +289,7 @@ function renderCheckoutSummary() {
   if (itemsCountEl)  itemsCountEl.textContent  = totalQuantity;
   if (subtotalEl)    subtotalEl.textContent    = discountedSubtotal.toFixed(2);
   if (shippingEl)    shippingEl.textContent    = shipping.toFixed(2);
+  renderShippingBreakdown(document.getElementById('checkout-shipping-breakdown'), shippingResult);
   if (grandTotalEl)  grandTotalEl.textContent  = grandTotal.toFixed(2);
 }
 
