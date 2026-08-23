@@ -61,23 +61,37 @@ function renderShippingBreakdown(containerEl, result) {
     return;
   }
 
-  const rows = result.breakdown.map(row => {
-    const pkgLabel  = row.packages === 1 ? '1 package' : `${row.packages} packages`;
-    const itemLabel = row.qty === 1 ? '1 item' : `${row.qty} items`;
-    return `
-      <div class="d-flex justify-content-between" style="font-size:0.78rem;color:var(--grey);margin-top:4px;">
-        <span>${row.brand} · ${itemLabel} · ${pkgLabel}</span>
-        <span>$${row.fee.toFixed(2)}</span>
-      </div>`;
-  }).join('');
+  const brandCount = result.breakdown.length;
+  const parts = [];
 
-  const note = result.packageCount > 1
-    ? `<div style="font-size:0.72rem;color:var(--grey);margin-top:6px;font-style:italic;">
-         Ships in ${result.packageCount} separate packages — each brand ships on its own.
+  // Per-brand costs are only shown for multi-brand orders. On a single-brand
+  // order the breakdown just restates the shipping total, and listing it as a
+  // separate priced line reads as an extra charge rather than a component.
+  if (brandCount > 1) {
+    const inc = result.breakdown
+      .map(row => `${row.brand} $${row.fee.toFixed(2)}`)
+      .join(' · ');
+    parts.push(
+      `<div style="font-size:0.75rem;color:var(--grey);margin-top:4px;padding-left:10px;">
+         Includes: ${inc}
        </div>`
-    : '';
+    );
+  }
 
-  containerEl.innerHTML = rows + note;
+  // Explain multiple parcels whenever there are any — including a single brand
+  // that exceeds one package, where the fee would otherwise look unexplained.
+  if (result.packageCount > 1) {
+    const note = brandCount > 1
+      ? `Ships in ${result.packageCount} separate packages — each brand ships on its own.`
+      : `Ships in ${result.packageCount} separate packages.`;
+    parts.push(
+      `<div style="font-size:0.72rem;color:var(--grey);margin-top:6px;padding-left:10px;font-style:italic;">
+         ${note}
+       </div>`
+    );
+  }
+
+  containerEl.innerHTML = parts.join('');
 }
 
 function updateCart() {
