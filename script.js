@@ -5,7 +5,6 @@
 document.addEventListener('touchstart', function () {}, { passive: true });
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-const BASE_SHIPPING_PER_10 = 20.00;
 
 // ─────────────────────────────────────────────
 // CART UTILITIES
@@ -93,7 +92,6 @@ function updateCart() {
   if (!cartItems) return;
 
   let subtotal = 0;
-  let totalQuantity = 0;
   cartItems.innerHTML = '';
 
   if (cart.length === 0) {
@@ -113,7 +111,6 @@ function updateCart() {
     const quantity  = item.quantity || 1;
     const lineTotal = itemPrice * quantity;
     subtotal      += lineTotal;
-    totalQuantity += quantity;
 
     const imageSrc = item.image || 'images/default-supplement.png';
 
@@ -300,12 +297,12 @@ function updateCheckoutSummary() { renderCheckoutSummary(); }
 // TELEGRAM ORDER NOTIFICATION (via Cloudflare Worker proxy)
 // ─────────────────────────────────────────────
 
-function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod) {
+function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod, shippingBreakdown, packageCount) {
   const WORKER_URL = 'https://gmg-telegram.beligas-crm.workers.dev';
   fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod })
+    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod, shippingBreakdown, packageCount })
   }).catch(() => {}); // fire-and-forget — never blocks the order
 }
 
@@ -353,12 +350,16 @@ function handleCheckoutSubmit(event) {
   if (storedCart.length === 0) { alert('🛒 Your cart is empty!'); return; }
 
   const subtotal      = storedCart.reduce((sum, i) => sum + (Number(i.price) * (i.quantity || 1)), 0);
-  const totalQuantity = storedCart.reduce((sum, i) => sum + (i.quantity || 1), 0);
-  let   shipping      = Math.ceil(totalQuantity / 10) * BASE_SHIPPING_PER_10;
+  const shippingResult = computeShipping(storedCart, {
+    freeShipping: localStorage.getItem('freeShipping') === 'true'
+  });
+  const shipping = shippingResult.total;
 
-  if (localStorage.getItem('freeShipping') === 'true') {
-    shipping = Math.max(0, shipping - Math.min(20, shipping));
-  }
+  // Plain-text breakdown so the merchant knows how many parcels to send.
+  const shippingBreakdownText = shippingResult.breakdown
+    .map(r => `${r.brand}: ${r.qty} item${r.qty === 1 ? '' : 's'}, ${r.packages} package${r.packages === 1 ? '' : 's'} - $${r.fee.toFixed(2)}`)
+    .join(' | ');
+  const packageCount = String(shippingResult.packageCount);
 
   // Apply percentage discount to subtotal only
   const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
@@ -399,6 +400,7 @@ function handleCheckoutSubmit(event) {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
+      shipping_breakdown: shippingBreakdownText, package_count: packageCount,
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       payment_method: paymentMethod
     }
@@ -412,6 +414,7 @@ function handleCheckoutSubmit(event) {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       phone, whatsapp: whatsapp || 'Not provided', full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
+      shipping_breakdown: shippingBreakdownText, package_count: packageCount,
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       payment_method: paymentMethod,
       to_email: 'aasshop100@gmail.com'
@@ -425,7 +428,7 @@ function handleCheckoutSubmit(event) {
   });
 
   // Telegram notification (fire-and-forget, token hidden in Cloudflare Worker)
-  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2), paymentMethod);
+  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2), paymentMethod, shippingBreakdownText, packageCount);
 
   // Send customer email (fire-and-forget)
   sendEmail(customerPayload)
