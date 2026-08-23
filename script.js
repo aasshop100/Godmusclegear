@@ -52,6 +52,35 @@ function showCartNotification(message) {
 // CART RENDER
 // ─────────────────────────────────────────────
 
+// Renders the per-brand shipping lines beneath a shipping total.
+// Shared by the cart page and the checkout page. Pass null to clear.
+function renderShippingBreakdown(containerEl, result) {
+  if (!containerEl) return;
+
+  if (!result || result.breakdown.length === 0) {
+    containerEl.innerHTML = '';
+    return;
+  }
+
+  const rows = result.breakdown.map(row => {
+    const pkgLabel  = row.packages === 1 ? '1 package' : `${row.packages} packages`;
+    const itemLabel = row.qty === 1 ? '1 item' : `${row.qty} items`;
+    return `
+      <div class="d-flex justify-content-between" style="font-size:0.78rem;color:var(--grey);margin-top:4px;">
+        <span>${row.brand} · ${itemLabel} · ${pkgLabel}</span>
+        <span>$${row.fee.toFixed(2)}</span>
+      </div>`;
+  }).join('');
+
+  const note = result.packageCount > 1
+    ? `<div style="font-size:0.72rem;color:var(--grey);margin-top:6px;font-style:italic;">
+         Ships in ${result.packageCount} separate packages — each brand ships on its own.
+       </div>`
+    : '';
+
+  containerEl.innerHTML = rows + note;
+}
+
 function updateCart() {
   updateCartCount();
 
@@ -72,6 +101,7 @@ function updateCart() {
     if (subtotalEl)    subtotalEl.textContent = '$0.00';
     if (shippingEl)    shippingEl.textContent = '$0.00';
     if (grandTotalEl)  grandTotalEl.textContent = '$0.00';
+    renderShippingBreakdown(document.getElementById('shipping-breakdown'), null);
     updateCheckoutButton();
     return;
   }
@@ -106,11 +136,11 @@ function updateCart() {
       </div>`;
   });
 
-  // Apply free shipping promo if active
-  let shipping = Math.ceil(totalQuantity / 10) * BASE_SHIPPING_PER_10;
-  if (localStorage.getItem('freeShipping') === 'true') {
-    shipping = Math.max(0, shipping - Math.min(20, shipping));
-  }
+  // Shipping is billed per brand — each brand ships as its own package.
+  const shippingResult = computeShipping(cart, {
+    freeShipping: localStorage.getItem('freeShipping') === 'true'
+  });
+  const shipping = shippingResult.total;
 
   // Apply percentage discount to subtotal only (not shipping)
   let discountedSubtotal = subtotal;
@@ -126,6 +156,7 @@ function updateCart() {
     ? `$${subtotal.toFixed(2)} → $${discountedSubtotal.toFixed(2)} (-${pctDiscount}%)`
     : `$${subtotal.toFixed(2)}`;
   if (shippingEl)   shippingEl.textContent   = `$${shipping.toFixed(2)}`;
+  renderShippingBreakdown(document.getElementById('shipping-breakdown'), shippingResult);
   if (grandTotalEl) grandTotalEl.textContent = `$${grandTotal.toFixed(2)}`;
 
   localStorage.setItem('cart', JSON.stringify(cart));
