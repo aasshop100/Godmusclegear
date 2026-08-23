@@ -142,11 +142,17 @@ function addToCart(button) {
   const id    = button.dataset.id    || name.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const image = button.dataset.image || 'images/default-supplement.png';
 
+  // Brand lives on the product card, not the button — each brand ships separately,
+  // so the cart has to remember which one this item came from.
+  const card  = button.closest('[data-brand]');
+  const brand = (card && card.getAttribute('data-brand')) || '';
+
   const existingItem = cart.find(item => item.id === id);
   if (existingItem) {
     existingItem.quantity = (existingItem.quantity || 1) + 1;
+    if (!existingItem.brand && brand) existingItem.brand = brand;
   } else {
-    cart.push({ id, name, price, quantity: 1, image });
+    cart.push({ id, name, price, quantity: 1, image, brand });
   }
 
   localStorage.setItem('cart', JSON.stringify(cart));
@@ -650,6 +656,9 @@ const FEATURED_CATALOG = (function () {
   }));
 })();
 
+// Exposed so shipping.js can resolve brands for carts saved before items carried a brand.
+window.FEATURED_CATALOG = FEATURED_CATALOG;
+
 // ─────────────────────────────────────────────
 // FEATURED CAROUSEL — dynamic, in-stock only
 // ─────────────────────────────────────────────
@@ -854,7 +863,8 @@ function initPromoCode() {
     name: 'Testosterone Cypionate, 200mg (1 vial)',
     price: 0.00,
     image: 'images/testc200mg.png',
-    quantity: 1
+    quantity: 1,
+    brand: 'Beligas'
   };
 
   const getCart  = () => JSON.parse(localStorage.getItem('cart')) || [];
