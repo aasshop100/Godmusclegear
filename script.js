@@ -5,7 +5,6 @@
 document.addEventListener('touchstart', function () {}, { passive: true });
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-const BASE_SHIPPING_PER_10 = 20.00;
 
 // ─────────────────────────────────────────────
 // CART UTILITIES
@@ -52,6 +51,35 @@ function showCartNotification(message) {
 // CART RENDER
 // ─────────────────────────────────────────────
 
+// Renders the per-brand shipping lines beneath a shipping total.
+// Shared by the cart page and the checkout page. Pass null to clear.
+function renderShippingBreakdown(containerEl, result) {
+  if (!containerEl) return;
+
+  if (!result || result.breakdown.length === 0) {
+    containerEl.innerHTML = '';
+    return;
+  }
+
+  const rows = result.breakdown.map(row => {
+    const pkgLabel  = row.packages === 1 ? '1 package' : `${row.packages} packages`;
+    const itemLabel = row.qty === 1 ? '1 item' : `${row.qty} items`;
+    return `
+      <div class="d-flex justify-content-between" style="font-size:0.78rem;color:var(--grey);margin-top:4px;">
+        <span>${row.brand} · ${itemLabel} · ${pkgLabel}</span>
+        <span>$${row.fee.toFixed(2)}</span>
+      </div>`;
+  }).join('');
+
+  const note = result.packageCount > 1
+    ? `<div style="font-size:0.72rem;color:var(--grey);margin-top:6px;font-style:italic;">
+         Ships in ${result.packageCount} separate packages — each brand ships on its own.
+       </div>`
+    : '';
+
+  containerEl.innerHTML = rows + note;
+}
+
 function updateCart() {
   updateCartCount();
 
@@ -64,7 +92,6 @@ function updateCart() {
   if (!cartItems) return;
 
   let subtotal = 0;
-  let totalQuantity = 0;
   cartItems.innerHTML = '';
 
   if (cart.length === 0) {
@@ -72,6 +99,7 @@ function updateCart() {
     if (subtotalEl)    subtotalEl.textContent = '$0.00';
     if (shippingEl)    shippingEl.textContent = '$0.00';
     if (grandTotalEl)  grandTotalEl.textContent = '$0.00';
+    renderShippingBreakdown(document.getElementById('shipping-breakdown'), null);
     updateCheckoutButton();
     return;
   }
@@ -83,7 +111,6 @@ function updateCart() {
     const quantity  = item.quantity || 1;
     const lineTotal = itemPrice * quantity;
     subtotal      += lineTotal;
-    totalQuantity += quantity;
 
     const imageSrc = item.image || 'images/default-supplement.png';
 
@@ -106,11 +133,11 @@ function updateCart() {
       </div>`;
   });
 
-  // Apply free shipping promo if active
-  let shipping = Math.ceil(totalQuantity / 10) * BASE_SHIPPING_PER_10;
-  if (localStorage.getItem('freeShipping') === 'true') {
-    shipping = Math.max(0, shipping - Math.min(20, shipping));
-  }
+  // Shipping is billed per brand — each brand ships as its own package.
+  const shippingResult = computeShipping(cart, {
+    freeShipping: localStorage.getItem('freeShipping') === 'true'
+  });
+  const shipping = shippingResult.total;
 
   // Apply percentage discount to subtotal only (not shipping)
   let discountedSubtotal = subtotal;
@@ -126,6 +153,7 @@ function updateCart() {
     ? `$${subtotal.toFixed(2)} → $${discountedSubtotal.toFixed(2)} (-${pctDiscount}%)`
     : `$${subtotal.toFixed(2)}`;
   if (shippingEl)   shippingEl.textContent   = `$${shipping.toFixed(2)}`;
+  renderShippingBreakdown(document.getElementById('shipping-breakdown'), shippingResult);
   if (grandTotalEl) grandTotalEl.textContent = `$${grandTotal.toFixed(2)}`;
 
   localStorage.setItem('cart', JSON.stringify(cart));
@@ -142,11 +170,17 @@ function addToCart(button) {
   const id    = button.dataset.id    || name.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const image = button.dataset.image || 'images/default-supplement.png';
 
+  // Brand lives on the product card, not the button — each brand ships separately,
+  // so the cart has to remember which one this item came from.
+  const card  = button.closest('[data-brand]');
+  const brand = (card && card.getAttribute('data-brand')) || '';
+
   const existingItem = cart.find(item => item.id === id);
   if (existingItem) {
     existingItem.quantity = (existingItem.quantity || 1) + 1;
+    if (!existingItem.brand && brand) existingItem.brand = brand;
   } else {
-    cart.push({ id, name, price, quantity: 1, image });
+    cart.push({ id, name, price, quantity: 1, image, brand });
   }
 
   localStorage.setItem('cart', JSON.stringify(cart));
@@ -236,10 +270,10 @@ function renderCheckoutSummary() {
       </div><hr class="my-1">`;
   });
 
-  let shipping = Math.ceil(totalQuantity / 10) * BASE_SHIPPING_PER_10;
-  if (localStorage.getItem('freeShipping') === 'true') {
-    shipping = Math.max(0, shipping - Math.min(20, shipping));
-  }
+  const shippingResult = computeShipping(storedCart, {
+    freeShipping: localStorage.getItem('freeShipping') === 'true'
+  });
+  const shipping = shippingResult.total;
 
   // Apply percentage discount to subtotal only
   const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
@@ -252,6 +286,7 @@ function renderCheckoutSummary() {
   if (itemsCountEl)  itemsCountEl.textContent  = totalQuantity;
   if (subtotalEl)    subtotalEl.textContent    = discountedSubtotal.toFixed(2);
   if (shippingEl)    shippingEl.textContent    = shipping.toFixed(2);
+  renderShippingBreakdown(document.getElementById('checkout-shipping-breakdown'), shippingResult);
   if (grandTotalEl)  grandTotalEl.textContent  = grandTotal.toFixed(2);
 }
 
@@ -262,12 +297,12 @@ function updateCheckoutSummary() { renderCheckoutSummary(); }
 // TELEGRAM ORDER NOTIFICATION (via Cloudflare Worker proxy)
 // ─────────────────────────────────────────────
 
-function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod) {
+function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod, shippingBreakdown, packageCount) {
   const WORKER_URL = 'https://gmg-telegram.beligas-crm.workers.dev';
   fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod })
+    body: JSON.stringify({ orderId, fullName, phone, whatsapp, fullAddress, items, grandTotal, promoCode, discountLine, shipping, paymentMethod, shippingBreakdown, packageCount })
   }).catch(() => {}); // fire-and-forget — never blocks the order
 }
 
@@ -315,12 +350,21 @@ function handleCheckoutSubmit(event) {
   if (storedCart.length === 0) { alert('🛒 Your cart is empty!'); return; }
 
   const subtotal      = storedCart.reduce((sum, i) => sum + (Number(i.price) * (i.quantity || 1)), 0);
-  const totalQuantity = storedCart.reduce((sum, i) => sum + (i.quantity || 1), 0);
-  let   shipping      = Math.ceil(totalQuantity / 10) * BASE_SHIPPING_PER_10;
+  const shippingResult = computeShipping(storedCart, {
+    freeShipping: localStorage.getItem('freeShipping') === 'true'
+  });
+  const shipping = shippingResult.total;
 
-  if (localStorage.getItem('freeShipping') === 'true') {
-    shipping = Math.max(0, shipping - Math.min(20, shipping));
-  }
+  // Plain-text breakdown so the merchant knows how many parcels to send.
+  const shippingBreakdownText = shippingResult.breakdown
+    .map(r => `${r.brand}: ${r.qty} item${r.qty === 1 ? '' : 's'}, ${r.packages} package${r.packages === 1 ? '' : 's'} - $${r.fee.toFixed(2)}`)
+    .join(' | ');
+  const packageCount = String(shippingResult.packageCount);
+
+  // Short customer-facing sentence. Always populated so the email never renders a blank line.
+  const shippingNote = shippingResult.packageCount > 1
+    ? `Your order ships in ${shippingResult.packageCount} separate packages — each brand ships separately.`
+    : 'Your order ships in 1 package.';
 
   // Apply percentage discount to subtotal only
   const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
@@ -361,6 +405,7 @@ function handleCheckoutSubmit(event) {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
+      shipping_note: shippingNote,
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       payment_method: paymentMethod
     }
@@ -374,6 +419,7 @@ function handleCheckoutSubmit(event) {
       order_id: orderId, customer_name: fullName, customer_email: customerEmail,
       phone, whatsapp: whatsapp || 'Not provided', full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
+      shipping_breakdown: shippingBreakdownText, package_count: packageCount,
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       payment_method: paymentMethod,
       to_email: 'aasshop100@gmail.com'
@@ -387,7 +433,7 @@ function handleCheckoutSubmit(event) {
   });
 
   // Telegram notification (fire-and-forget, token hidden in Cloudflare Worker)
-  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2), paymentMethod);
+  sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2), paymentMethod, shippingBreakdownText, packageCount);
 
   // Send customer email (fire-and-forget)
   sendEmail(customerPayload)
@@ -650,6 +696,9 @@ const FEATURED_CATALOG = (function () {
   }));
 })();
 
+// Exposed so shipping.js can resolve brands for carts saved before items carried a brand.
+window.FEATURED_CATALOG = FEATURED_CATALOG;
+
 // ─────────────────────────────────────────────
 // FEATURED CAROUSEL — dynamic, in-stock only
 // ─────────────────────────────────────────────
@@ -854,7 +903,8 @@ function initPromoCode() {
     name: 'Testosterone Cypionate, 200mg (1 vial)',
     price: 0.00,
     image: 'images/testc200mg.png',
-    quantity: 1
+    quantity: 1,
+    brand: 'Beligas'
   };
 
   const getCart  = () => JSON.parse(localStorage.getItem('cart')) || [];
@@ -874,7 +924,7 @@ function initPromoCode() {
     if (_chk(enteredCode, freeShippingHashes)) {
       localStorage.setItem('appliedPromoCode', enteredCode);
       localStorage.setItem('freeShipping', 'true');
-      showMessage(`✅ Free shipping promo applied! Shipping discounted up to $20.`, 'text-success');
+      showMessage(`✅ Free shipping promo applied! One package ships free.`, 'text-success');
       promoInput.value = '';
       updateCart();
       return;
