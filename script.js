@@ -919,7 +919,7 @@ function initPromoCode() {
     if (_chk(enteredCode, freeShippingHashes)) {
       localStorage.setItem('appliedPromoCode', enteredCode);
       localStorage.setItem('freeShipping', 'true');
-      showMessage(`✅ Free shipping promo applied! Shipping discounted up to $20.`, 'text-success');
+      showMessage(`✅ Free shipping promo applied! One package ships free.`, 'text-success');
       promoInput.value = '';
       updateCart();
       return;
