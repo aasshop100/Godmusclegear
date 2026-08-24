@@ -78,16 +78,25 @@
     return new Date(text).getTime();
   }
 
+  // PAYMENT_SEEN means a payment for this order is already in the mempool but
+  // not yet confirmed. Bitcoin can take hours to confirm, so once a payment is
+  // visibly on its way the expiry clock stops — otherwise every slow Bitcoin
+  // payment would land against an expired order and need manual review.
   function isOpen(order, nowMs) {
+    if (order.status === 'PAYMENT_SEEN') return true;
+    if (order.status !== 'AWAITING_PAYMENT') return false;
     const expires = toEpochMs(order.expiresAt);
     if (isNaN(expires)) return false;
-    return order.status === 'AWAITING_PAYMENT' && expires > nowMs;
+    return expires > nowMs;
   }
 
-  // Matchable rows are those still awaiting payment and those already swept
-  // to EXPIRED — late money must be surfaced, never silently dropped.
+  // Matchable rows are those still awaiting payment, those with a payment
+  // already in flight, and those already swept to EXPIRED — late money must be
+  // surfaced, never silently dropped.
   function isMatchable(order) {
-    return order.status === 'AWAITING_PAYMENT' || order.status === 'EXPIRED';
+    return order.status === 'AWAITING_PAYMENT' ||
+           order.status === 'PAYMENT_SEEN' ||
+           order.status === 'EXPIRED';
   }
 
   function findMatch(receivedAmount, coin, orders, nowMs) {

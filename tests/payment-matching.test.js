@@ -207,3 +207,32 @@ test('an order with a bare past timestamp is EXPIRED_MATCH', () => {
   const orders = [order('A', 'USDT', 512.73, { expiresAt: '2026-08-24 22:30:00' })];
   assert.strictEqual(findMatch(512.73, 'USDT', orders, nowManila).type, 'EXPIRED_MATCH');
 });
+
+// ── PAYMENT_SEEN: a mempool payment stops the expiry clock ───────────
+
+test('a PAYMENT_SEEN order is still open even long past its expiry', () => {
+  const orders = [order('A', 'BTC', 0.00648502, {
+    status: 'PAYMENT_SEEN', expiresAt: NOW - 6 * 60 * MIN
+  })];
+  const r = findMatch(0.00648502, 'BTC', orders, NOW);
+  assert.strictEqual(r.type, 'EXACT', 'a confirmed payment hours later must still confirm the order');
+  assert.strictEqual(r.order.orderId, 'A');
+});
+
+test('a PAYMENT_SEEN order still accepts a near-match for review', () => {
+  const orders = [order('A', 'USDT', 100.55, {
+    status: 'PAYMENT_SEEN', expiresAt: NOW - 6 * 60 * MIN
+  })];
+  const r = findMatch(99.55, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'NEAR_UNDER');
+});
+
+test('an AWAITING_PAYMENT order past expiry is still EXPIRED_MATCH', () => {
+  const orders = [order('A', 'BTC', 0.00648502, { expiresAt: NOW - 6 * 60 * MIN })];
+  assert.strictEqual(findMatch(0.00648502, 'BTC', orders, NOW).type, 'EXPIRED_MATCH');
+});
+
+test('a PAID order is never rematched even if it was PAYMENT_SEEN before', () => {
+  const orders = [order('A', 'BTC', 0.00648502, { status: 'PAID' })];
+  assert.strictEqual(findMatch(0.00648502, 'BTC', orders, NOW).type, 'NONE');
+});
