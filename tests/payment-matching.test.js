@@ -144,3 +144,28 @@ test('near-match does not consider expired orders', () => {
   const orders = [order('A', 'USDT', 512.73, { expiresAt: NOW - 1 })];
   assert.strictEqual(findMatch(511.73, 'USDT', orders, NOW).type, 'NONE');
 });
+
+// ── expiresAt arriving as a date string from the Orders sheet ────────
+
+test('an expiresAt date string in the future is treated as open, not expired', () => {
+  const future = new Date(NOW + 10 * MIN).toISOString();
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: future })];
+  assert.strictEqual(findMatch(512.73, 'USDT', orders, NOW).type, 'EXACT');
+});
+
+test('a Manila-offset expiresAt string in the future is treated as open', () => {
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: '2026-08-24T22:54:07+08:00' })];
+  const justBefore = new Date('2026-08-24T22:24:07+08:00').getTime();
+  assert.strictEqual(findMatch(512.73, 'USDT', orders, justBefore).type, 'EXACT');
+});
+
+test('a past expiresAt date string is EXPIRED_MATCH', () => {
+  const past = new Date(NOW - 1).toISOString();
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: past })];
+  assert.strictEqual(findMatch(512.73, 'USDT', orders, NOW).type, 'EXPIRED_MATCH');
+});
+
+test('an unparseable expiresAt is treated as expired rather than open', () => {
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: 'not a date' })];
+  assert.strictEqual(findMatch(512.73, 'USDT', orders, NOW).type, 'EXPIRED_MATCH');
+});

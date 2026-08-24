@@ -51,8 +51,22 @@
     );
   }
 
+  // expiresAt arrives as epoch milliseconds in tests but as a date string from
+  // the Orders sheet. Number('2026-08-24T22:24:07+08:00') is NaN, and NaN
+  // comparisons are always false — which would silently mark every order
+  // expired and confirm nothing. Parse both shapes.
+  function toEpochMs(value) {
+    if (value === null || value === undefined || value === '') return NaN;
+    if (typeof value === 'number') return value;
+    const asNumber = Number(value);
+    if (!isNaN(asNumber)) return asNumber;
+    return new Date(value).getTime();
+  }
+
   function isOpen(order, nowMs) {
-    return order.status === 'AWAITING_PAYMENT' && Number(order.expiresAt) > nowMs;
+    const expires = toEpochMs(order.expiresAt);
+    if (isNaN(expires)) return false;
+    return order.status === 'AWAITING_PAYMENT' && expires > nowMs;
   }
 
   // Matchable rows are those still awaiting payment and those already swept
@@ -109,6 +123,7 @@
     makeUniqueAmount: makeUniqueAmount,
     findMatch: findMatch,
     sameAmount: sameAmount,
+    toEpochMs: toEpochMs,
     round: round
   };
 });
