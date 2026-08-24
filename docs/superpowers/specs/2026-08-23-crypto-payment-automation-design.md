@@ -37,8 +37,8 @@ payment errors are welcome side benefits, but they are not the driver.
 |---|---|---|
 | Coins | USDT (TRC-20) and BTC | The two actually used |
 | Order store | Google Sheet | Already the house pattern; hand-inspectable and hand-fixable, which matters when money is involved |
-| Quote expiry | 30 minutes | Long enough to withdraw from an exchange; short enough to cap BTC rate exposure |
-| BTC confirmation | 1 confirmation | Effectively irreversible at these order sizes without making customers wait |
+| Quote expiry | 30 min USDT, 3 hours BTC | A customer exchange can sit on a BTC withdrawal for an hour before broadcasting it, so 30 minutes expired before the payment reached the network. USDT is a stablecoin settling in seconds, so it carries no rate risk and stays tight. Both values are editable on the n8n config node. |
+| BTC confirmation | 1 confirmation, with a mempool pre-stage | A payment seen in the mempool sets PAYMENT_SEEN and stops the expiry clock; only a confirmation sets PAID. Bitcoin can take hours to confirm, and without this every slow payment would confirm against an expired order and need manual review. |
 | USDT confirmation | On-chain arrival | TRC-20 finality is immediate |
 | Amount uniqueness | Randomised low-order digits | Enables matching without per-order wallets |
 | Poll interval | 2 minutes | Well inside free API rate limits |
@@ -105,7 +105,7 @@ Receiving addresses, the Sheet ID, and API keys live in n8n configuration.
    - computes the payable amount and adjusts its low-order digits until the
      value is unique among all rows currently `AWAITING_PAYMENT` for that coin
    - writes the order row with `status = AWAITING_PAYMENT` and
-     `expiresAt = now + 30 minutes`
+     `expiresAt = now + 30 minutes for USDT, 3 hours for BTC`
    - returns `{ orderId, coin, address, expectedAmount, expiresAt }`
 4. The browser redirects to `order-success.html`, which renders the address, the
    exact amount, a QR code and a live countdown to expiry.
@@ -185,7 +185,15 @@ Tab `Orders`:
 usdTotal · btcRate · customerName · email · phone · items · shippingTotal ·
 packageCount · paidAt · txHash · notes`
 
-`status` is one of `AWAITING_PAYMENT`, `PAID`, `EXPIRED`, `REVIEW`.
+`status` is one of `AWAITING_PAYMENT`, `PAYMENT_SEEN`, `PAID`, `EXPIRED`, `REVIEW`.
+
+`PAYMENT_SEEN` means a payment for the order is in the mempool but not yet
+confirmed. The expiry sweep skips these rows and matching treats them as open
+indefinitely, so a Bitcoin payment that takes hours to confirm still completes
+automatically. Dedupe keys are staged (`txid:seen` then `txid`) because a
+Bitcoin transaction keeps the same id before and after confirmation — a single
+key would cause the confirmation to be skipped and the order to sit in
+`PAYMENT_SEEN` forever.
 
 Tab `processed_tx`:
 
