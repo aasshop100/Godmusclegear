@@ -157,16 +157,23 @@
 
             <div class="mb-3">
               <label class="form-label d-block">Payment Method</label>
-              <div class="d-flex gap-4">
+              <div class="d-flex gap-4 flex-wrap">
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="payment-method" id="payment-bank" value="Bank Transfer" required>
                   <label class="form-check-label" for="payment-bank">Bank Transfer</label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="payment-method" id="payment-crypto" value="Crypto" required>
-                  <label class="form-check-label" for="payment-crypto">Crypto</label>
+                  <input class="form-check-input" type="radio" name="payment-method" id="payment-usdt" value="USDT" required>
+                  <label class="form-check-label" for="payment-usdt">USDT <span style="color:var(--grey);font-size:0.85em;">(TRC-20)</span></label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="payment-method" id="payment-crypto" value="BTC" required>
+                  <label class="form-check-label" for="payment-crypto">Bitcoin</label>
                 </div>
               </div>
+              <small style="display:block; margin-top:6px; font-size:0.75rem; color:var(--grey);">
+                Choose USDT or Bitcoin and your payment address will be shown immediately after you place the order.
+              </small>
             </div>
 
             <!-- reCAPTCHA -->

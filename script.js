@@ -324,7 +324,7 @@ function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddres
 // CHECKOUT SUBMIT (EmailJS via fetch)
 // ─────────────────────────────────────────────
 
-function handleCheckoutSubmit(event) {
+async function handleCheckoutSubmit(event) {
   event.preventDefault();
 
   const placeOrderBtn = document.querySelector('.place-order-btn');
@@ -375,6 +375,7 @@ function handleCheckoutSubmit(event) {
     .join(' | ');
   const packageCount = String(shippingResult.packageCount);
 
+
   // Short customer-facing sentence. Always populated so the email never renders a blank line.
   const shippingNote = shippingResult.packageCount > 1
     ? `Your order ships in ${shippingResult.packageCount} separate packages — each brand ships separately.`
@@ -392,6 +393,47 @@ function handleCheckoutSubmit(event) {
   const orderId      = 'ORDER-' + Date.now();
   const promoCode    = localStorage.getItem('appliedPromoCode') || 'None';
   const discountLine = pctDiscount > 0 ? `-${pctDiscount}% off items (-$${discountAmount.toFixed(2)})` : 'None';
+
+  // Crypto orders get their payment quote from n8n BEFORE any notification is
+  // sent. The payable amount is assigned server-side so the browser cannot
+  // tamper with it, and a failed quote aborts the order rather than creating
+  // one the customer has no way to pay.
+  // Must sit after orderId and grandTotal are declared — both are used here.
+  const CREATE_ORDER_URL = 'https://n8n.godmusclegears.com/webhook/gmg-create-order';
+  let payment = null;
+
+  if (paymentMethod === 'USDT' || paymentMethod === 'BTC') {
+    try {
+      const quoteRes = await fetch(CREATE_ORDER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: orderId,
+          coin: paymentMethod,
+          usdTotal: Number(grandTotal.toFixed(2)),
+          customerName: fullName,
+          email: customerEmail,
+          phone: phone,
+          items: storedCart.map(i => `${i.name} x${i.quantity || 1}`).join(' | '),
+          shippingTotal: Number(shipping.toFixed(2)),
+          packageCount: Number(packageCount)
+        })
+      });
+      if (!quoteRes.ok) throw new Error('create-order returned ' + quoteRes.status);
+      payment = await quoteRes.json();
+      if (!payment || !payment.address || !payment.expectedAmount) {
+        throw new Error('create-order returned an incomplete quote');
+      }
+      sessionStorage.setItem('gmgPayment', JSON.stringify(payment));
+    } catch (err) {
+      console.error('❌ could not create payment quote', err);
+      alert('⚠ We could not generate your payment details right now. Nothing has been charged and no order was placed. Please message us on Telegram @Godmusclegears and we will complete your order manually.');
+      if (placeOrderBtn) { placeOrderBtn.disabled = false; placeOrderBtn.textContent = 'Place Order'; }
+      return;
+    }
+  } else {
+    sessionStorage.removeItem('gmgPayment');
+  }
 
   const itemsTableHTML = storedCart.map((item, i) => {
     const qty       = item.quantity || 1;
@@ -420,6 +462,10 @@ function handleCheckoutSubmit(event) {
       full_address: fullAddress, items_table_html: itemsTableHTML,
       subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
       shipping_note: shippingNote,
+      pay_coin:    payment ? payment.coin : '',
+      pay_address: payment ? payment.address : '',
+      pay_amount:  payment ? String(payment.expectedAmount) : '',
+      pay_expires: payment ? String(payment.expiresAt) : '',
       total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
       payment_method: paymentMethod
     }

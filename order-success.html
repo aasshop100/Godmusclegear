@@ -37,15 +37,41 @@
 
   <h2 style="font-size:2rem; margin-bottom:8px;">Order Received!</h2>
   <p style="font-size:1rem; color:var(--grey); margin-bottom:4px;">Thank you, <strong id="customerName" style="color:var(--black);"></strong>!</p>
-  <p style="font-size:0.875rem; color:var(--grey); margin-bottom:32px; line-height:1.7;">
+  <p style="font-size:0.875rem; color:var(--grey); margin-bottom:32px; line-height:1.7;" id="no-payment-msg">
     Your order has been successfully submitted.<br>
     We'll contact you shortly with secure payment instructions.
   </p>
 
+  <!-- Crypto payment panel — populated from the quote returned by n8n -->
+  <div id="payment-panel" style="display:none; text-align:left; background:var(--light-grey); border-radius:12px; padding:20px; margin-bottom:24px;">
+    <p style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--charcoal); margin:0 0 14px;">
+      Send exactly
+    </p>
+    <p style="font-size:1.5rem; font-weight:700; color:var(--orange); margin:0 0 16px; word-break:break-all;">
+      <span id="pay-amount"></span> <span id="pay-coin"></span>
+    </p>
+
+    <img id="pay-qr" alt="Payment address QR code" style="width:180px; height:180px; display:block; margin:0 auto 16px; background:#fff; border-radius:8px;">
+
+    <p style="font-size:0.72rem; color:var(--grey); margin:0 0 4px;">Address · <span id="pay-network"></span></p>
+    <p id="pay-address" style="font-family:monospace; font-size:0.8rem; word-break:break-all; margin:0 0 10px; color:var(--black);"></p>
+    <button type="button" id="pay-copy" style="background:var(--black); color:#fff; border:none; padding:8px 14px; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; margin-bottom:16px;">Copy address</button>
+
+    <p style="font-size:0.78rem; color:var(--grey); margin:0 0 10px;">
+      This quote expires in <strong id="pay-countdown" style="color:var(--black);"></strong>
+    </p>
+
+    <p style="font-size:0.72rem; color:var(--grey); font-style:italic; margin:0; line-height:1.6;">
+      Send the exact amount shown. Some exchanges deduct their withdrawal fee from the
+      amount you send — please make sure the full amount arrives, or your order will need
+      to be checked manually. Your order is confirmed automatically once payment arrives.
+    </p>
+  </div>
+
   <div style="background:var(--light-grey); border-radius:10px; padding:16px; margin-bottom:24px; text-align:left;">
     <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;">
       <span style="font-size:1rem;">📦</span>
-      <p style="font-size:0.82rem; color:var(--charcoal); margin:0; line-height:1.5;">Your order is being processed. Payment instructions will be sent to your email.</p>
+      <p id="processing-note" style="font-size:0.82rem; color:var(--charcoal); margin:0; line-height:1.5;">Your order is being processed. Payment instructions will be sent to your email.</p>
     </div>
     <div style="display:flex; align-items:flex-start; gap:10px;">
       <span style="font-size:1rem;">💬</span>
@@ -71,6 +97,97 @@
   localStorage.removeItem('cart');
   localStorage.removeItem('appliedPromoCode');
   if (typeof updateCartCount === 'function') updateCartCount();
+</script>
+
+<script>
+// Crypto payment panel. Populated from the quote sessionStorage received from
+// the create-order webhook. Bank-transfer orders have no quote and keep the
+// original "we'll contact you" message.
+(function () {
+  var raw = null;
+  try { raw = sessionStorage.getItem('gmgPayment'); } catch (e) { return; }
+  if (!raw) return;
+
+  var p;
+  try { p = JSON.parse(raw); } catch (e) { return; }
+  if (!p || !p.address || !p.expectedAmount) return;
+
+  var panel = document.getElementById('payment-panel');
+  var msg   = document.getElementById('no-payment-msg');
+  if (!panel) return;
+  if (msg) msg.style.display = 'none';
+  panel.style.display = 'block';
+
+  // The address is on screen now, so the generic "instructions will be emailed"
+  // line would contradict it. Keep the email mention, since the address is
+  // emailed too and the customer may close this tab.
+  var processingNote = document.getElementById('processing-note');
+  if (processingNote) {
+    processingNote.textContent =
+      'Your order is being processed. These payment details have also been emailed to you.';
+  }
+
+  document.getElementById('pay-amount').textContent  = p.expectedAmount;
+  document.getElementById('pay-coin').textContent    = p.coin;
+  document.getElementById('pay-address').textContent = p.address;
+  document.getElementById('pay-network').textContent =
+    p.coin === 'USDT' ? 'TRC-20 / Tron network' : 'Bitcoin network';
+
+  // QR encodes the plain address. Wallet support for BIP-21 and TRC-20 payment
+  // URIs is inconsistent, and a URI a wallet cannot read is worse than an
+  // address every wallet can.
+  document.getElementById('pay-qr').src =
+    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=' +
+    encodeURIComponent(p.address);
+
+  var copyBtn = document.getElementById('pay-copy');
+  if (copyBtn && navigator.clipboard) {
+    copyBtn.addEventListener('click', function () {
+      navigator.clipboard.writeText(p.address).then(function () {
+        copyBtn.textContent = 'Copied';
+        setTimeout(function () { copyBtn.textContent = 'Copy address'; }, 2000);
+      });
+    });
+  } else if (copyBtn) {
+    copyBtn.style.display = 'none';
+  }
+
+  // expiresAt is Philippine local time with no offset. Parsing it with a bare
+  // new Date() would resolve it in the CUSTOMER's timezone — hours wrong for
+  // buyers in the USA — so the +08:00 offset is applied explicitly.
+  function parseManila(text) {
+    if (!text) return NaN;
+    var s = String(text).trim();
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(s)) {
+      if (s.length === 16) s += ':00';
+      return new Date(s.replace(' ', 'T') + '+08:00').getTime();
+    }
+    return new Date(s).getTime();
+  }
+
+  var countdown = document.getElementById('pay-countdown');
+  var expiry    = parseManila(p.expiresAt);
+
+  if (isNaN(expiry)) { countdown.textContent = 'see your confirmation email'; return; }
+
+  function tick() {
+    var left = expiry - Date.now();
+    if (left <= 0) {
+      countdown.textContent = 'expired — message us on Telegram';
+      return;
+    }
+    var totalSeconds = Math.floor(left / 1000);
+    var h = Math.floor(totalSeconds / 3600);
+    var m = Math.floor((totalSeconds % 3600) / 60);
+    var s = totalSeconds % 60;
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    countdown.textContent = h > 0
+      ? h + 'h ' + pad(m) + 'm ' + pad(s) + 's'
+      : m + 'm ' + pad(s) + 's';
+    setTimeout(tick, 1000);
+  }
+  tick();
+})();
 </script>
 </body>
 </html>
