@@ -51,16 +51,31 @@
     );
   }
 
-  // expiresAt arrives as epoch milliseconds in tests but as a date string from
-  // the Orders sheet. Number('2026-08-24T22:24:07+08:00') is NaN, and NaN
-  // comparisons are always false — which would silently mark every order
-  // expired and confirm nothing. Parse both shapes.
+  // The Orders sheet stores timestamps as "2026-08-24 22:29:05" — readable, but
+  // carrying no timezone. new Date() would interpret that in the PARSER's local
+  // zone, and n8n runs UTC, so every expiry would land 8 hours late and late
+  // payments would auto-confirm instead of going to review. A bare timestamp is
+  // therefore explicitly read as Philippine time (UTC+8, no DST).
+  //
+  // Anything reading these timestamps outside this module must do the same.
+  const MANILA_OFFSET = '+08:00';
+  const NAIVE_DATETIME = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/;
+
   function toEpochMs(value) {
     if (value === null || value === undefined || value === '') return NaN;
     if (typeof value === 'number') return value;
-    const asNumber = Number(value);
-    if (!isNaN(asNumber)) return asNumber;
-    return new Date(value).getTime();
+
+    const text = String(value).trim();
+
+    const asNumber = Number(text);
+    if (text !== '' && !isNaN(asNumber)) return asNumber;
+
+    if (NAIVE_DATETIME.test(text)) {
+      const withSeconds = text.length === 16 ? text + ':00' : text;
+      return new Date(withSeconds.replace(' ', 'T') + MANILA_OFFSET).getTime();
+    }
+
+    return new Date(text).getTime();
   }
 
   function isOpen(order, nowMs) {

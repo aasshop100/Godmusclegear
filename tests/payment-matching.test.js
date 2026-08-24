@@ -169,3 +169,41 @@ test('an unparseable expiresAt is treated as expired rather than open', () => {
   const orders = [order('A', 'USDT', 512.73, { expiresAt: 'not a date' })];
   assert.strictEqual(findMatch(512.73, 'USDT', orders, NOW).type, 'EXPIRED_MATCH');
 });
+
+// ── bare sheet timestamps are Manila time, not the parser's local zone ──
+
+test('a bare "YYYY-MM-DD HH:MM:SS" timestamp is read as Manila time', () => {
+  const { toEpochMs } = require('../payment-matching.js');
+  assert.strictEqual(
+    toEpochMs('2026-08-24 22:29:05'),
+    new Date('2026-08-24T22:29:05+08:00').getTime()
+  );
+});
+
+test('a bare timestamp is NOT read as UTC', () => {
+  const { toEpochMs } = require('../payment-matching.js');
+  assert.notStrictEqual(
+    toEpochMs('2026-08-24 22:29:05'),
+    new Date('2026-08-24T22:29:05Z').getTime()
+  );
+});
+
+test('a bare timestamp without seconds still parses as Manila time', () => {
+  const { toEpochMs } = require('../payment-matching.js');
+  assert.strictEqual(
+    toEpochMs('2026-08-24 22:29'),
+    new Date('2026-08-24T22:29:00+08:00').getTime()
+  );
+});
+
+test('an order with a bare future timestamp is open, not expired', () => {
+  const nowManila = new Date('2026-08-24T22:00:00+08:00').getTime();
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: '2026-08-24 22:30:00' })];
+  assert.strictEqual(findMatch(512.73, 'USDT', orders, nowManila).type, 'EXACT');
+});
+
+test('an order with a bare past timestamp is EXPIRED_MATCH', () => {
+  const nowManila = new Date('2026-08-24T23:00:00+08:00').getTime();
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: '2026-08-24 22:30:00' })];
+  assert.strictEqual(findMatch(512.73, 'USDT', orders, nowManila).type, 'EXPIRED_MATCH');
+});
