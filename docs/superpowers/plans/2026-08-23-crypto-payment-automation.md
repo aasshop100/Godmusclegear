@@ -1247,7 +1247,7 @@ Test URL. A Test URL reaching production would silently break every order.
 - [ ] **Step 4: Run the full test suite**
 
 ```bash
-node --check script.js && node --check payment-matching.js && node --test tests/
+node --check script.js && node --check payment-matching.js && node --test tests/*.test.js
 ```
 
 Expected: both checks silent; all tests pass.
