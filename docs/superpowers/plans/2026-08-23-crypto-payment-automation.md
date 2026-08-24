@@ -28,6 +28,89 @@
 
 ---
 
+## PROGRESS — paused 2026-08-24 end of day
+
+Branch: `crypto-payment-automation` (all work committed, not merged).
+`main` is untouched. **Both n8n workflows are UNPUBLISHED.** The live site still
+runs the old manual crypto flow.
+
+| Task | State |
+|---|---|
+| 1 — `payment-matching.js` | ✅ done, 52 unit tests passing |
+| 2 — `GMG Orders` sheet | ✅ created, id in `api-keys.md` |
+| 3 — `GMG - Create Order` | ✅ built + verified — workflow `YTYSoa22Gu9L6NzC` |
+| 4 — `GMG - Payment Watcher` | ✅ built + all 7 paths verified — workflow `UEIXJauCOKOhxIUh` |
+| 5 — checkout coin selection | ✅ done + verified locally |
+| 6 — payment panel + FAQ | ✅ done + verified locally |
+| 7 — real-money test | ⏸️ **PAUSED HERE** — waiting on one live USDT payment |
+| 8 — go live | ⏹️ not started |
+
+### Where Task 7 stopped
+
+Everything is verified except one thing: **a real USDT transfer has never been
+seen**, because the configured Tron address has no on-chain history at all
+(confirmed: valid checksum, account not yet activated — it is a fresh deposit
+address that has never received anything).
+
+Bitcoin parsing WAS proven against real chain data for free, by temporarily
+lowering `watchFrom` to catch one historical inbound transaction. It detected
+`00c89a368e54870dec44369a` at `0.00130761 BTC` correctly. `watchFrom` has been
+restored to `2026-08-24 22:45:00`.
+
+**An order is waiting for that payment:**
+
+- `LIVE-BINANCE-TEST` in the Orders sheet, `AWAITING_PAYMENT`, expects
+  **exactly `3.50` USDT**, valid until `2026-08-25 23:20:00`.
+- 3.50 was chosen because Binance's minimum withdrawal is $5 with a 1.50 USDT
+  fee deducted from the amount, so 3.50 is the most that can actually arrive.
+- When Lester sends it, the watcher is NOT running — it must be run manually
+  (`execute_workflow`, manual mode) or republished to pick the payment up. The
+  payment stays on-chain, so there is no rush and nothing is lost.
+
+### To resume
+
+1. Ask whether the 3.50 USDT payment was sent.
+2. Run `GMG - Payment Watcher` manually and confirm `LIVE-BINANCE-TEST` → `PAID`
+   with a real txid, plus the Telegram confirmation.
+3. Then Task 8.
+
+### Deviations from this plan, already applied
+
+- **Per-coin expiry.** BTC 3 hours, USDT 30 minutes — not 30 for both. A
+  customer's exchange can sit on a BTC withdrawal for an hour before broadcast.
+  Values live on the `Payment Addresses` node in each workflow.
+- **`PAYMENT_SEEN` status added.** A payment seen in the mempool stops the
+  expiry clock so slow Bitcoin confirmations still auto-complete. Dedupe keys
+  are staged (`txid:seen` then `txid`).
+- **`watchFrom` cutoff added** on the watcher's `Payment Addresses` node. These
+  are live exchange deposit addresses with real history; without it the first
+  run would have alerted on ~50 historical transactions.
+- **Overpayment is `REVIEW`, not `PAID`** (spec corrected).
+- Task 7 Step 1's spec correction is DONE.
+
+### MUST be undone before go-live (Task 8)
+
+- **`http://localhost:8899` is in the `Order Webhook` `allowedOrigins` list.**
+  Remove it so only godmusclegears.com can create orders.
+- **Test data in the sheet:** 10 rows in `Orders` (TEST-001..008,
+  LIVE-USDT-TEST, LIVE-BINANCE-TEST, plus one `ORDER-1787584663956` from the
+  site-path test) and 8 rows in `processed_tx`. Delete by exact id.
+- **EmailJS customer template `template_0ry9w0v`** still needs the payment block
+  added by hand (Task 7 Step 7). The code already sends `pay_coin`,
+  `pay_address`, `pay_amount`, `pay_expires`.
+
+### Known issue to weigh before launch
+
+Binance deducts its 1.50 USDT fee from the amount sent, so a customer told to
+send `84.14` who types `84.14` will have `82.64` arrive — landing as `REVIEW`
+"short by 1.50" rather than auto-confirming. The near-match logic names the
+order and the shortfall so it is a one-tap decision, but a meaningful share of
+Binance-funded orders will need that tap. Options discussed: louder copy on the
+payment panel, or auto-accepting shortfalls under a small threshold. Lester's
+call, not yet decided.
+
+---
+
 ## Spec correction adopted by this plan
 
 The spec's failure-handling table says an overpayment results in `PAID` plus an

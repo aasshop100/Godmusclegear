@@ -169,7 +169,8 @@ Every row here represents real money, so none of these may fail silently.
 | Amount matches no open order | Unmatched-payment alert with tx hash and amount |
 | Amount is less than expected, within 2% of exactly one open order | `status = REVIEW` + alert naming that order and the shortfall. Never auto-confirms |
 | Amount is less than expected, no single candidate | Reported as an unmatched payment |
-| Amount exceeds expected | `status = PAID` + alert noting the overage |
+| Amount exceeds expected, within 2% of exactly one open order | `status = REVIEW` + alert stating the overage. Never auto-confirms |
+| Amount exceeds expected, no single candidate | Reported as an unmatched payment |
 | Order reaches `expiresAt` unpaid | `status = EXPIRED` on the next sweep |
 | Tron or Bitcoin API unreachable | Log and retry next poll; alert after 3 consecutive failures |
 
