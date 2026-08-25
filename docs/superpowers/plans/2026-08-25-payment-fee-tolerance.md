@@ -4,8 +4,10 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Task 1 DONE (2026-08-25) — `payment-matching.js` + tests, 65 passing.
-Tasks 2–5 not started. Written 2026-08-25.
+**Status:** Tasks 1–3 DONE (2026-08-25). Module + 65 tests passing; logic ported
+to `GMG - Payment Watcher` and verified on the deployed node via pinned data
+(execution `5018`, all six bands correct). **Workflow remains UNPUBLISHED.**
+Tasks 4–5 (panel + EmailJS copy, plan/memory updates) not started.
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 (done).
 This plan **modifies artifacts those tasks already built** — `payment-matching.js`
@@ -209,14 +211,14 @@ Note the glob — `node --test tests/` resolves as a module path and fails. The
 **Files:**
 - Modify: n8n `GMG - Payment Watcher` (`UEIXJauCOKOhxIUh`), `Match Payments` node
 
-- [ ] **Step 1: Replace the matching block**
+- [x] **Step 1: Replace the matching block**
 
 Paste the updated constants and `findMatch` from Task 1 over the equivalent
 section of the Code node. Do not hand-edit it into a variant — divergence
 between the tested module and the node that actually runs is the specific
 failure this architecture exists to prevent.
 
-- [ ] **Step 2: Handle the new types in the status/alert block**
+- [x] **Step 2: Handle the new types in the status/alert block**
 
 Add ahead of the existing `NEAR_UNDER`/`NEAR_OVER` branch:
 
@@ -241,7 +243,7 @@ Add ahead of the existing `NEAR_UNDER`/`NEAR_OVER` branch:
 stamped for `AUTO_UNDER` and `AUTO_OVER` — otherwise auto-accepted orders reach
 `PAID` with an empty `paidAt`, and there is no record of when the money landed.
 
-- [ ] **Step 3: Re-verify the whole workflow**
+- [x] **Step 3: Re-verify the whole workflow**
 
 `update_workflow` has silently dropped parameters from untouched nodes on this
 project repeatedly. After the edit:
@@ -255,7 +257,7 @@ Confirm on nodes you did NOT touch: both Telegram nodes still have their
 `operation` and full column schema, and the workflow still has
 `errorWorkflow: sXZtgBw3kX1dhgWg` and `timezone: Asia/Manila`.
 
-- [ ] **Step 4: Prove it with pinned data, not real money**
+- [x] **Step 4: Prove it with pinned data, not real money**
 
 Use `prepare_workflow_pin_data` to feed the matcher a synthetic TronGrid
 response, so every branch is exercised without spending anything:
@@ -279,7 +281,7 @@ that is the easiest thing here to get wrong and the hardest to notice later.
 **Files:**
 - Read: `payment-matching.js`, the `Match Payments` node
 
-- [ ] **Step 1: Diff them**
+- [x] **Step 1: Diff them**
 
 Extract the Code node's `jsCode` and diff the shared region against
 `payment-matching.js`. The constants and `findMatch` must be character-identical
