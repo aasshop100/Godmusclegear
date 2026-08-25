@@ -7,12 +7,16 @@
 **Status:** Tasks 2–3 BUILT and verified 2026-08-25 (execution `5020`). Task 4
 Steps 1–2 done; Step 3 (one real send) waits on the SPF edit. **Workflow remains
 UNPUBLISHED.**
-Task 1 (sender) DONE except the deliverability test: credential `wbNyEh5HUE1ugRdl`
+Task 1 (sender) COMPLETE: credential `wbNyEh5HUE1ugRdl`
 (`SMTP - God Muscle Gears`) is live and connection-tested, sending as
 `admin@godmusclegears.com` via `aasshop100@gmail.com`. SPF verified live 2026-08-26 as
 `v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all` — one record,
-2 of 10 DNS lookups used, no DMARC. **Outstanding: the deliverability test
-(Step 4).**
+2 of 10 DNS lookups used, no DMARC. Deliverability proven 2026-08-26: a real send to
+`lester@beligas.org` (Namecheap Private Email — independent of Google) landed in
+the **inbox**, From read `GOD MUSCLE GEARS <admin@godmusclegears.com>`, with no
+"via gmail.com" annotation. Gmail honoured the verified send-as alias rather
+than rewriting it, and the SMTP envelope carried `admin@godmusclegears.com` —
+so the SPF record edited above is the one actually evaluated.
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 and
 `2026-08-25-payment-fee-tolerance.md` Tasks 1–4 (both done). Modifies the
@@ -184,7 +188,7 @@ emails start landing in spam.
 > `p=reject` policy on an unaligned setup would send your own order
 > confirmations to spam by instruction.
 
-- [ ] **Step 4: Prove deliverability**
+- [x] **Step 4: Prove deliverability** — DONE 2026-08-26
 
 Send one test to a **non-Gmail** address — Outlook, Yahoo, or Proton. Gmail is
 lenient about mail originating from Gmail and will flatter the result.
