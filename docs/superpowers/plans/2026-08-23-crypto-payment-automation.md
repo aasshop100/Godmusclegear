@@ -67,12 +67,25 @@ restored to `2026-08-24 22:45:00`.
   (`execute_workflow`, manual mode) or republished to pick the payment up. The
   payment stays on-chain, so there is no rush and nothing is lost.
 
-### To resume
+### To resume — updated 2026-08-25
 
-1. Ask whether the 3.50 USDT payment was sent.
-2. Run `GMG - Payment Watcher` manually and confirm `LIVE-BINANCE-TEST` → `PAID`
-   with a real txid, plus the Telegram confirmation.
-3. Then Task 8.
+**The live payment test is PARKED until 2026-08-31** at Lester's direction.
+
+`LIVE-BINANCE-TEST` expires `2026-08-25 23:20` and the sweep will mark it
+`EXPIRED`. **Do not try to revive it — issue a fresh order** on the 31st. Note
+that a fresh order should be quoted under the new fee rules, so build the fee
+tolerance plan first and the live test then validates the real behaviour rather
+than the superseded one.
+
+Recommended order of work:
+
+1. `2026-08-25-payment-fee-tolerance.md` — changes how matching works.
+2. `2026-08-25-payment-status-polling.md` — changes what the customer sees.
+3. Issue a fresh live order, send the USDT, confirm `PAID` + Telegram. This is
+   still the one unproven path: the Tron address has never received anything,
+   so real TRC-20 parsing has never run against real data. Bitcoin parsing was
+   proven against real chain data.
+4. Then Task 8, with the extended checklist below.
 
 ### Deviations from this plan, already applied
 
@@ -99,15 +112,31 @@ restored to `2026-08-24 22:45:00`.
   added by hand (Task 7 Step 7). The code already sends `pay_coin`,
   `pay_address`, `pay_amount`, `pay_expires`.
 
-### Known issue to weigh before launch
+### Withdrawal-fee handling — DECIDED 2026-08-25
 
-Binance deducts its 1.50 USDT fee from the amount sent, so a customer told to
-send `84.14` who types `84.14` will have `82.64` arrive — landing as `REVIEW`
-"short by 1.50" rather than auto-confirming. The near-match logic names the
-order and the shortfall so it is a one-tap decision, but a meaningful share of
-Binance-funded orders will need that tap. Options discussed: louder copy on the
-payment panel, or auto-accepting shortfalls under a small threshold. Lester's
-call, not yet decided.
+Was: "Binance deducts 1.50 from the amount sent, so those orders land in REVIEW
+instead of auto-confirming — Lester's call, not yet decided."
+
+**Decided.** Buyers are not Binance-only; fees vary by platform (~0.8–2.5 on
+TRC-20) and self-custody wallets deduct nothing at all, so no fixed markup can
+be correct. Quote the true amount, instruct the buyer to add their fee on top,
+and auto-accept shortfalls up to a flat ceiling (3.00 USDT / 0.0005 BTC).
+Overpayments inside the ceiling auto-confirm too.
+
+Full reasoning and implementation:
+`docs/superpowers/plans/2026-08-25-payment-fee-tolerance.md`.
+
+> That plan **modifies `payment-matching.js` and the `Match Payments` node**,
+> which Tasks 1 and 4 already built. The 2% `NEAR_MATCH_TOLERANCE` described
+> elsewhere in this document is superseded by it.
+
+### Also outstanding before go-live
+
+`order-success.html` never polls, so a customer who pays correctly still watches
+the countdown run out to "expired — message us on Telegram". Spec:
+`docs/superpowers/plans/2026-08-25-payment-status-polling.md`. Adds a third
+workflow (`GMG - Order Status`) and a `statusToken` column, both of which extend
+the go-live checklist above.
 
 ---
 
