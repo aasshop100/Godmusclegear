@@ -4,7 +4,7 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** SPEC ONLY — not started, nothing built. Written 2026-08-26.
+**Status:** Task 2 BUILT and verified 2026-08-26. `GMG - Create Order` now accepts every payment method; bank-transfer rows proven un-matchable. Tasks 3–6 not started. **Still unpublished.**
 
 **Decided by Lester 2026-08-26:** go-live is delayed to do this first, rather than
 pasting an EmailJS template that would later be thrown away.
@@ -139,7 +139,7 @@ An outage should cost emails, never sales.
 **Files:**
 - Modify: n8n `GMG - Create Order` (`YTYSoa22Gu9L6NzC`), `Build Order` node
 
-- [ ] **Step 1: Branch on payment method instead of rejecting**
+- [x] **Step 1: Branch on payment method instead of rejecting**
 
 `Build Order` currently throws on anything that is not USDT or BTC:
 
@@ -154,12 +154,12 @@ Replace with a branch. For `Bank Transfer`, skip rate lookup, skip
 Still throw on a genuinely unknown method — an unrecognised value is a bug, and
 silently recording it as a bank transfer would hide it.
 
-- [ ] **Step 2: Keep issuing `statusToken` for every order**
+- [x] **Step 2: Keep issuing `statusToken` for every order**
 
 Harmless for bank transfer and keeps one code path. The success page simply never
 polls, because it has no quote to poll about.
 
-- [ ] **Step 3: Carry the fields the emails need**
+- [x] **Step 3: Carry the fields the emails need**
 
 The webhook body gains: `fullAddress`, `subtotal`, `discountLine`, `promoCode`,
 `shippingNote`, and `itemsDetailed` — an array of
@@ -174,7 +174,7 @@ header name.
 > Read `A1:Z1` first to confirm the target column is empty. n8n's Sheets node
 > cannot write a header cell.
 
-- [ ] **Step 4: Re-verify the whole workflow**
+- [x] **Step 4: Re-verify the whole workflow**
 
 This workflow has already had `returnAllMatches`, `resource` and `operation`
 silently dropped from untouched nodes by one edit. After any change, re-fetch and

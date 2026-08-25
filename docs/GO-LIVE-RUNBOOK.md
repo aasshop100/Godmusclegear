@@ -56,7 +56,12 @@ TEST-006  TEST-007  TEST-008
 LIVE-USDT-TEST  LIVE-BINANCE-TEST
 ORDER-1787584663956
 TOKEN-TEST-001
+BANK-TEST-001  CRYPTO-REG-001
 ```
+
+> `BANK-TEST-001` and `CRYPTO-REG-001` are from verifying the bank-transfer
+> branch on 2026-08-26. `BAD-METHOD-001` was also attempted but threw before the
+> append, so it has no row — do not go looking for it.
 
 Plus whatever order id the live USDT test created.
 
