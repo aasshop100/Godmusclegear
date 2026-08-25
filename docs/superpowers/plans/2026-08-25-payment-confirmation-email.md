@@ -358,14 +358,14 @@ Delete that test row by exact id afterwards.
 
 ### Task 5: Fold into go-live
 
-- [ ] **Step 1: Extend the go-live checklist**
+- [x] **Step 1: Extend the go-live checklist**
 
 Add to `2026-08-23-crypto-payment-automation.md`: the SMTP credential must exist
 and be verified before publishing the watcher, or every confirmed payment fails
 its email step silently (harmlessly, given `continueRegularOutput` — which is
 exactly why it would go unnoticed).
 
-- [ ] **Step 2: Update memory**
+- [x] **Step 2: Update memory**
 
 Record in `C:\Users\LESTER\memory\n8n-workflows.md`: the sender decision, that
 the `PAID` email is deliberately identical for exact and auto-accepted payments,

@@ -103,14 +103,37 @@ Recommended order of work:
 
 ### MUST be undone before go-live (Task 8)
 
-- **`http://localhost:8899` is in the `Order Webhook` `allowedOrigins` list.**
-  Remove it so only godmusclegears.com can create orders.
-- **Test data in the sheet:** 10 rows in `Orders` (TEST-001..008,
-  LIVE-USDT-TEST, LIVE-BINANCE-TEST, plus one `ORDER-1787584663956` from the
-  site-path test) and 8 rows in `processed_tx`. Delete by exact id.
-- **EmailJS customer template `template_0ry9w0v`** still needs the payment block
-  added by hand (Task 7 Step 7). The code already sends `pay_coin`,
-  `pay_address`, `pay_amount`, `pay_expires`.
+**Updated 2026-08-25.** Three workflows now, not two.
+
+**Remove `http://localhost:8899` from `allowedOrigins` on BOTH webhooks:**
+- `GMG - Create Order` → `Order Webhook`
+- `GMG - Order Status` → `Status Webhook`
+
+**Publish all three workflows.** `GMG - Create Order`, `GMG - Payment Watcher`,
+`GMG - Order Status`. A published create-order that hands out a `statusToken`
+while the status workflow is unpublished means every customer page polls a dead
+endpoint — harmless, because it degrades silently, but the fix is then not
+actually live.
+
+**Delete test rows by exact id:**
+- `Orders`: TEST-001..008, LIVE-USDT-TEST, LIVE-BINANCE-TEST,
+  `ORDER-1787584663956`, and **`TOKEN-TEST-001`** (added 2026-08-25 while
+  verifying the statusToken change — it carries a real token and a real quote).
+- `processed_tx`: 8 rows.
+
+**Manual dashboard work, none of it in this repo:**
+- **EmailJS `template_0ry9w0v`** — paste `docs/emailjs-customer-template.html`
+  (full replacement), then test **both** a crypto and a **bank transfer** order.
+  The bank-transfer one is what proves the `{{#pay_address}}` conditional works;
+  without it every bank-transfer customer gets an empty payment box.
+- **EmailJS sender** — change to `admin@godmusclegears.com` so it matches the
+  n8n payment emails. Today it sends as `aasshop100@gmail.com`, so a customer
+  gets two emails about one order from two different addresses.
+- **SPF record** — edit (do not add to) the existing
+  `v=spf1 include:_spf.mx.cloudflare.net ~all` to include `_spf.google.com`.
+  See `2026-08-25-payment-confirmation-email.md` Task 1 Step 3.
+- **Deliverability test** — one send to a non-Gmail address. Gmail flatters
+  mail that originates from Gmail.
 
 ### Withdrawal-fee handling — DECIDED 2026-08-25
 

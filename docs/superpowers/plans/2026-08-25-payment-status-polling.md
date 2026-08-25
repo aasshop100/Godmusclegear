@@ -4,7 +4,10 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** SPEC ONLY — not started, nothing built. Written 2026-08-25.
+**Status:** BUILT and verified 2026-08-25. Workflow `GMG - Order Status`
+(`1v3236DBmMZBL88h`) is live-but-**UNPUBLISHED**; `payment-status.js` has 18
+tests; the success page polls and was verified across all four states plus the
+endpoint-down degradation path.
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 (done).
 Can be built before or after that plan's Task 8 (go-live). See
@@ -151,13 +154,13 @@ page permanently wrong. POST is never cached and matches `create-order`.
 - Produces: `statusToken` in the quote response and in the sheet row, consumed
   by Task 2.
 
-- [ ] **Step 1: Add the column**
+- [x] **Step 1: Add the column**
 
 Append a `statusToken` header to the `Orders` tab, after `notes`. Append only —
 the `Append Order Row` node maps by header name, and reordering existing columns
 will silently misalign the watcher's update node.
 
-- [ ] **Step 2: Generate the token in `Build Order`**
+- [x] **Step 2: Generate the token in `Build Order`**
 
 In the `Build Order` Code node, add above the `return`:
 
@@ -174,12 +177,12 @@ function makeToken() {
 
 and add `statusToken: makeToken(),` to the returned object.
 
-- [ ] **Step 3: Return it in the quote**
+- [x] **Step 3: Return it in the quote**
 
 In `Respond With Quote`, add `statusToken` to the `JSON.stringify({...})`
 allowlist alongside the existing five fields.
 
-- [ ] **Step 4: Re-verify the whole workflow**
+- [x] **Step 4: Re-verify the whole workflow**
 
 `update_workflow` has silently dropped parameters from untouched nodes on this
 project more than once — including `returnAllMatches` on a Sheets read node in
@@ -193,7 +196,7 @@ Confirm, on nodes you did NOT edit: `Read Open Orders` still has
 `options.returnAllMatches`, `Append Order Row` still has its full schema, and
 `Order Webhook` still has its `allowedOrigins` list.
 
-- [ ] **Step 5: Verify end to end**
+- [x] **Step 5: Verify end to end**
 
 Create a test order against the webhook and confirm the response carries a
 24-character `statusToken` and that the same value appears in the new sheet
@@ -211,7 +214,7 @@ go-live cleanup list; it must be deleted by exact id.
 - Consumes: `{ orderId, statusToken }` POST body.
 - Produces: `{ status, coin, shortfall, expiresAt }` JSON, consumed by Task 4.
 
-- [ ] **Step 1: Build the workflow**
+- [x] **Step 1: Build the workflow**
 
 Four nodes: `Status Webhook` → `Read Order` → `Build Status Response` →
 `Respond With Status`.
@@ -229,7 +232,7 @@ full-sheet read. The sheet grows without bound and this endpoint is polled far
 more often than any other; reading every row per poll is the one thing here that
 will not scale.
 
-- [ ] **Step 2: Write `Build Status Response`**
+- [x] **Step 2: Write `Build Status Response`**
 
 ```js
 // Read-only. This node never writes, never mutates, and returns an explicit
@@ -267,7 +270,7 @@ return [{ json: {
 Fix the first line to the actual node name once the webhook node is created —
 it is written defensively here only because the node name is chosen in Step 1.
 
-- [ ] **Step 3: Respond**
+- [x] **Step 3: Respond**
 
 `Respond With Status` — `respondWith: json`, body
 `={{ JSON.stringify($json) }}`.
@@ -276,11 +279,11 @@ it is written defensively here only because the node name is chosen in Step 1.
 on the `Create Order` workflow overrode the webhook's own `allowedOrigins` and
 broke every `www.` request. Let `allowedOrigins` handle CORS alone.
 
-- [ ] **Step 4: Wire the error workflow**
+- [x] **Step 4: Wire the error workflow**
 
 Settings → Error Workflow → `sXZtgBw3kX1dhgWg`, matching the other two.
 
-- [ ] **Step 5: Verify every branch**
+- [x] **Step 5: Verify every branch**
 
 Using the order from Task 1 Step 5, confirm all four:
 
@@ -310,7 +313,7 @@ Confirm no response in any branch contains `email`, `customerName`, `phone`,
 - Consumes: nothing.
 - Produces: `statusView(status, opts)` → view object, consumed by Task 4.
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 `statusView(status, opts)` where `opts` is `{ coin, shortfall, expired }` and
 the return is:
@@ -366,7 +369,7 @@ Export for both worlds, matching `shipping.js`:
 if (typeof module !== 'undefined' && module.exports) module.exports = { statusView };
 ```
 
-- [ ] **Step 2: Write the tests**
+- [x] **Step 2: Write the tests**
 
 One case per row of the table above, plus:
 
@@ -378,7 +381,7 @@ One case per row of the table above, plus:
 - unknown status string returns the same object as `AWAITING_PAYMENT` not expired
 - `statusView(undefined)` and `statusView(null)` do not throw
 
-- [ ] **Step 3: Run them**
+- [x] **Step 3: Run them**
 
 ```bash
 node --test tests/*.test.js
@@ -397,19 +400,19 @@ existing suites must still pass, not just the new one.
 **Interfaces:**
 - Consumes: `payment-status.js`, the Task 2 endpoint, `sessionStorage.gmgPayment`.
 
-- [ ] **Step 1: Load the module**
+- [x] **Step 1: Load the module**
 
 Add `<script src="payment-status.js"></script>` before the existing inline
 payment-panel script.
 
-- [ ] **Step 2: Add a status region to the panel**
+- [x] **Step 2: Add a status region to the panel**
 
 A single container above "Send exactly" that the poller writes headline and body
 into, and a `tone` class driving its colour. Hidden until a poll returns a
 non-pending status, so a customer whose first poll is still in flight sees
 exactly today's page.
 
-- [ ] **Step 3: Write the poller**
+- [x] **Step 3: Write the poller**
 
 Requirements, all load-bearing:
 
@@ -435,7 +438,7 @@ Requirements, all load-bearing:
   `showCountdown` goes false, otherwise `PAYMENT_SEEN` and `PAID` will keep
   counting down underneath the new message.
 
-- [ ] **Step 4: Verify each state against the real endpoint**
+- [x] **Step 4: Verify each state against the real endpoint**
 
 Run the local server, place a test order so a real row exists, then drive each
 status by editing the sheet row by hand and watching the page update within one
@@ -453,7 +456,7 @@ skipped and most likely to bite: stop the n8n workflow (or block the URL) and
 reload. The page must render the normal payment panel with a running countdown
 and no error anywhere on screen or in a customer-visible position.
 
-- [ ] **Step 5: Check the countdown really stopped**
+- [x] **Step 5: Check the countdown really stopped**
 
 Not by eye. In the console after setting `PAYMENT_SEEN`:
 
@@ -472,7 +475,7 @@ here.
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-23-crypto-payment-automation.md`
 
-- [ ] **Step 1: Extend the go-live checklist**
+- [x] **Step 1: Extend the go-live checklist**
 
 The main plan's "MUST be undone before go-live" list covers two workflows. Add:
 
@@ -485,7 +488,7 @@ The main plan's "MUST be undone before go-live" list covers two workflows. Add:
   every customer page polls a dead endpoint — harmless, because it degrades
   silently, but it also means the fix is not actually live.
 
-- [ ] **Step 2: Update the memory files**
+- [x] **Step 2: Update the memory files**
 
 Add `GMG - Order Status` and its id to the crypto table in
 `C:\Users\LESTER\memory\n8n-workflows.md`, and note the polling behaviour in the

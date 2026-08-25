@@ -343,13 +343,13 @@ is worse than no block at all.
 
 ### Task 5: Update the plans and memory
 
-- [ ] **Step 1: Close the open question in the main plan**
+- [x] **Step 1: Close the open question in the main plan**
 
 In `2026-08-23-crypto-payment-automation.md`, replace the "Known issue to weigh
 before launch" section with the decision recorded here, and link to this plan.
 Also correct the two places that describe a 2% near-match tolerance.
 
-- [ ] **Step 2: Update memory**
+- [x] **Step 2: Update memory**
 
 In `C:\Users\LESTER\memory\ecommerce-stores.md` and
 `C:\Users\LESTER\memory\n8n-workflows.md`, record: the fee ceilings, that buyers
