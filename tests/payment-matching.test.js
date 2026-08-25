@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const {
-  makeUniqueAmount, findMatch, USDT_CONTRACT, NEAR_MATCH_TOLERANCE, EXPIRY_MINUTES
+  makeUniqueAmount, findMatch, USDT_CONTRACT, AUTO_ACCEPT_MAX, REVIEW_TOLERANCE, EXPIRY_MINUTES
 } = require('../payment-matching.js');
 
 const NOW = 1_700_000_000_000;
@@ -15,7 +15,9 @@ const order = (id, coin, expectedAmount, opts) => Object.assign({
 
 test('constants match the agreed configuration', () => {
   assert.strictEqual(USDT_CONTRACT, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
-  assert.strictEqual(NEAR_MATCH_TOLERANCE, 0.02);
+  assert.strictEqual(AUTO_ACCEPT_MAX.USDT, 3.00);
+  assert.strictEqual(AUTO_ACCEPT_MAX.BTC, 0.0005);
+  assert.strictEqual(REVIEW_TOLERANCE, 0.10);
   assert.strictEqual(EXPIRY_MINUTES, 30);
 });
 
@@ -96,18 +98,18 @@ test('already PAID orders are never matched again', () => {
   assert.strictEqual(findMatch(512.73, 'USDT', orders, NOW).type, 'NONE');
 });
 
-test('underpayment within tolerance against exactly one order is NEAR_UNDER', () => {
+test('underpayment inside the ceiling against exactly one order auto-accepts', () => {
   const orders = [order('A', 'USDT', 512.73)];
   const r = findMatch(511.73, 'USDT', orders, NOW);
-  assert.strictEqual(r.type, 'NEAR_UNDER');
+  assert.strictEqual(r.type, 'AUTO_UNDER');
   assert.strictEqual(r.order.orderId, 'A');
   assert.ok(Math.abs(r.difference - -1.00) < 1e-9, `difference was ${r.difference}`);
 });
 
-test('overpayment within tolerance against exactly one order is NEAR_OVER', () => {
+test('overpayment inside the ceiling against exactly one order auto-accepts', () => {
   const orders = [order('A', 'USDT', 512.73)];
   const r = findMatch(513.73, 'USDT', orders, NOW);
-  assert.strictEqual(r.type, 'NEAR_OVER');
+  assert.strictEqual(r.type, 'AUTO_OVER');
   assert.ok(Math.abs(r.difference - 1.00) < 1e-9);
 });
 
@@ -116,7 +118,7 @@ test('underpayment beyond tolerance is NONE', () => {
   assert.strictEqual(findMatch(400.00, 'USDT', orders, NOW).type, 'NONE');
 });
 
-test('ambiguous near-match against two orders is NONE', () => {
+test('two orders inside the ceiling is NONE, never the nearer one', () => {
   const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.80)];
   assert.strictEqual(findMatch(511.90, 'USDT', orders, NOW).type, 'NONE');
 });
@@ -140,7 +142,7 @@ test('BTC exact match tolerates floating point representation', () => {
   assert.strictEqual(findMatch(0.00512345, 'BTC', orders, NOW).type, 'EXACT');
 });
 
-test('near-match does not consider expired orders', () => {
+test('a shortfall against an expired order is never auto-accepted', () => {
   const orders = [order('A', 'USDT', 512.73, { expiresAt: NOW - 1 })];
   assert.strictEqual(findMatch(511.73, 'USDT', orders, NOW).type, 'NONE');
 });
@@ -219,12 +221,12 @@ test('a PAYMENT_SEEN order is still open even long past its expiry', () => {
   assert.strictEqual(r.order.orderId, 'A');
 });
 
-test('a PAYMENT_SEEN order still accepts a near-match for review', () => {
+test('a PAYMENT_SEEN order still absorbs a fee shortfall long past its expiry', () => {
   const orders = [order('A', 'USDT', 100.55, {
     status: 'PAYMENT_SEEN', expiresAt: NOW - 6 * 60 * MIN
   })];
   const r = findMatch(99.55, 'USDT', orders, NOW);
-  assert.strictEqual(r.type, 'NEAR_UNDER');
+  assert.strictEqual(r.type, 'AUTO_UNDER');
 });
 
 test('an AWAITING_PAYMENT order past expiry is still EXPIRED_MATCH', () => {
@@ -235,4 +237,95 @@ test('an AWAITING_PAYMENT order past expiry is still EXPIRED_MATCH', () => {
 test('a PAID order is never rematched even if it was PAYMENT_SEEN before', () => {
   const orders = [order('A', 'BTC', 0.00648502, { status: 'PAID' })];
   assert.strictEqual(findMatch(0.00648502, 'BTC', orders, NOW).type, 'NONE');
+});
+
+// ── withdrawal-fee tolerance: the two-band ladder ────────────────────
+// Exchanges deduct their fee from the amount sent, so a buyer who types the
+// quoted amount exactly underpays by it. Inside a flat ceiling that is absorbed
+// as PAID; outside it, a human decides. See
+// docs/superpowers/plans/2026-08-25-payment-fee-tolerance.md
+
+test('USDT short by exactly the ceiling is auto-accepted (inclusive)', () => {
+  const orders = [order('A', 'USDT', 512.73)];
+  const r = findMatch(509.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AUTO_UNDER');
+  assert.ok(Math.abs(r.difference - -3.00) < 1e-9, `difference was ${r.difference}`);
+});
+
+test('USDT short by one cent beyond the ceiling drops to review', () => {
+  const orders = [order('A', 'USDT', 512.73)];
+  const r = findMatch(509.72, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'NEAR_UNDER');
+  assert.ok(Math.abs(r.difference - -3.01) < 1e-9, `difference was ${r.difference}`);
+});
+
+test('USDT over by exactly the ceiling is auto-accepted (inclusive)', () => {
+  const orders = [order('A', 'USDT', 512.73)];
+  assert.strictEqual(findMatch(515.73, 'USDT', orders, NOW).type, 'AUTO_OVER');
+});
+
+test('USDT over by one cent beyond the ceiling drops to review', () => {
+  const orders = [order('A', 'USDT', 512.73)];
+  assert.strictEqual(findMatch(515.74, 'USDT', orders, NOW).type, 'NEAR_OVER');
+});
+
+test('BTC short by exactly the ceiling is auto-accepted', () => {
+  const orders = [order('A', 'BTC', 0.00648502)];
+  assert.strictEqual(findMatch(0.00598502, 'BTC', orders, NOW).type, 'AUTO_UNDER');
+});
+
+test('BTC short by one satoshi beyond the ceiling drops to review', () => {
+  const orders = [order('A', 'BTC', 0.00648502)];
+  assert.strictEqual(findMatch(0.00598501, 'BTC', orders, NOW).type, 'NEAR_UNDER');
+});
+
+// The load-bearing safety test. A wider auto-accept window is only safe because
+// ambiguity still wins over confidence — crediting one customer's payment to
+// another customer's order is the one failure this must never allow.
+test('two open orders inside the ceiling auto-accepts NEITHER', () => {
+  const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 513.90)];
+  const r = findMatch(511.50, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'NONE');
+  assert.strictEqual(r.order, null);
+});
+
+// One candidate in the tight band and a far-off second in the loose band is NOT
+// ambiguous: the tighter band is the more confident one, so it decides.
+test('a distant second order in the review band does not block an auto-accept', () => {
+  const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 560.00)];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AUTO_UNDER');
+  assert.strictEqual(r.order.orderId, 'A');
+});
+
+test('an expired order is never auto-accepted even one cent short', () => {
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: NOW - 1 })];
+  assert.strictEqual(findMatch(512.72, 'USDT', orders, NOW).type, 'NONE');
+});
+
+// The old 2% band gave away $10 on a $500 order. A flat ceiling does not.
+test('a large order short by 9.00 is review, not auto-accepted', () => {
+  const orders = [order('A', 'USDT', 500.00)];
+  const r = findMatch(491.00, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'NEAR_UNDER');
+});
+
+// ...and the same flat ceiling is more generous than 2% on a small order,
+// which is the case that actually broke: 2% of 85 is 1.70, under a 2.50 fee.
+test('a small order short by 2.50 is auto-accepted where 2% would not have been', () => {
+  const orders = [order('A', 'USDT', 85.43)];
+  assert.strictEqual(findMatch(82.93, 'USDT', orders, NOW).type, 'AUTO_UNDER');
+});
+
+test('a payment far outside both bands is still NONE', () => {
+  const orders = [order('A', 'USDT', 512.73)];
+  assert.strictEqual(findMatch(400.00, 'USDT', orders, NOW).type, 'NONE');
+});
+
+test('an exact match still beats an auto-accept candidate', () => {
+  const orders = [order('A', 'USDT', 511.73), order('B', 'USDT', 512.73)];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'EXACT');
+  assert.strictEqual(r.order.orderId, 'A');
+  assert.strictEqual(r.difference, 0);
 });

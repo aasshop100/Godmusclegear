@@ -4,7 +4,8 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** SPEC ONLY — not started, nothing built. Written 2026-08-25.
+**Status:** Task 1 DONE (2026-08-25) — `payment-matching.js` + tests, 65 passing.
+Tasks 2–5 not started. Written 2026-08-25.
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 (done).
 This plan **modifies artifacts those tasks already built** — `payment-matching.js`
@@ -126,7 +127,7 @@ less than the asking price. Overpayment does not. So the direction that was
 - Produces: new `findMatch` result types `AUTO_UNDER` / `AUTO_OVER`, consumed by
   Task 2.
 
-- [ ] **Step 1: Replace the tolerance constants**
+- [x] **Step 1: Replace the tolerance constants**
 
 Remove `NEAR_MATCH_TOLERANCE = 0.02`. Add:
 
@@ -141,7 +142,7 @@ const AUTO_ACCEPT_MAX = { USDT: 3.00, BTC: 0.0005 };
 const REVIEW_TOLERANCE = 0.10;
 ```
 
-- [ ] **Step 2: Rewrite the matching ladder**
+- [x] **Step 2: Rewrite the matching ladder**
 
 `findMatch` becomes an ordered ladder. Order matters — each rung is only reached
 when the one above finds nothing.
@@ -162,7 +163,7 @@ auto-attributed to the wrong order at a lower confidence.
 `difference` keeps its existing meaning throughout: signed, received minus
 expected, so negative is short.
 
-- [ ] **Step 3: Update the existing tests that this changes**
+- [x] **Step 3: Update the existing tests that this changes**
 
 These currently assert `REVIEW` outcomes that become `PAID`. They are correct
 tests of the old rule, not bugs — update the expectations, do not delete them:
@@ -172,7 +173,7 @@ tests of the old rule, not bugs — update the expectations, do not delete them:
 - any case relying on 2% of a large amount being tolerated (2% of $500 was
   $10.00 and is now outside the auto-accept ceiling)
 
-- [ ] **Step 4: Add tests for the new behaviour**
+- [x] **Step 4: Add tests for the new behaviour**
 
 Boundary cases first — they are where a flat ceiling actually bites:
 
@@ -192,7 +193,7 @@ Boundary cases first — they are where a flat ceiling actually bites:
 - a $500 order short by `9.00` → `NEAR_UNDER`, proving the old 2% generosity is
   gone
 
-- [ ] **Step 5: Run the suite**
+- [x] **Step 5: Run the suite**
 
 ```bash
 node --test tests/*.test.js

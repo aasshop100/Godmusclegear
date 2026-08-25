@@ -2,8 +2,17 @@
 // Pure payment/order matching. No DOM, no network, no storage.
 // Unit-tested here, then pasted verbatim into the n8n Code nodes.
 //
-// Rule that must never be relaxed: only an EXACT amount match may mark an
-// order PAID. Everything else is a human decision.
+// Rules that must never be relaxed:
+//   1. A payment that could belong to more than one open order is NEVER matched.
+//      Ambiguity is always reported as unmatched, whatever the amounts.
+//   2. Nothing here releases goods. PAID means the money arrived; a human still
+//      ships the order.
+//
+// Revised 2026-08-25: an exact match is no longer the ONLY route to PAID. A
+// payment inside a flat per-coin ceiling of the expected amount now auto-accepts
+// too, because exchanges deduct their withdrawal fee from the amount sent and a
+// buyer who types the quoted amount exactly will therefore underpay by that fee.
+// See docs/superpowers/plans/2026-08-25-payment-fee-tolerance.md.
 
 (function (root, factory) {
   const api = factory();
@@ -11,9 +20,24 @@
   if (root) Object.assign(root, api);
 })(typeof window !== 'undefined' ? window : null, function () {
 
-  const USDT_CONTRACT        = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-  const NEAR_MATCH_TOLERANCE = 0.02;
-  const EXPIRY_MINUTES       = 30;
+  const USDT_CONTRACT  = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+  const EXPIRY_MINUTES = 30;
+
+  // Exchanges deduct their withdrawal fee FROM the amount sent, so a buyer who
+  // types the quoted amount exactly underpays by that fee. Self-custody wallets
+  // pay it separately in TRX and deliver the full amount — the two behave in
+  // opposite directions, which is why the quote is never marked up and the
+  // difference is absorbed here instead.
+  //
+  // FLAT, not a percentage: the fee is ~0.8–2.5 on TRC-20 whether the order is
+  // $85 or $500. The 2% band this replaced was simultaneously too tight on a
+  // small order (missing a 2.5 fee) and far too generous on a large one ($10).
+  //
+  // Never surface this number to customers — a published ceiling is a discount.
+  const AUTO_ACCEPT_MAX = { USDT: 3.00, BTC: 0.0005 };
+
+  // Beyond the auto-accept ceiling but still plausibly this order: a human decides.
+  const REVIEW_TOLERANCE = 0.10;
 
   // Per-coin matching precision. USDT is quoted in cents; BTC in satoshis.
   const DECIMALS = { USDT: 2, BTC: 8 };
@@ -117,32 +141,62 @@
       return { type: 'EXPIRED_MATCH', order: exact[0], difference: 0 };
     }
 
-    // 2. Otherwise look for a single still-open order within tolerance.
-    //    Exchanges often deduct the withdrawal fee from the amount sent, so
-    //    a short payment is common and usually legitimate.
-    const near = all.filter(function (o) {
-      if (!isOpen(o, nowMs)) return false;
-      const expected = Number(o.expectedAmount);
-      if (!expected) return false;
-      return Math.abs(receivedAmount - expected) / expected <= NEAR_MATCH_TOLERANCE;
+    // Only still-open orders with a usable expected amount can absorb a
+    // difference. An expired order is never auto-accepted — expiry is checked
+    // before the ceiling, so late money always surfaces for review.
+    const open = all.filter(function (o) {
+      return isOpen(o, nowMs) && Number(o.expectedAmount);
     });
 
-    // Ambiguity is reported as unmatched. Guessing here would risk crediting
-    // one customer's payment to another customer's order.
-    if (near.length !== 1) return none;
+    // Signed, received minus expected, at the coin's precision. Rounding before
+    // comparing is what makes an exactly-at-the-ceiling difference land inside
+    // it — raw float subtraction gives 3.0000000000000568 and would reject it.
+    function diffFor(o) {
+      return round(receivedAmount - Number(o.expectedAmount), coin);
+    }
 
-    const candidate = near[0];
-    const difference = round(receivedAmount - Number(candidate.expectedAmount), coin);
+    // Ambiguity is always reported as unmatched, at every band. Guessing would
+    // risk crediting one customer's payment to another customer's order.
+    function only(candidates) {
+      return candidates.length === 1 ? candidates[0] : null;
+    }
+
+    // 2. Inside the flat ceiling: confident enough to auto-accept as PAID.
+    const ceiling = AUTO_ACCEPT_MAX[coin];
+    const autoHit = only(open.filter(function (o) {
+      return Math.abs(diffFor(o)) <= ceiling;
+    }));
+    if (autoHit) {
+      const difference = diffFor(autoHit);
+      return {
+        type: difference < 0 ? 'AUTO_UNDER' : 'AUTO_OVER',
+        order: autoHit,
+        difference: difference
+      };
+    }
+
+    // 3. Outside the ceiling but still close enough to name: a human decides.
+    //    Two orders inside the ceiling are necessarily inside this band too, so
+    //    an ambiguous payment falls through to NONE rather than being attributed
+    //    at lower confidence to whichever order happened to be nearest.
+    const nearHit = only(open.filter(function (o) {
+      const expected = Number(o.expectedAmount);
+      return Math.abs(receivedAmount - expected) / expected <= REVIEW_TOLERANCE;
+    }));
+    if (!nearHit) return none;
+
+    const difference = diffFor(nearHit);
     return {
       type: difference < 0 ? 'NEAR_UNDER' : 'NEAR_OVER',
-      order: candidate,
+      order: nearHit,
       difference: difference
     };
   }
 
   return {
     USDT_CONTRACT: USDT_CONTRACT,
-    NEAR_MATCH_TOLERANCE: NEAR_MATCH_TOLERANCE,
+    AUTO_ACCEPT_MAX: AUTO_ACCEPT_MAX,
+    REVIEW_TOLERANCE: REVIEW_TOLERANCE,
     EXPIRY_MINUTES: EXPIRY_MINUTES,
     makeUniqueAmount: makeUniqueAmount,
     findMatch: findMatch,
