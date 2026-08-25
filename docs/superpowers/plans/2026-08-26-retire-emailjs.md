@@ -4,7 +4,7 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Task 2 BUILT and verified 2026-08-26. `GMG - Create Order` now accepts every payment method; bank-transfer rows proven un-matchable. Tasks 3–6 not started. **Still unpublished.**
+**Status:** Tasks 2–3 BUILT and verified 2026-08-26. `GMG - Create Order` accepts every payment method and now sends both order emails itself. Tasks 4–6 (checkout changes, verification, cleanup) not started. **Still unpublished.**
 
 **Decided by Lester 2026-08-26:** go-live is delayed to do this first, rather than
 pasting an EmailJS template that would later be thrown away.
@@ -190,7 +190,7 @@ orders can be handed the same payable amount.
 - Create: `docs/emails/order-received.html`
 - Modify: n8n `GMG - Create Order`
 
-- [ ] **Step 1: Write the template in the repo first**
+- [x] **Step 1: Write the template in the repo first**
 
 Port `docs/emailjs-customer-template.html`, replacing Handlebars with n8n
 expressions and building the items table from `itemsDetailed` in a Code node
@@ -200,7 +200,7 @@ Keep both branches: crypto shows the payment block, bank transfer shows the
 contact promise. Keep the fee line — *"If there's a fee when you send, add it on
 top so the full X arrives."*
 
-- [ ] **Step 2: Add the send node**
+- [x] **Step 2: Add the send node**
 
 After `Append Order Row`, before `Respond With Quote`. Credential
 `wbNyEh5HUE1ugRdl`, from `GOD MUSCLE GEARS <admin@godmusclegears.com>`.
@@ -220,7 +220,7 @@ credential and same attribution/error settings. Port from
 add a payment-details block showing the quoted amount and address — the thing
 EmailJS could never include, because it fired before the quote existed.
 
-- [ ] **Step 3: Respond to the browser regardless**
+- [x] **Step 3: Respond to the browser regardless**
 
 `Respond With Quote` must still fire whether or not the email succeeded. Verify
 by pinning the send node to an error.
