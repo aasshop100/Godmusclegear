@@ -4,7 +4,7 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Tasks 2–4 BUILT 2026-08-26. Checkout now posts every order to n8n, retries, and degrades; EmailJS is gone from the live code. Task 5 (verification) and Task 6 (cleanup) not started. **Still unpublished.**
+**Status:** Tasks 2–5 DONE 2026-08-26 — built and verified end to end with real orders and real emails. Task 6 (docs/memory cleanup) remains. **All three workflows unpublished again; `main` untouched.**
 
 **Decided by Lester 2026-08-26:** go-live is delayed to do this first, rather than
 pasting an EmailJS template that would later be thrown away.
@@ -272,7 +272,7 @@ survivor.
 
 ### Task 5: Verify
 
-- [ ] **Step 1: Pinned run — both order types**
+- [x] **Step 1: Pinned run — both order types**
 
 | Pinned body | Expect |
 |---|---|
@@ -280,17 +280,17 @@ survivor.
 | `coin: 'Bank Transfer'` | no quote, row `BANK_TRANSFER`, email has "we will contact you" and **no** address |
 | `coin: 'Ethereum'` | throws — unknown methods must not be silently recorded |
 
-- [ ] **Step 2: Assert the branches cannot cross-contaminate**
+- [x] **Step 2: Assert the branches cannot cross-contaminate**
 
 The bank-transfer email must contain no address and no amount; the crypto email
 must not contain "we will contact you". Assert it, do not read it.
 
-- [ ] **Step 3: Prove a bank-transfer row cannot match a payment**
+- [x] **Step 3: Prove a bank-transfer row cannot match a payment**
 
 Feed the watcher a pinned payment equal to a bank-transfer row's `usdTotal`.
 Expected: **no match**. This is the safety property the whole design rests on.
 
-- [ ] **Step 4: Two real orders, start to finish**
+- [x] **Step 4: Two real orders, start to finish**
 
 One crypto, one bank transfer, placed through the local checkout against the
 published create-order webhook. Confirm both emails arrive from
@@ -299,7 +299,7 @@ success page behaves correctly for each.
 
 Delete both rows by exact id afterwards.
 
-- [ ] **Step 5: Prove the degrade path**
+- [x] **Step 5: Prove the degrade path**
 
 Temporarily point `CREATE_ORDER_URL` at a dead URL and place an order. Expect:
 the order still completes, the success page shows "we'll contact you shortly",
