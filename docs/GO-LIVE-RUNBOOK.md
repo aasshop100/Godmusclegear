@@ -19,7 +19,9 @@ Do not start until all of these are true:
       Private Email, independent of Google) landed in the **inbox**, From held
       as `admin@godmusclegears.com`, no "via gmail.com", no n8n footer
 - [x] Order emails migrated off EmailJS into n8n — verified end to end with a
-      real crypto order and a real bank-transfer order, 2026-08-26
+      real crypto order and a real bank-transfer order, 2026-08-26. **All four
+      emails confirmed received and rendering correctly by Lester**, including
+      the owner Payment Expected block
 - [ ] **Live USDT payment test passed** — a real payment matched, order flipped
       to `PAID`, Telegram received
 
