@@ -4,7 +4,9 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Tasks 1–4 DONE (2026-08-25), except the EmailJS paste (manual, Lester). Module + 65 tests passing; logic ported
+**Status:** COMPLETE. Tasks 1-4 done 2026-08-25; the EmailJS paste that was
+outstanding became moot on 2026-08-26 when EmailJS was retired entirely and the
+fee instruction moved into the n8n template (`docs/emails/build-emails.js`). Module + 65 tests passing; logic ported
 to `GMG - Payment Watcher` and verified on the deployed node via pinned data
 (execution `5018`, all six bands correct). **Workflow remains UNPUBLISHED.**
 Tasks 4–5 (panel + EmailJS copy, plan/memory updates) not started.
@@ -115,7 +117,7 @@ less than the asking price. Overpayment does not. So the direction that was
 | `tests/payment-matching.test.js` | Modify | Update affected cases, add new ones. |
 | n8n `GMG - Payment Watcher` | Modify | `Match Payments` node: same logic, new alert text. |
 | `order-success.html` | Modify | Louder fee instruction with a worked example. |
-| EmailJS `template_0ry9w0v` | Modify | Same instruction in the emailed payment block. |
+| ~~EmailJS `template_0ry9w0v`~~ | Superseded | EmailJS retired 2026-08-26; the fee line now lives in `docs/emails/build-emails.js`. |
 
 ---
 

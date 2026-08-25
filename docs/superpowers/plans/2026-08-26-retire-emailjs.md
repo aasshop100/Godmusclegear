@@ -4,7 +4,7 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Tasks 2–5 DONE 2026-08-26 — built and verified end to end with real orders and real emails. Task 6 (docs/memory cleanup) remains. **All three workflows unpublished again; `main` untouched.**
+**Status:** COMPLETE 2026-08-26. All six tasks done and verified end to end with real orders and real emails. EmailJS is retired. **All three workflows unpublished; `main` untouched — go-live is still pending the live USDT test.**
 
 **Decided by Lester 2026-08-26:** go-live is delayed to do this first, rather than
 pasting an EmailJS template that would later be thrown away.
@@ -312,16 +312,16 @@ the difference between an n8n outage costing you emails and costing you orders.
 
 ### Task 6: Update the record
 
-- [ ] **Step 1: Rewrite the go-live runbook**
+- [x] **Step 1: Rewrite the go-live runbook**
 
 `docs/GO-LIVE-RUNBOOK.md` still has EmailJS steps in pre-flight. Replace with
 "no EmailJS", and add the bank-transfer order to the Step 7 verification.
 
-- [ ] **Step 2: Delete the superseded artifacts**
+- [x] **Step 2: Delete the superseded artifacts**
 
 `docs/emailjs-customer-template.html` — never pasted, now replaced.
 
-- [ ] **Step 3: Update memory**
+- [x] **Step 3: Update memory**
 
 `ecommerce-stores.md` and `n8n-workflows.md`: EmailJS is gone, all order email
 runs through n8n, and the `Orders` sheet now records bank-transfer orders too.

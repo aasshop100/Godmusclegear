@@ -122,18 +122,18 @@ actually live.
 - `processed_tx`: 8 rows.
 
 **Manual dashboard work, none of it in this repo:**
-- **EmailJS `template_0ry9w0v`** — paste `docs/emailjs-customer-template.html`
-  (full replacement), then test **both** a crypto and a **bank transfer** order.
-  The bank-transfer one is what proves the `{{#pay_address}}` conditional works;
-  without it every bank-transfer customer gets an empty payment box.
-- **EmailJS sender** — change to `admin@godmusclegears.com` so it matches the
-  n8n payment emails. Today it sends as `aasshop100@gmail.com`, so a customer
-  gets two emails about one order from two different addresses.
-- **SPF record** — edit (do not add to) the existing
-  `v=spf1 include:_spf.mx.cloudflare.net ~all` to include `_spf.google.com`.
-  See `2026-08-25-payment-confirmation-email.md` Task 1 Step 3.
-- **Deliverability test** — one send to a non-Gmail address. Gmail flatters
-  mail that originates from Gmail.
+- ~~**EmailJS**~~ — **RETIRED 2026-08-26.** Both order emails are now sent by
+  `GMG - Create Order` as `admin@godmusclegears.com`, so the sender mismatch and
+  the template paste are both moot. See
+  `2026-08-26-retire-emailjs.md`. Nothing in the EmailJS dashboard needs touching
+  before go-live.
+- ~~**SPF record**~~ — **DONE 2026-08-26**, verified live as
+  `v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all`.
+- ~~**Deliverability test**~~ — **DONE 2026-08-26**, inbox at an independent
+  provider with the alias intact.
+
+**The single remaining pre-go-live item is the live USDT payment test**, parked
+to 2026-08-31.
 
 ### Withdrawal-fee handling — DECIDED 2026-08-25
 
@@ -1305,7 +1305,9 @@ the watcher stays silent while the transaction is unconfirmed.
 Delete every test row from `Orders` and `processed_tx` **by exact `orderId` and
 `txHash`** — never by a content match, and count the rows before and after.
 
-- [ ] **Step 7: Hand off the EmailJS template change**
+- [x] **Step 7: Hand off the EmailJS template change** — SUPERSEDED 2026-08-26.
+      EmailJS was retired entirely rather than edited; both order emails now
+      come from n8n. See `2026-08-26-retire-emailjs.md`.
 
 The customer template `template_0ry9w0v` lives in the EmailJS dashboard, not in
 this repository, and must be edited by hand — the same handoff as the shipping

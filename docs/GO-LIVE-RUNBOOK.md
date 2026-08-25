@@ -12,20 +12,24 @@ customers can reach has changed — unpublish the workflows and stop.
 
 Do not start until all of these are true:
 
-- [ ] SPF record edited and propagated (`nslookup -type=TXT godmusclegears.com`
-      shows `_spf.google.com`)
-- [ ] EmailJS `template_0ry9w0v` replaced with `docs/emailjs-customer-template.html`
-- [ ] EmailJS tested with a **crypto** order AND a **bank transfer** order —
-      the bank-transfer one must show "we will contact you soon" and **no**
-      empty payment box
-- [ ] EmailJS sender changed to `admin@godmusclegears.com`
-- [ ] One deliverability test sent to a **non-Gmail** address, landed in inbox
+- [x] SPF record edited and propagated — done 2026-08-26, verified
+      `v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all`,
+      one record, 2 of 10 lookups
+- [x] Deliverability proven — real send to `lester@beligas.org` (Namecheap
+      Private Email, independent of Google) landed in the **inbox**, From held
+      as `admin@godmusclegears.com`, no "via gmail.com", no n8n footer
+- [x] Order emails migrated off EmailJS into n8n — verified end to end with a
+      real crypto order and a real bank-transfer order, 2026-08-26
 - [ ] **Live USDT payment test passed** — a real payment matched, order flipped
       to `PAID`, Telegram received
 
-> The live USDT test is the one that must not be skipped. The Tron address has
-> never received anything, so real TRC-20 parsing has never run against real
-> chain data. Bitcoin parsing was proven; USDT was not.
+> **EmailJS is gone.** Nothing in this runbook touches it any more; both order
+> emails are sent by `GMG - Create Order`. See
+> `docs/superpowers/plans/2026-08-26-retire-emailjs.md`.
+
+> The live USDT test is the one item left, and it must not be skipped. The Tron
+> address has never received anything, so real TRC-20 parsing has never run
+> against real chain data. Bitcoin parsing was proven; USDT was not.
 
 ---
 
@@ -140,31 +144,48 @@ payment method options read **Bank Transfer / USDT (TRC-20) / Bitcoin**.
 
 ---
 
-## 7 — Place one real order yourself
+## 7 — Place two real orders yourself
 
-Not optional. One seam has never run end to end: browser checkout → create-order
-webhook → `sessionStorage` → the page polling with `statusToken`. Every link was
-verified individually, but never as a chain, because the webhook was unpublished
-throughout development.
+Not optional. The checkout-to-quote chain was verified against the real webhook
+on 2026-08-26, but only from a local page. This is the first time it runs from
+the live domain — and two things can only be tested there:
 
-Use the smallest possible cart and USDT.
+- **The Telegram Cloudflare Worker**, which CORS-blocks localhost and therefore
+  could never fire during local testing.
+- **The `allowedOrigins` change from Step 1**, which is what a request from
+  `godmusclegears.com` now depends on.
 
-**Verify, in order:**
+Use the smallest possible cart.
+
+**Order A — USDT.** Verify, in order:
 
 1. Success page shows the amount, address, QR and a running countdown
-2. Order confirmation email arrives **with** the payment block
-3. Send the payment
-4. Within ~2 min: Telegram `PAYMENT CONFIRMED`
-5. The success page — still open — flips to **"Payment confirmed"** and the
+2. **Telegram order notification** arrives (this is the leg that has never run)
+3. Customer order email arrives **with** the payment block
+4. Owner email arrives at `aasshop100@gmail.com` **with Payment Expected**
+5. Send the payment
+6. Within ~2 min: Telegram `PAYMENT CONFIRMED`
+7. The success page — still open — flips to **"Payment confirmed"** and the
    countdown stops
-6. The customer confirmation email arrives
-7. Sheet row shows `PAID` with a `paidAt` and a real `txHash`
+8. The payment-confirmed customer email arrives
+9. Sheet row shows `PAID` with a `paidAt` and a real `txHash`
 
-If 5 fails but 4 and 6 work, polling is broken and nothing else is — the page
+If 7 fails but 6 and 8 work, polling is broken and nothing else is — the page
 degrades silently by design, so it will not announce itself. Check the browser
 console on the success page.
 
-**Then delete that order's rows** from both tabs, by exact id.
+**Order B — Bank Transfer.** Verify:
+
+1. Success page shows **"we'll contact you shortly"** and **no** payment panel
+2. Telegram order notification arrives
+3. Both emails arrive, the customer one showing the contact promise and **no**
+   address, the owner one saying to send instructions manually
+4. Sheet row shows `status: BANK_TRANSFER` with empty coin/address/amount
+
+Bank transfer is the newer path — before 2026-08-26 those orders never reached
+n8n at all — so it deserves the same attention as the crypto one.
+
+**Then delete both orders' rows** from both tabs, by exact id.
 
 ---
 
@@ -182,9 +203,16 @@ console on the success page.
 - **`auto-accepted, short by` notes in the sheet.** A cluster of shortfalls at
   exactly the ceiling is not exchange fees, it is someone who worked out the
   tolerance.
-- **The email step failing silently.** Both send nodes use
-  `continueRegularOutput`, so a broken SMTP credential loses emails without
-  failing any run. Compare `PAID` rows against sends occasionally.
+- **Email failing silently.** Every send node uses `continueRegularOutput`, so a
+  broken SMTP credential loses email without failing any run. There are now four
+  of them — two order emails on `GMG - Create Order`, two payment emails on the
+  watcher — all on the one credential `wbNyEh5HUE1ugRdl`. If that credential
+  breaks, the store keeps taking orders and silently stops emailing anyone.
+  Worth glancing at the executions in the first week.
+- **Orders arriving with no row.** The checkout now degrades rather than aborting
+  when n8n is unreachable, so an outage produces a Telegram with no matching
+  sheet row. That is the design working — but it means a Telegram you cannot
+  find in the sheet is a manual order to finish by hand, not a bug.
 - **Unmatched-payment alerts.** Occasional ones are normal (ambiguity is
   reported rather than guessed). A rising rate means concurrent orders are
   colliding inside the auto-accept band, and the ceiling needs revisiting.
