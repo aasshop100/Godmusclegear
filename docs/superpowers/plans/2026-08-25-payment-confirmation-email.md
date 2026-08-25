@@ -5,9 +5,10 @@
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Status:** SPEC ONLY — not started, nothing built. Written 2026-08-25.
-Task 1 (sender) RESOLVED: `admin@godmusclegears.com` is a send-as alias on the
-Gmail `aasshop100@gmail.com`; it needs its own SMTP credential plus an SPF
-record. Those are manual steps for Lester — see Task 1.
+Task 1 (sender) DONE except the SPF edit: credential `wbNyEh5HUE1ugRdl`
+(`SMTP - God Muscle Gears`) is live and connection-tested, sending as
+`admin@godmusclegears.com` via `aasshop100@gmail.com`. **Outstanding: the SPF
+record edit (Task 1 Step 3) and the deliverability test (Step 4).**
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 and
 `2026-08-25-payment-fee-tolerance.md` Tasks 1–4 (both done). Modifies the
@@ -102,7 +103,7 @@ Calling EmailJS server-side from n8n was considered and **rejected** — it shar
 the 200/month quota with the storefront's order emails, so a busy month would
 silently kill order confirmations.
 
-- [ ] **Step 1: Create the credential — Lester, in the n8n UI**
+- [x] **Step 1: Create the credential — Lester, in the n8n UI**
 
 New credential, type **SMTP**, name it `SMTP - God Muscle Gears`:
 
@@ -123,7 +124,7 @@ first if it is off.
 Paste the App Password straight into n8n. It should not be sent through chat or
 written into any file in this repo.
 
-- [ ] **Step 2: Set the From address**
+- [x] **Step 2: Set the From address**
 
 In the email nodes: `GOD MUSCLE GEARS <admin@godmusclegears.com>`. This works
 only because the alias is verified on the authenticating account — if the From
@@ -188,10 +189,23 @@ Confirm: it arrives in the inbox and not spam, the From reads
 `GOD MUSCLE GEARS <admin@godmusclegears.com>`, and the message does not carry a
 "via gmail.com" annotation.
 
-- [ ] **Step 5: Record the credential id**
+- [x] **Step 5: Record the credential id**
 
-Everything below refers to it as `<SMTP_CRED_ID>`, and to
-`GOD MUSCLE GEARS <admin@godmusclegears.com>` as `<FROM_ADDRESS>`.
+**DONE 2026-08-25.**
+
+| | |
+|---|---|
+| `<SMTP_CRED_ID>` | `wbNyEh5HUE1ugRdl` (`SMTP - God Muscle Gears`) |
+| `<FROM_ADDRESS>` | `GOD MUSCLE GEARS <admin@godmusclegears.com>` |
+
+The alias was already verified in Gmail before this work started. Connection
+tested green on smtp.gmail.com:465 with SSL.
+
+**Do not confuse it with `SMTP account` (`Hw4TxjxRJwylggXA`)**, which
+authenticates as `lstrmrcd@gmail.com` and sends SingilinMO's lender mail. The two
+Google accounts are separate, which is why a send-as alias on one cannot be used
+by the other. Picking the wrong credential in a node is a silent misconfiguration
+— the send succeeds, from the wrong identity.
 
 ---
 
