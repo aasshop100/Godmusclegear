@@ -5,6 +5,9 @@
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Status:** SPEC ONLY — not started, nothing built. Written 2026-08-25.
+Task 1 (sender) RESOLVED: `admin@godmusclegears.com` is a send-as alias on the
+Gmail `aasshop100@gmail.com`; it needs its own SMTP credential plus an SPF
+record. Those are manual steps for Lester — see Task 1.
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 and
 `2026-08-25-payment-fee-tolerance.md` Tasks 1–4 (both done). Modifies the
@@ -80,33 +83,89 @@ left to reviewer discipline.
 
 ---
 
-### Task 1: Decide the sender — BLOCKING, Lester's call
+### Task 1: The sender — RESOLVED 2026-08-25, needs one manual step from Lester
 
-**This is the only thing in this plan that cannot be built without an answer.**
+**Answer:** `admin@godmusclegears.com` is a verified **send-as alias on the Gmail
+account `aasshop100@gmail.com`**.
 
-There is exactly one SMTP credential on the instance: **"SMTP account"**
-(`Hw4TxjxRJwylggXA`), which SingilinMO uses to send as `support@singilinmo.com`
-via a Gmail send-as alias.
+**Consequence — the existing credential cannot be reused.** A Gmail SMTP
+credential authenticates as one specific Gmail account, and a send-as alias only
+works from the account it is verified on. The instance's only SMTP credential,
+**"SMTP account"** (`Hw4TxjxRJwylggXA`), is authenticated as whichever account
+sends SingilinMO's `support@singilinmo.com` mail — a different account. It
+cannot send as this alias.
 
-Sending God Muscle Gears mail through it as-is would put a SingilinMO/Gmail
-address in the From line of a God Muscle Gears order — confusing to the buyer
-and bad for deliverability.
+A second credential is the right answer regardless: rotating SingilinMO's
+password must not be able to break God Muscle Gears order confirmations.
 
-| Option | Cost | Verdict |
-|---|---|---|
-| **A. Reuse "SMTP account", add `admin@godmusclegears.com` as a verified Gmail send-as alias** | minutes, if Lester controls that mailbox | **Recommended** — exact pattern already proven on this instance for `support@singilinmo.com` |
-| B. New SMTP credential on godmusclegears.com's own mail host | more setup, best long-term deliverability | Do this if A is not possible, or later if volume grows |
-| C. Call EmailJS server-side over HTTP from n8n | none | **Rejected** — shares the 200/month quota with the order emails, so a busy month silently kills order confirmations |
+Calling EmailJS server-side from n8n was considered and **rejected** — it shares
+the 200/month quota with the storefront's order emails, so a busy month would
+silently kill order confirmations.
 
-- [ ] **Step 1: Confirm which option, and that the From address is deliverable**
+- [ ] **Step 1: Create the credential — Lester, in the n8n UI**
 
-Send one test email to a non-Gmail address (Outlook or Yahoo) and check it does
-not land in spam. A confirmation email that spam-folders is worse than none —
-the customer concludes they were ignored *and* you believe you told them.
+New credential, type **SMTP**, name it `SMTP - God Muscle Gears`:
 
-- [ ] **Step 2: Record the credential id and From address**
+| Field | Value |
+|---|---|
+| Host | `smtp.gmail.com` |
+| Port | `465` |
+| SSL/TLS | on |
+| User | `aasshop100@gmail.com` |
+| Password | a Google **App Password** — see below |
 
-Everything below refers to them as `<SMTP_CRED_ID>` and `<FROM_ADDRESS>`.
+**It must be an App Password, not the account password.** Google removed
+plain-password SMTP; generate a 16-character App Password at
+`myaccount.google.com` → Security → App passwords. That menu only appears once
+**2-Step Verification is enabled** on `aasshop100@gmail.com`, so turn that on
+first if it is off.
+
+Paste the App Password straight into n8n. It should not be sent through chat or
+written into any file in this repo.
+
+- [ ] **Step 2: Set the From address**
+
+In the email nodes: `GOD MUSCLE GEARS <admin@godmusclegears.com>`. This works
+only because the alias is verified on the authenticating account — if the From
+is changed to any address not verified on `aasshop100@gmail.com`, Gmail silently
+rewrites it back to `aasshop100@gmail.com` and the buyer sees a personal Gmail
+address on their order confirmation.
+
+- [ ] **Step 3: Add an SPF record — do this before go-live**
+
+Sending as `admin@godmusclegears.com` through Gmail's servers means the From
+domain is `godmusclegears.com` while the message is signed for `gmail.com`.
+Nothing authenticates the From domain, so the mail is unaligned and lands in
+spam far more often — the failure mode that makes a confirmation email worse
+than none.
+
+Fix, in Namecheap DNS for `godmusclegears.com`, one TXT record on the root:
+
+```
+v=spf1 include:_spf.google.com ~all
+```
+
+If a `v=spf1` TXT record already exists, **edit it to add `include:_spf.google.com`**
+rather than adding a second one — two SPF records on a domain is a permanent
+failure, not a merge.
+
+> Check first whether the domain already sends mail some other way. An SPF
+> record that omits an existing sender starts spam-foldering mail that works
+> today.
+
+- [ ] **Step 4: Prove deliverability**
+
+Send one test to a **non-Gmail** address — Outlook, Yahoo, or Proton. Gmail is
+lenient about mail originating from Gmail and will flatter the result.
+
+Confirm: it arrives in the inbox and not spam, the From reads
+`GOD MUSCLE GEARS <admin@godmusclegears.com>`, and the message does not carry a
+"via gmail.com" annotation.
+
+- [ ] **Step 5: Record the credential id**
+
+Everything below refers to it as `<SMTP_CRED_ID>`, and to
+`GOD MUSCLE GEARS <admin@godmusclegears.com>` as `<FROM_ADDRESS>`.
 
 ---
 
