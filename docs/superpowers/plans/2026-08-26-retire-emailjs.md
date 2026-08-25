@@ -4,7 +4,7 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Tasks 2–3 BUILT and verified 2026-08-26. `GMG - Create Order` accepts every payment method and now sends both order emails itself. Tasks 4–6 (checkout changes, verification, cleanup) not started. **Still unpublished.**
+**Status:** Tasks 2–4 BUILT 2026-08-26. Checkout now posts every order to n8n, retries, and degrades; EmailJS is gone from the live code. Task 5 (verification) and Task 6 (cleanup) not started. **Still unpublished.**
 
 **Decided by Lester 2026-08-26:** go-live is delayed to do this first, rather than
 pasting an EmailJS template that would later be thrown away.
@@ -232,12 +232,12 @@ by pinning the send node to an error.
 **Files:**
 - Modify: `script.js` — `handleCheckoutSubmit`
 
-- [ ] **Step 1: Remove the payment-method gate**
+- [x] **Step 1: Remove the payment-method gate**
 
 Call `CREATE_ORDER_URL` unconditionally, sending `coin: paymentMethod` (now
 including `'Bank Transfer'`) plus the new fields from Task 2 Step 3.
 
-- [ ] **Step 2: Retry twice, then degrade**
+- [x] **Step 2: Retry twice, then degrade**
 
 Wrap the fetch in a small retry helper — three attempts total, roughly a second
 apart. Only a sustained outage should reach the fallback.
@@ -250,7 +250,7 @@ original "we will contact you shortly" message.
 whether or not the webhook succeeded. This is the whole point of degrading: the
 current ordering makes a failure completely silent to Lester.
 
-- [ ] **Step 3: Delete the EmailJS calls**
+- [x] **Step 3: Delete the EmailJS calls**
 
 Remove `customerPayload`, `ownerPayload`, both `fetch` calls to
 `api.emailjs.com`, the `_j(...)` template-id obfuscation helper, the public key,
@@ -259,7 +259,7 @@ and the `<script>` tag loading the EmailJS SDK if nothing else uses it.
 **Leave `sendTelegramNotification` alone.** It is an independent path that does
 not depend on n8n.
 
-- [ ] **Step 4: Grep for leftovers**
+- [x] **Step 4: Grep for leftovers**
 
 ```bash
 grep -rn "emailjs\|EMAILJS\|template_0ry9w0v\|template_8x2z86l" --include="*.html" --include="*.js" .
