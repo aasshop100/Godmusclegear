@@ -1,0 +1,90 @@
+<!--
+  GOD MUSCLE GEARS — "payment confirmed" email
+  Sent by the GMG - Payment Watcher when an order reaches PAID.
+
+  Paste as the HTML body of the "Send Confirmed Email" node. The n8n
+  expressions below are live — the field must be in expression mode (prefixed
+  with =) for them to resolve.
+
+  ┌─ THE ONE RULE FOR THIS FILE ─────────────────────────────────────────────┐
+  │ This email is sent for BOTH an exact-amount payment and an auto-accepted │
+  │ one (a payment that came up short by the sender's exchange fee and was   │
+  │ let through). It MUST read identically in both cases.                    │
+  │                                                                          │
+  │ Never add: the received amount, the shortfall, the notes field, or any   │
+  │ wording implying the amount was adjusted or forgiven. A buyer told they  │
+  │ underpaid and were accepted has learned a tolerance exists and roughly   │
+  │ where it sits — the ceiling becoming a published discount.               │
+  │                                                                          │
+  │ Note it says "Order total", not "we received X". On an auto-accepted     │
+  │ payment those differ, and asserting a received amount would be false.    │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Also never promise shipping here. Nothing auto-ships — a human releases
+  every order — so "being prepared" is true and "dispatched" is not.
+-->
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5; padding:24px 0; font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden;">
+
+        <tr>
+          <td style="background:#111111; padding:20px 24px;">
+            <p style="margin:0; font-size:15px; font-weight:bold; letter-spacing:2px; color:#ffffff;">
+              GOD MUSCLE GEARS
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:28px 24px 8px;">
+            <p style="margin:0 0 6px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#047857;">
+              Payment confirmed
+            </p>
+            <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">
+              Thanks{{ $("Match Payments").item.json.customerName ? ", " + $("Match Payments").item.json.customerName : "" }} — we've got it.
+            </p>
+
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">
+              Your payment for order
+              <strong style="color:#111111;">{{ $("Match Payments").item.json.matchedOrderId }}</strong>
+              has been confirmed on the blockchain.
+            </p>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
+              <tr>
+                <td style="background:#f5f5f5; border-radius:8px; padding:16px;">
+                  <p style="margin:0 0 4px; font-size:12px; color:#666666;">Order total</p>
+                  <p style="margin:0; font-size:18px; font-weight:bold; color:#111111;">
+                    {{ $("Match Payments").item.json.expectedAmount }} {{ $("Match Payments").item.json.coin }}
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">
+              Your order is confirmed and is being prepared. We'll be in touch with
+              shipping details shortly. No further action is needed from you.
+            </p>
+
+            <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">
+              Questions about your order? Message us on Telegram at
+              <a href="https://t.me/Godmusclegears" style="color:#0088cc; text-decoration:none;">@Godmusclegears</a>.
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="border-top:1px solid #e5e5e5; padding:16px 24px;">
+            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">
+              GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>
+              This is an automated confirmation for order {{ $("Match Payments").item.json.matchedOrderId }}.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>

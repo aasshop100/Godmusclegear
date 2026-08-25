@@ -4,7 +4,9 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** SPEC ONLY — not started, nothing built. Written 2026-08-25.
+**Status:** Tasks 2–3 BUILT and verified 2026-08-25 (execution `5020`). Task 4
+Steps 1–2 done; Step 3 (one real send) waits on the SPF edit. **Workflow remains
+UNPUBLISHED.**
 Task 1 (sender) DONE except the SPF edit: credential `wbNyEh5HUE1ugRdl`
 (`SMTP - God Muscle Gears`) is live and connection-tested, sending as
 `admin@godmusclegears.com` via `aasshop100@gmail.com`. **Outstanding: the SPF
@@ -221,7 +223,7 @@ both sit on the matched order row and are simply not forwarded.
 - Produces: `customerEmail`, `customerName`, `expectedAmount` on each result
   item, consumed by Task 3.
 
-- [ ] **Step 1: Add the fields to the emitted object**
+- [x] **Step 1: Add the fields to the emitted object**
 
 In the `results.push({ json: {...} })` block, add:
 
@@ -236,7 +238,7 @@ In the `results.push({ json: {...} })` block, add:
       : Number(m.order.expectedAmount).toFixed(2)) : '',
 ```
 
-- [ ] **Step 2: Mirror it into `payment-matching.js`?  — NO**
+- [x] **Step 2: Mirror it into `payment-matching.js`?  — NO**
 
 Deliberately not. `payment-matching.js` is the pure *matching* module; who to
 email is presentation, not matching. Adding it there would widen a module whose
@@ -246,7 +248,7 @@ Note this divergence in the module's header comment so the next person to run
 the Task 3 parity check knows the emit block is expected to differ from the
 module and only `findMatch` plus the constants must agree.
 
-- [ ] **Step 3: Re-verify the workflow**
+- [x] **Step 3: Re-verify the workflow**
 
 `get_workflow_details UEIXJauCOKOhxIUh`, then confirm the nodes you did not
 touch are intact — `Payment Addresses` assignments and `watchFrom`, both Telegram
@@ -262,7 +264,7 @@ silently dropped by `update_workflow` before.
 - Modify: n8n `GMG - Payment Watcher`
 - Create: `docs/emails/payment-confirmed.html`, `docs/emails/payment-review.html`
 
-- [ ] **Step 1: Write the two bodies in the repo first**
+- [x] **Step 1: Write the two bodies in the repo first**
 
 Author both as standalone HTML in `docs/emails/` so the copy can be read and
 reviewed in a diff rather than only inside an n8n text field. Email-safe markup:
@@ -278,7 +280,7 @@ it. Do not state the shortfall: at this point the amount genuinely is wrong and
 naming the gap invites the buyer to "top up", producing a second small payment
 that matches nothing.
 
-- [ ] **Step 2: Add the branch**
+- [x] **Step 2: Add the branch**
 
 After `Alert Matched`, add a Switch on `newStatus`:
 
@@ -293,7 +295,7 @@ written the dedupe key to `processed_tx`. That ordering is the exactly-once
 guarantee: if anything upstream fails, the tx is not marked processed and nothing
 was emailed either, so the next run retries cleanly.
 
-- [ ] **Step 3: Guard the send**
+- [x] **Step 3: Guard the send**
 
 Both `emailSend` nodes:
 
@@ -305,7 +307,7 @@ Both `emailSend` nodes:
 - an IF (or an expression guard) so a blank `customerEmail` is skipped rather
   than attempted — older test rows have no email and would error every cycle.
 
-- [ ] **Step 4: Subject lines**
+- [x] **Step 4: Subject lines**
 
 - `PAID` — `Payment confirmed — order {{orderId}}`
 - `REVIEW` — `We received your payment — order {{orderId}}`
@@ -317,7 +319,7 @@ arrived; only the amount is in question.
 
 ### Task 4: Verify without sending real mail
 
-- [ ] **Step 1: Pinned-data run**
+- [x] **Step 1: Pinned-data run**
 
 `test_workflow` pins every credentialed node, so `emailSend` is simulated and
 nothing leaves the instance. Feed the same synthetic TronGrid fixture used for
@@ -332,7 +334,7 @@ execution `5018` and confirm routing:
 | ambiguous / unmatched | none — the branch is not reached |
 | matched order with blank `customerEmail` | none, and **no execution error** |
 
-- [ ] **Step 2: Assert the leak is closed**
+- [x] **Step 2: Assert the leak is closed**
 
 Diff the rendered body of the exact case against the auto-accepted case. They
 must be **byte-identical**. Then grep both for `auto-accepted`, `short by`,
