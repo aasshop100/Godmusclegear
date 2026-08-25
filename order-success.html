@@ -44,6 +44,20 @@
 
   <!-- Crypto payment panel — populated from the quote returned by n8n -->
   <div id="payment-panel" style="display:none; text-align:left; background:var(--light-grey); border-radius:12px; padding:20px; margin-bottom:24px;">
+
+    <!-- Live status, written by the poller below. Hidden until the order is
+         actually something other than awaiting payment, so a customer whose
+         first poll is still in flight sees exactly the pre-polling page. -->
+    <div id="pay-status" style="display:none; border-radius:8px; padding:14px 16px; margin:0 0 16px;">
+      <p id="pay-status-headline" style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:0 0 8px;"></p>
+      <p id="pay-status-body" style="font-size:0.85rem; color:var(--charcoal); margin:0; line-height:1.6;"></p>
+    </div>
+
+    <!-- Everything a customer needs only while they still owe money. Hidden as
+         one unit once a payment is detected: leaving "Send exactly X" and a
+         live countdown on screen after they have paid invites a second
+         payment, which matches nothing and becomes a refund. -->
+    <div id="pay-details">
     <p style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--charcoal); margin:0 0 14px;">
       Send exactly
     </p>
@@ -71,6 +85,7 @@
     <p style="font-size:0.72rem; color:var(--grey); margin:0; line-height:1.6;">
       Your order is confirmed automatically once payment arrives.
     </p>
+    </div><!-- /pay-details -->
   </div>
 
   <div style="background:var(--light-grey); border-radius:10px; padding:16px; margin-bottom:24px; text-align:left;">
@@ -104,6 +119,7 @@
   if (typeof updateCartCount === 'function') updateCartCount();
 </script>
 
+<script src="payment-status.js"></script>
 <script>
 // Crypto payment panel. Populated from the quote sessionStorage received from
 // the create-order webhook. Bank-transfer orders have no quote and keep the
@@ -197,9 +213,13 @@
   var countdown = document.getElementById('pay-countdown');
   var expiry    = parseManila(p.expiresAt);
 
-  if (isNaN(expiry)) { countdown.textContent = 'see your confirmation email'; return; }
+  // Set by the poller once the order is no longer simply awaiting payment.
+  // tick() reschedules itself every second, so without a flag it would keep
+  // counting down underneath a "Payment confirmed" message.
+  var countdownStopped = false;
 
   function tick() {
+    if (countdownStopped) return;
     var left = expiry - Date.now();
     if (left <= 0) {
       countdown.textContent = 'expired — message us on Telegram';
@@ -215,7 +235,127 @@
       : m + 'm ' + pad(s) + 's';
     setTimeout(tick, 1000);
   }
-  tick();
+
+  if (isNaN(expiry)) {
+    countdown.textContent = 'see your confirmation email';
+    countdownStopped = true;
+  } else {
+    tick();
+  }
+
+  // ── live status polling ────────────────────────────────────────────
+  // The page used to render this quote once and never speak to the server
+  // again, so a customer who paid correctly watched the countdown run out and
+  // was told "expired — message us on Telegram". This asks the order-status
+  // endpoint what actually happened.
+  //
+  // Every failure path here is silent. A customer must never see an error
+  // because a poll failed — the page simply behaves as it did before polling
+  // existed.
+  (function () {
+    if (typeof statusView !== 'function') return;      // module failed to load
+    if (!p.orderId || !p.statusToken) return;          // nothing to poll with
+
+    var STATUS_URL = 'https://n8n.godmusclegears.com/webhook/gmg-order-status';
+    var box      = document.getElementById('pay-status');
+    var headline = document.getElementById('pay-status-headline');
+    var bodyEl   = document.getElementById('pay-status-body');
+    var details  = document.getElementById('pay-details');
+    if (!box || !headline || !bodyEl || !details) return;
+
+    var TONES = {
+      progress:  { bg: '#eff6ff', border: '#bfdbfe', fg: '#1d4ed8' },
+      success:   { bg: '#ecfdf5', border: '#a7f3d0', fg: '#047857' },
+      attention: { bg: '#fff7ed', border: '#fed7aa', fg: '#b45309' }
+    };
+
+    var startedAt = Date.now();
+    var HARD_CAP_MS = 4 * 60 * 60 * 1000;  // longer than the 3h BTC quote
+    var MAX_FAILURES = 5;
+    var failures = 0;
+    var stopped = false;
+    var timer = null;
+
+    // Most payments land in the first few minutes. An abandoned tab must not
+    // keep hammering a 1GB VM that is already running on swap.
+    function intervalMs() {
+      var age = Date.now() - startedAt;
+      if (age < 5 * 60 * 1000) return 15000;
+      if (age < 20 * 60 * 1000) return 30000;
+      return 60000;
+    }
+
+    function stop() {
+      stopped = true;
+      if (timer) { clearTimeout(timer); timer = null; }
+    }
+
+    function render(view) {
+      if (view.headline) {
+        var tone = TONES[view.tone];
+        if (tone) {
+          box.style.background  = tone.bg;
+          box.style.border      = '1px solid ' + tone.border;
+          headline.style.color  = tone.fg;
+        }
+        headline.textContent = view.headline;
+        bodyEl.textContent   = view.body;
+        box.style.display    = 'block';
+      }
+      details.style.display = view.showPanel ? 'block' : 'none';
+      if (!view.showCountdown) countdownStopped = true;
+      if (view.stopPolling) stop();
+    }
+
+    function schedule() {
+      if (stopped) return;
+      if (Date.now() - startedAt > HARD_CAP_MS) return stop();
+      timer = setTimeout(poll, intervalMs());
+    }
+
+    function poll() {
+      if (stopped) return;
+      // Skip while the tab is hidden — a customer who switched to their
+      // exchange app does not need this running, and gets a fresh answer the
+      // moment they come back.
+      if (document.hidden) return schedule();
+
+      fetch(STATUS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: p.orderId, statusToken: p.statusToken })
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('status ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          failures = 0;
+          render(statusView(data.status, {
+            coin: data.coin || p.coin,
+            shortfall: data.shortfall,
+            expired: !isNaN(expiry) && Date.now() > expiry
+          }));
+          schedule();
+        })
+        .catch(function () {
+          // Leave the UI exactly as it is and try again. Give up quietly after
+          // a run of failures rather than retrying forever.
+          failures++;
+          if (failures >= MAX_FAILURES) return stop();
+          schedule();
+        });
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && !stopped) {
+        if (timer) clearTimeout(timer);
+        poll();
+      }
+    });
+
+    poll();
+  })();
 })();
 </script>
 </body>
