@@ -1,0 +1,185 @@
+<!--
+  GOD MUSCLE GEARS — EmailJS customer order email, template `template_0ry9w0v`
+  FULL REPLACEMENT. Select all in the EmailJS template editor and paste this over it.
+
+  Supersedes docs/emailjs-customer-payment-block.html (deleted) — one artifact so
+  there is no question about which version is current.
+
+  ─── WHAT CHANGED vs the version live on 2026-08-25 ───────────────────────────
+
+  1. The yellow "We will contact you soon via Email or Telegram with secure
+     payment instructions" box is now CONDITIONAL. It survives for bank-transfer
+     orders, where it is still true, and is replaced by the actual payment
+     details for crypto orders.
+
+     It had to go for crypto rather than sit alongside the payment block: the
+     email would otherwise hand the customer an address and then promise to send
+     payment instructions later. People wait for a second email that never comes.
+
+  2. The intro line is conditional for the same reason. "Currently being
+     processed" is wrong when we are actually waiting for the customer to pay.
+
+  3. The Telegram button was outside the 600px container, so it rendered flush
+     left against the window on desktop instead of aligned with the invoice.
+     Moved inside.
+
+  ─── HOW THE BRANCHES WORK ────────────────────────────────────────────────────
+
+     {{#pay_address}} ... {{/pay_address}}   crypto — a quote exists
+     {{^pay_address}} ... {{/pay_address}}   bank transfer — all pay_* empty
+
+  script.js sends pay_coin / pay_amount / pay_address / pay_expires as empty
+  strings for Bank Transfer orders (script.js:465-468), which is what drives it.
+
+    >> TEST BOTH AFTER PASTING — one crypto order and one BANK TRANSFER order.
+       If the bank-transfer email shows an empty payment box, or the crypto one
+       still shows "we will contact you", the conditionals are not being applied
+       and this needs to become two separate templates instead.
+
+  Never add the received amount or any payment tolerance to this email.
+-->
+
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+
+  <div style="background-color: #1A1A1A; text-align: center; padding: 18px;">
+    <img src="https://raw.githubusercontent.com/aasshop100/Godmusclegearsample/refs/heads/main/images/logo.png"
+         alt="GOD MUSCLE GEARS Logo"
+         style="max-width: 180px; height: auto;">
+  </div>
+
+  <h2 style="color:#ff4500; text-align:center; margin-top: 20px;">Order Confirmation</h2>
+
+  <p>Hi {{customer_name}},</p>
+
+  {{#pay_address}}
+  <p>Thank you for shopping with <strong>GOD MUSCLE GEARS</strong>!<br>
+  Your order has been received. Complete your payment below and we'll confirm it automatically.</p>
+  {{/pay_address}}
+  {{^pay_address}}
+  <p>Thank you for shopping with <strong>GOD MUSCLE GEARS</strong>!<br>
+  Your order has been received and is currently being processed.</p>
+  {{/pay_address}}
+
+  <h3 style="color:#ff4500;">Order Details</h3>
+  <table style="width:100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;"><strong>Order ID</strong></td>
+      <td style="padding:8px; border:1px solid #ddd;">{{order_id}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;"><strong>Email</strong></td>
+      <td style="padding:8px; border:1px solid #ddd;">{{customer_email}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;"><strong>Promo Code</strong></td>
+      <td style="padding:8px; border:1px solid #ddd;">{{promo_code}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;"><strong>Payment Method</strong></td>
+      <td style="padding:8px; border:1px solid #ddd;">{{payment_method}}</td>
+    </tr>
+  </table>
+
+  <h3 style="color:#ff4500; margin-top:25px;">Items Ordered</h3>
+  <table style="width:100%; border-collapse: collapse; text-align:center;">
+    <thead>
+      <tr style="background-color:#1A1A1A; color:#ffffff;">
+        <th style="padding:8px; border:1px solid #ddd;">Product</th>
+        <th style="padding:8px; border:1px solid #ddd;">Qty</th>
+        <th style="padding:8px; border:1px solid #ddd;">Price</th>
+        <th style="padding:8px; border:1px solid #ddd;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{{items_table_html}}}
+    </tbody>
+  </table>
+
+  <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;">Subtotal</td>
+      <td style="padding:8px; border:1px solid #ddd;">${{subtotal}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;">Shipping</td>
+      <td style="padding:8px; border:1px solid #ddd;">${{shipping}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;">Discount</td>
+      <td style="padding:8px; border:1px solid #ddd;">{{discount}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:2px solid #ff4500;"><strong>Total</strong></td>
+      <td style="padding:8px; border:2px solid #ff4500;"><strong>${{total}}</strong></td>
+    </tr>
+  </table>
+
+  <p style="font-size:13px; color:#555; margin-top:10px;">📦 {{shipping_note}}</p>
+
+  <h3 style="color:#ff4500; margin-top:25px;">Shipping To:</h3>
+  <p>{{full_address}}</p>
+
+  {{#pay_address}}
+  <h3 style="color:#ff4500; margin-top:25px;">Complete Your Payment</h3>
+  <div style="background:#f5f5f5; border-radius:10px; padding:20px; margin-top:12px;">
+
+    <p style="margin:0 0 4px; font-size:13px; color:#666;">Send exactly</p>
+    <p style="margin:0 0 18px; font-size:26px; font-weight:bold; color:#ff4500; word-break:break-all;">
+      {{pay_amount}} {{pay_coin}}
+    </p>
+
+    <p style="margin:0 0 4px; font-size:13px; color:#666;">To this address</p>
+    <p style="margin:0 0 18px; padding:12px; background:#ffffff; border:1px solid #ddd; border-radius:6px; font-family:'Courier New',Courier,monospace; font-size:13px; color:#111; word-break:break-all;">
+      {{pay_address}}
+    </p>
+
+    <div style="background:#fff3cd; border-left:5px solid #ff4500; padding:12px; margin-bottom:16px;">
+      <p style="margin:0; font-size:14px; line-height:1.6; color:#333;">
+        If there&rsquo;s a fee when you send, add it on top so the full
+        <strong>{{pay_amount}} {{pay_coin}}</strong> arrives.
+      </p>
+    </div>
+
+    <p style="margin:0 0 10px; font-size:13px; color:#666;">
+      This quote is valid until <strong style="color:#111;">{{pay_expires}}</strong> (Manila time).
+      If it expires before you send, message us on Telegram and we'll issue a new one.
+    </p>
+
+    <p style="margin:0; font-size:13px; color:#666;">
+      Your order is confirmed automatically once your payment arrives — usually within a
+      few minutes. We'll email you as soon as it does.
+    </p>
+
+  </div>
+  {{/pay_address}}
+
+  {{^pay_address}}
+  <div style="background:#fff3cd; border-left:5px solid #ff4500; padding:12px; margin-top:20px;">
+    We will contact you soon via Email or Telegram with secure payment instructions.
+  </div>
+  {{/pay_address}}
+
+  <p style="margin-top:25px;">
+    If you have any questions, reply directly to this email.<br>
+    We appreciate your trust and support!
+  </p>
+
+  <p><strong>GOD MUSCLE GEARS</strong></p>
+
+  <p style="margin-top:20px;">
+    <a href="https://t.me/Godmusclegears"
+       style="background-color:#0088cc;
+              color:#ffffff;
+              padding:12px 18px;
+              border-radius:8px;
+              text-decoration:none;
+              font-weight:bold;
+              display:inline-block;">
+      💬 Chat with us on Telegram
+    </a>
+  </p>
+  <p style="margin-top:10px; font-size:14px; color:#555;">
+    Need assistance? We're here to help.
+  </p>
+
+</div>
