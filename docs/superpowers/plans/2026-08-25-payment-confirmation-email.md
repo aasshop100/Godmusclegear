@@ -7,10 +7,12 @@
 **Status:** Tasks 2–3 BUILT and verified 2026-08-25 (execution `5020`). Task 4
 Steps 1–2 done; Step 3 (one real send) waits on the SPF edit. **Workflow remains
 UNPUBLISHED.**
-Task 1 (sender) DONE except the SPF edit: credential `wbNyEh5HUE1ugRdl`
+Task 1 (sender) DONE except the deliverability test: credential `wbNyEh5HUE1ugRdl`
 (`SMTP - God Muscle Gears`) is live and connection-tested, sending as
-`admin@godmusclegears.com` via `aasshop100@gmail.com`. **Outstanding: the SPF
-record edit (Task 1 Step 3) and the deliverability test (Step 4).**
+`admin@godmusclegears.com` via `aasshop100@gmail.com`. SPF verified live 2026-08-26 as
+`v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all` — one record,
+2 of 10 DNS lookups used, no DMARC. **Outstanding: the deliverability test
+(Step 4).**
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 and
 `2026-08-25-payment-fee-tolerance.md` Tasks 1–4 (both done). Modifies the
@@ -134,7 +136,7 @@ is changed to any address not verified on `aasshop100@gmail.com`, Gmail silently
 rewrites it back to `aasshop100@gmail.com` and the buyer sees a personal Gmail
 address on their order confirmation.
 
-- [ ] **Step 3: EDIT the existing SPF record — do not add a second one**
+- [x] **Step 3: EDIT the existing SPF record — do not add a second one** — DONE 2026-08-26
 
 DNS as it actually stands, checked 2026-08-25:
 
