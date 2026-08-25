@@ -37,6 +37,40 @@ function money(value) {
   return isFinite(n) ? n.toFixed(2) : '0.00';
 }
 
+// The sheet stores Manila local time with no offset. That is the right frame
+// for Lester and the wrong one for a customer - most buyers are in the USA, to
+// whom "23:20 Manila" means nothing.
+function manilaMs(stamp) {
+  const s = String(stamp || '').trim();
+  if (!s) return NaN;
+  return new Date(s.replace(' ', 'T') + '+08:00').getTime();
+}
+
+// Rendered in US Eastern. Intl handles the EDT/EST switch, so this stays
+// correct across the November changeover - a hardcoded 12-hour offset would
+// silently drift by an hour every winter.
+function easternText(stamp) {
+  const ms = manilaMs(stamp);
+  if (isNaN(ms)) return '';
+  return new Date(ms).toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  }) + ' ET';
+}
+
+// Derived from the two timestamps rather than hardcoded, so changing the expiry
+// on the Payment Addresses node cannot leave this copy saying something false.
+function windowText() {
+  const mins = Math.round((manilaMs(order.expiresAt) - manilaMs(order.createdAt)) / 60000);
+  if (!isFinite(mins) || mins <= 0) return '';
+  if (mins % 60 === 0 && mins >= 60) {
+    const hrs = mins / 60;
+    return hrs + (hrs === 1 ? ' hour' : ' hours');
+  }
+  return mins + ' minutes';
+}
+
 // Built server-side from a structured array. The browser used to assemble this
 // markup and post it, which meant trusting the client with the contents of an
 // email sent to Lester.
@@ -105,7 +139,9 @@ const paymentBlock = isCrypto
     + '<p style="margin:0; font-size:14px; line-height:1.6; color:#333;">If there is a fee when you send, add it on top so the full <strong>'
       + esc(order.expectedAmount) + ' ' + esc(order.coin) + '</strong> arrives.</p></div>'
     + '<p style="margin:0 0 10px; font-size:13px; color:#666;">This quote is valid until <strong style="color:#111;">'
-      + esc(order.expiresAt) + '</strong> (Manila time). If it expires before you send, message us on Telegram and we will issue a new one.</p>'
+      + esc(easternText(order.expiresAt)) + '</strong>'
+      + (windowText() ? ' (' + windowText() + ' from when you ordered)' : '')
+      + '. If it expires before you send, message us on Telegram and we will issue a new one.</p>'
     + '<p style="margin:0; font-size:13px; color:#666;">Your order is confirmed automatically once your payment arrives &mdash; usually within a few minutes. We will email you as soon as it does.</p>'
     + '</div>'
   : '<div style="background:#fff3cd; border-left:5px solid ' + ORANGE + '; padding:12px; margin-top:20px;">'
@@ -137,7 +173,9 @@ const customerHtml =
 // ── owner email ──────────────────────────────────────────────────────
 // Carries the payment details, which the EmailJS version never could: it fired
 // before the quote existed. Having the exact expected amount here is what makes
-// hand-matching a payment possible without opening the sheet.
+// hand-matching a payment possible without opening the sheet. Keeps MANILA time
+// deliberately — this one is read by Lester, not the customer — with ET beside
+// it, so a deadline a customer quotes back matches what this says.
 
 const ownerPaymentBlock = isCrypto
   ? '<h3 style="color:' + ORANGE + '; margin-top:25px;">Payment Expected</h3>'
@@ -145,7 +183,7 @@ const ownerPaymentBlock = isCrypto
     + '<tr><td style="padding:8px; border:1px solid #ddd; width:40%;">Amount</td><td style="padding:8px; border:2px solid ' + ORANGE + ';"><strong style="color:' + ORANGE + '; font-size:16px;">'
       + esc(order.expectedAmount) + ' ' + esc(order.coin) + '</strong></td></tr>'
     + '<tr><td style="padding:8px; border:1px solid #ddd;">Address</td><td style="padding:8px; border:1px solid #ddd; font-family:monospace; word-break:break-all;">' + esc(order.address) + '</td></tr>'
-    + '<tr><td style="padding:8px; border:1px solid #ddd;">Quote expires</td><td style="padding:8px; border:1px solid #ddd;">' + esc(order.expiresAt) + ' (Manila)</td></tr>'
+    + '<tr><td style="padding:8px; border:1px solid #ddd;">Quote expires</td><td style="padding:8px; border:1px solid #ddd;">' + esc(order.expiresAt) + ' (Manila) &mdash; ' + esc(easternText(order.expiresAt)) + '</td></tr>'
     + '</table>'
   : '<h3 style="color:' + ORANGE + '; margin-top:25px;">Payment Expected</h3>'
     + '<p style="padding:12px; background:#fff3cd; border-left:5px solid ' + ORANGE + ';">Bank transfer &mdash; send payment instructions to the customer manually.</p>';
@@ -168,7 +206,9 @@ const ownerHtml =
   + '<h3 style="color:' + ORANGE + '; margin-top:25px;">Shipping &amp; Fulfilment</h3>'
   + '<table style="width:100%; border-collapse:collapse;">'
   + '<tr><td style="padding:8px; border:1px solid #ddd; width:40%;">Packages to Ship</td><td style="padding:8px; border:2px solid ' + ORANGE + ';"><strong style="color:' + ORANGE + '; font-size:16px;">' + esc(order.packageCount) + '</strong></td></tr>'
-  + '<tr><td style="padding:8px; border:1px solid #ddd;">Breakdown</td><td style="padding:8px; border:1px solid #ddd;">' + esc(body.shippingBreakdown || '&mdash;') + '</td></tr>'
+  // Literal em dash, not the &mdash; entity: this goes through esc(), which
+  // would escape the ampersand and render "&amp;mdash;" to Lester.
+  + '<tr><td style="padding:8px; border:1px solid #ddd;">Breakdown</td><td style="padding:8px; border:1px solid #ddd;">' + esc(body.shippingBreakdown || '—') + '</td></tr>'
   + '</table>'
   + '<h3 style="color:' + ORANGE + '; margin-top:25px;">Pricing Summary</h3>'
   + pricingTable()
