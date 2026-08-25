@@ -1,0 +1,84 @@
+<!--
+  REFERENCE ONLY — the EmailJS owner notification template (`template_8x2z86l`)
+  as it stood on 2026-08-26, before being ported into n8n.
+
+  Kept so the port can be diffed against what was actually live. Delete once the
+  n8n version is verified against real orders. This file is NOT used by anything.
+
+  KNOWN BUG, present in the live template and deliberately NOT fixed here so the
+  reference stays faithful: the Pricing Summary table opens a <tr>, then opens a
+  second <tr> immediately, and only ever closes one. Browsers recover from it,
+  but it must be fixed in the port rather than carried across. Same class of bug
+  as the missing <tr> found in the customer template's Promo Code row.
+
+  Fields it receives (from script.js ownerPayload):
+    order_id, customer_name, customer_email, phone, whatsapp, full_address,
+    items_table_html, subtotal, shipping, shipping_breakdown, package_count,
+    total, promo_code, discount, payment_method, to_email
+
+  Note it carries phone and whatsapp, which the customer template does not.
+-->
+
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+
+  <div style="background-color: #1A1A1A; text-align: center; padding: 18px;">
+    <img src="https://raw.githubusercontent.com/aasshop100/Godmusclegearsample/refs/heads/main/images/logo.png"
+         alt="GOD MUSCLE GEARS Logo"
+         style="max-width: 180px; height: auto;">
+  </div>
+
+  <h2 style="color:#ff4500; margin-top:20px;">New Customer Order</h2>
+
+  <table style="width:100%; border-collapse: collapse;">
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Order ID</strong></td><td style="padding:8px; border:1px solid #ddd;">{{order_id}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Customer Name</strong></td><td style="padding:8px; border:1px solid #ddd;">{{customer_name}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Email</strong></td><td style="padding:8px; border:1px solid #ddd;">{{customer_email}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Phone</strong></td><td style="padding:8px; border:1px solid #ddd;">{{phone}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>WhatsApp</strong></td><td style="padding:8px; border:1px solid #ddd;">{{whatsapp}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Payment Method</strong></td><td style="padding:8px; border:1px solid #ddd;">{{payment_method}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Promo Code</strong></td><td style="padding:8px; border:1px solid #ddd;">{{promo_code}}</td></tr>
+  </table>
+
+  <h3 style="color:#ff4500; margin-top:25px;">Items Ordered</h3>
+  <table style="width:100%; border-collapse: collapse; text-align:center;">
+    <thead>
+      <tr style="background-color:#1A1A1A; color:#ffffff;">
+        <th style="padding:8px; border:1px solid #ddd;">Product</th>
+        <th style="padding:8px; border:1px solid #ddd;">Qty</th>
+        <th style="padding:8px; border:1px solid #ddd;">Price</th>
+        <th style="padding:8px; border:1px solid #ddd;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{{items_table_html}}}
+    </tbody>
+  </table>
+
+  <h3 style="color:#ff4500; margin-top:25px;">Shipping &amp; Fulfilment</h3>
+  <table style="width:100%; border-collapse:collapse;">
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd; width:40%;">Packages to Ship</td>
+      <td style="padding:8px; border:2px solid #ff4500;"><strong style="color:#ff4500; font-size:16px;">{{package_count}}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #ddd;">Breakdown</td>
+      <td style="padding:8px; border:1px solid #ddd;">{{shipping_breakdown}}</td>
+    </tr>
+  </table>
+
+  <h3 style="color:#ff4500; margin-top:25px;">Pricing Summary</h3>
+  <table style="width:100%; border-collapse:collapse;">
+    <tr><td style="padding:8px; border:1px solid #ddd;">Subtotal</td><td style="padding:8px; border:1px solid #ddd;">${{subtotal}}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd;">Shipping</td><td style="padding:8px; border:1px solid #ddd;">${{shipping}}</td></tr>
+    <tr>
+      <tr>
+      <td style="padding:8px; border:1px solid #ddd;">Discount</td>
+      <td style="padding:8px; border:1px solid #ddd;">{{discount}}</td>
+    </tr>
+    <tr><td style="padding:8px; border:2px solid #ff4500;"><strong>Total</strong></td><td style="padding:8px; border:2px solid #ff4500;"><strong>${{total}}</strong></td></tr>
+  </table>
+
+  <h3 style="color:#ff4500; margin-top:25px;">Shipping Address</h3>
+  <p>{{full_address}}</p>
+
+</div>

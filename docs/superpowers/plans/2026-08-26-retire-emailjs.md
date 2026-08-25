@@ -82,16 +82,23 @@ testable, and one less thing the browser can get wrong.
 
 ## Two decisions to confirm before Task 2
 
-**1. Keep the owner "new order received" email?  — recommend DROP.**
+**1. Keep the owner "new order received" email? — DECIDED 2026-08-26: KEEP.**
 
-You already get a Telegram from the Cloudflare Worker on every order, and the
-Orders sheet is now the durable record. A third notification of the same event is
-noise. Dropping it also halves email volume.
+Lester wants both an email and a Telegram. Recorded here because I recommended
+dropping it and was overruled for a good reason: email stays searchable years
+later in a way Telegram does not.
 
-Counter-argument: email is searchable years later in a way Telegram is not. If
-that matters, keep it — it is one extra node.
+- Goes to **aasshop100@gmail.com**, as today.
+- **Includes the payment details.** EmailJS could not do this — it fired before
+  the quote existed. In n8n the send happens after `Build Order`, so the owner
+  notification can carry the exact amount and address the customer was quoted,
+  which is what you need when matching a payment by hand.
+- Source template preserved at `docs/emails/_source-emailjs-owner.html`. It
+  carries `phone` and `whatsapp`, which the customer email does not, and has a
+  **malformed nested `<tr>`** in the Pricing Summary that must be fixed in the
+  port rather than carried across.
 
-**2. What happens when the webhook fails?  — recommend DEGRADE, not abort.**
+**2. What happens when the webhook fails? — DECIDED 2026-08-26: RETRY, then DEGRADE.**
 
 Today, a create-order failure **aborts the crypto checkout** with an alert and no
 order is placed. Bank-transfer orders are unaffected because they never call it.
@@ -99,21 +106,31 @@ order is placed. Bank-transfer orders are unaffected because they never call it.
 After this change, that same failure would block *every* order, making n8n a
 single point of failure for the whole store.
 
-Recommended instead: on failure, still complete the order, still fire the Telegram
-Worker so Lester learns about it, and show the customer the pre-automation
-message — "we'll contact you shortly with payment instructions". That is exactly
-the old manual flow, which worked for months. Degrade to manual, never lose the
-order.
+**Retry first.** Two retries about a second apart. Most real failures are
+momentary — a container restarting, a tunnel reconnecting, a dropped packet — and
+a retry turns those into a success the customer never sees. Today there is no
+retry at all: one dropped packet kills the order. This is an improvement on
+current behaviour, not a concession.
+
+**Then degrade.** If the retries also fail, still complete the order, still fire
+the Telegram Worker, and show the customer the pre-automation message: "we will
+contact you shortly with payment instructions." That is the manual flow this
+store ran on for months.
+
+The deciding detail: `script.js` calls create-order **before**
+`sendTelegramNotification`, and the abort path returns at the failure. So
+aborting does not merely lose the order — Lester never finds out it happened. The
+implementation must move the Telegram call **ahead of** the webhook call so it
+fires regardless.
+
+An outage should cost emails, never sales.
 
 ---
 
 ### Task 1: Confirm the two decisions
 
-- [ ] **Step 1: Owner email — keep or drop**
-- [ ] **Step 2: Failure behaviour — degrade or abort**
-
-Everything below assumes **drop** and **degrade**. If either answer differs, the
-affected steps are called out inline.
+- [x] **Step 1: Owner email — KEEP**, to `aasshop100@gmail.com`, with payment details
+- [x] **Step 2: Failure behaviour — RETRY twice, then DEGRADE**
 
 ---
 
@@ -197,8 +214,11 @@ it, because pinned credentialed nodes never actually send.
 quote being returned. A customer who cannot pay is worse than one who did not get
 an email.
 
-> If Task 1 Step 1 chose **keep**, add a second send node for the owner email to
-> `lstrmrcd@gmail.com`, same credential, same attribution and error settings.
+Add the **owner** send node alongside it, to `aasshop100@gmail.com`, same
+credential and same attribution/error settings. Port from
+`docs/emails/_source-emailjs-owner.html`, fixing the malformed nested `<tr>`, and
+add a payment-details block showing the quoted amount and address — the thing
+EmailJS could never include, because it fired before the quote existed.
 
 - [ ] **Step 3: Respond to the browser regardless**
 
@@ -217,15 +237,18 @@ by pinning the send node to an error.
 Call `CREATE_ORDER_URL` unconditionally, sending `coin: paymentMethod` (now
 including `'Bank Transfer'`) plus the new fields from Task 2 Step 3.
 
-- [ ] **Step 2: Replace abort with degrade**
+- [ ] **Step 2: Retry twice, then degrade**
 
-Today the `catch` alerts and `return`s, killing the order. Replace with: log,
-set `payment = null`, and continue. The success page already handles a missing
-quote — it shows the original "we'll contact you shortly" message, which is the
-pre-automation flow.
+Wrap the fetch in a small retry helper — three attempts total, roughly a second
+apart. Only a sustained outage should reach the fallback.
 
-> If Task 1 Step 2 chose **abort**, keep the existing `catch` unchanged and skip
-> this step.
+On final failure: log, set `payment = null`, and **continue**. Do not alert, do
+not `return`. The success page already handles a missing quote by showing the
+original "we will contact you shortly" message.
+
+**Move `sendTelegramNotification` ABOVE the create-order call** so it fires
+whether or not the webhook succeeded. This is the whole point of degrading: the
+current ordering makes a failure completely silent to Lester.
 
 - [ ] **Step 3: Delete the EmailJS calls**
 
