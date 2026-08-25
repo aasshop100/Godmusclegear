@@ -4,7 +4,7 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Tasks 1–3 DONE (2026-08-25). Module + 65 tests passing; logic ported
+**Status:** Tasks 1–4 DONE (2026-08-25), except the EmailJS paste (manual, Lester). Module + 65 tests passing; logic ported
 to `GMG - Payment Watcher` and verified on the deployed node via pinned data
 (execution `5018`, all six bands correct). **Workflow remains UNPUBLISHED.**
 Tasks 4–5 (panel + EmailJS copy, plan/memory updates) not started.
@@ -299,7 +299,7 @@ here means 52 passing tests describing code that is not in production.
 - Modify: `order-success.html`
 - Modify: EmailJS template `template_0ry9w0v`
 
-- [ ] **Step 1: Rewrite the panel's fee note**
+- [x] **Step 1: Rewrite the panel's fee note**
 
 The current italic note is accurate but soft — it warns that exchanges deduct a
 fee without telling the buyer what to *do*. Replace it with an instruction and a
@@ -316,7 +316,7 @@ Both amounts must be interpolated from the live quote, never hardcoded.
 Say nothing about the 3.00 ceiling. Publishing the tolerance turns it into a
 discount every buyer can take.
 
-- [ ] **Step 2: Same instruction in the email**
+- [x] **Step 2: Same instruction in the email**
 
 The payment block for `template_0ry9w0v` has still never been pasted in — it is
 outstanding from the main plan's Task 7 Step 7. Write it with this copy included
@@ -327,7 +327,12 @@ so it only has to be done once. The code already sends `pay_coin`,
 > can do it, and until it is done the success page promises an email that does
 > not contain the payment details.
 
-- [ ] **Step 3: Verify both against a real quote**
+- [~] **Step 3: Verify both against a real quote** — panel DONE (USDT + BTC,
+  both amounts interpolated from a live quote). Email half BLOCKED: the block is
+  written to `docs/emailjs-customer-payment-block.html` but cannot be verified
+  until Lester pastes it into the dashboard, and a real end-to-end order also
+  needs `GMG - Create Order` published. Verify at go-live, and send one BANK
+  TRANSFER test order specifically — that is what proves the conditional works.
 
 Render the panel locally and confirm the worked example uses the actual quoted
 amount. Send yourself a test order and confirm the email block renders with

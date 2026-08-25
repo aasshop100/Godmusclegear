@@ -1,0 +1,94 @@
+<!--
+  GOD MUSCLE GEARS — customer order email, crypto payment block
+  Paste into EmailJS template `template_0ry9w0v`, just BELOW the order/items
+  table and ABOVE the "contact us" footer.
+
+  This is a MANUAL dashboard edit. Nothing in this repo can apply it, and until
+  it is done the order-success page tells the customer "these payment details
+  have also been emailed to you" — which is not yet true.
+
+  Variables used (all four are already sent by script.js:465-468):
+    {{pay_coin}}     "USDT" or "BTC"
+    {{pay_amount}}   the exact quoted amount, e.g. "84.14"
+    {{pay_address}}  the receiving address
+    {{pay_expires}}  Manila local time, e.g. "2026-08-25 23:20:00"
+
+  CONDITIONAL: bank-transfer orders send all four as empty strings, so the whole
+  block is wrapped in {{#pay_address}} ... {{/pay_address}}. That is a Handlebars
+  truthy section, which EmailJS templates support.
+
+    >> CHECK THIS FIRST: send yourself one Bank Transfer test order after
+       pasting. If the payment block still appears (with blank amount and
+       address), the conditional is NOT being applied — delete the two
+       {{#pay_address}} / {{/pay_address}} lines and instead make a separate
+       template for crypto orders. Do not ship a bank-transfer email that shows
+       an empty crypto payment box.
+
+  DELIBERATELY NOT INCLUDED:
+  - No QR code. It would be a remote image that most clients block by default,
+    leaving a broken box; and in email the address is already copy-pasteable,
+    which is better than scanning your own screen.
+  - No mention of the auto-accept tolerance. A published ceiling is a discount
+    every buyer can take.
+-->
+
+{{#pay_address}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+  <tr>
+    <td style="background:#f5f5f5; border-radius:12px; padding:22px;">
+
+      <p style="margin:0 0 12px; font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#333333;">
+        Complete your payment
+      </p>
+
+      <p style="margin:0 0 4px; font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#666666;">
+        Send exactly
+      </p>
+      <p style="margin:0 0 18px; font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:bold; color:#ff6b1a; word-break:break-all;">
+        {{pay_amount}} {{pay_coin}}
+      </p>
+
+      <p style="margin:0 0 4px; font-family:Arial,Helvetica,sans-serif; font-size:12px; color:#666666;">
+        Address
+      </p>
+      <p style="margin:0 0 18px; font-family:'Courier New',Courier,monospace; font-size:13px; color:#111111; word-break:break-all;">
+        {{pay_address}}
+      </p>
+
+      <p style="margin:0 0 18px; font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#666666;">
+        This quote is valid until <strong style="color:#111111;">{{pay_expires}}</strong> (Manila time).
+      </p>
+
+      <!-- The single most important instruction in this email. Exchanges take
+           their fee OUT of the amount sent; self-custody wallets do not. -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:14px;">
+            <p style="margin:0 0 8px; font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:bold; color:#111111;">
+              Sending from an exchange? Add their fee on top.
+            </p>
+            <p style="margin:0 0 10px; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:1.6; color:#333333;">
+              Binance, OKX, Bybit and most exchanges take their withdrawal fee out of the
+              amount you send. Add it on top of the {{pay_amount}} so the full
+              <strong style="color:#111111;">{{pay_amount}} {{pay_coin}}</strong> arrives.
+            </p>
+            <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:1.6; color:#333333;">
+              Sending from your own wallet? Send exactly
+              <strong style="color:#111111;">{{pay_amount}}</strong> — your network fee is
+              charged separately.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:16px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:12px; line-height:1.6; color:#666666;">
+        Your order is confirmed automatically once payment arrives. If the quote expires
+        before you send, message us on Telegram
+        <a href="https://t.me/Godmusclegears" style="color:#0088cc; text-decoration:none;">@Godmusclegears</a>
+        and we will reissue it.
+      </p>
+
+    </td>
+  </tr>
+</table>
+{{/pay_address}}

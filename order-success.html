@@ -47,9 +47,19 @@
     <p style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--charcoal); margin:0 0 14px;">
       Send exactly
     </p>
-    <p style="font-size:1.5rem; font-weight:700; color:var(--orange); margin:0 0 16px; word-break:break-all;">
+    <p style="font-size:1.5rem; font-weight:700; color:var(--orange); margin:0 0 14px; word-break:break-all;">
       <span id="pay-amount"></span> <span id="pay-coin"></span>
     </p>
+
+    <!-- Exchanges deduct their withdrawal fee from the amount sent; self-custody
+         wallets do not. This is the single most important instruction on the
+         page, so it sits directly under the amount rather than in fine print. -->
+    <div id="pay-fee-note" style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:12px 14px; margin:0 0 16px;">
+      <p style="font-size:0.8rem; font-weight:700; color:var(--black); margin:0 0 6px;">
+        Sending from an exchange? Add their fee on top.
+      </p>
+      <p id="pay-fee-body" style="font-size:0.76rem; color:var(--charcoal); margin:0; line-height:1.65;"></p>
+    </div>
 
     <img id="pay-qr" alt="Payment address QR code" style="width:180px; height:180px; display:block; margin:0 auto 16px; background:#fff; border-radius:8px;">
 
@@ -61,10 +71,8 @@
       This quote expires in <strong id="pay-countdown" style="color:var(--black);"></strong>
     </p>
 
-    <p style="font-size:0.72rem; color:var(--grey); font-style:italic; margin:0; line-height:1.6;">
-      Send the exact amount shown. Some exchanges deduct their withdrawal fee from the
-      amount you send — please make sure the full amount arrives, or your order will need
-      to be checked manually. Your order is confirmed automatically once payment arrives.
+    <p style="font-size:0.72rem; color:var(--grey); margin:0; line-height:1.6;">
+      Your order is confirmed automatically once payment arrives.
     </p>
   </div>
 
@@ -132,6 +140,50 @@
   document.getElementById('pay-address').textContent = p.address;
   document.getElementById('pay-network').textContent =
     p.coin === 'USDT' ? 'TRC-20 / Tron network' : 'Bitcoin network';
+
+  // Fee instruction. Exchanges take their withdrawal fee OUT of the amount sent,
+  // so a buyer who types the quoted amount underpays by it. Self-custody wallets
+  // pay the network fee separately and deliver the full amount — opposite
+  // behaviour, so both cases are spelled out rather than one generic warning.
+  //
+  // Never state the auto-accept ceiling here. A published tolerance is a
+  // discount every buyer can take.
+  (function () {
+    var body = document.getElementById('pay-fee-body');
+    var note = document.getElementById('pay-fee-note');
+    if (!body || !note) return;
+
+    // p comes from the network, so coin is whitelisted and the amount is coerced
+    // before either reaches innerHTML.
+    var isUsdt = p.coin === 'USDT';
+    var decimals = isUsdt ? 2 : 8;
+    var amount = Number(p.expectedAmount);
+    if (!isFinite(amount) || amount <= 0) { note.style.display = 'none'; return; }
+    var amountText = amount.toFixed(decimals);
+    var coinText = isUsdt ? 'USDT' : 'BTC';
+    var strong = function (t) { return '<strong style="color:var(--black);">' + t + '</strong>'; };
+
+    var lines = [
+      'Binance, OKX, Bybit and most exchanges take their withdrawal fee out of ' +
+      'the amount you send. Add it on top so the full ' + strong(amountText + ' ' + coinText) +
+      ' arrives.'
+    ];
+
+    // A worked example only for USDT. Bitcoin withdrawal fees swing with network
+    // congestion, so naming a number would mislead more than it helps.
+    if (isUsdt) {
+      lines[0] += ' For example, with a 1.5 USDT fee, send ' +
+                  strong((amount + 1.5).toFixed(2)) + '.';
+    }
+
+    lines.push(
+      'Sending from your own wallet (' +
+      (isUsdt ? 'Trust Wallet, TronLink, Ledger' : 'Electrum, Ledger, Trezor') +
+      ')? Send exactly ' + strong(amountText) + ' — your network fee is charged separately.'
+    );
+
+    body.innerHTML = lines.join('<br><br>');
+  })();
 
   // QR encodes the plain address. Wallet support for BIP-21 and TRC-20 payment
   // URIs is inconsistent, and a URI a wallet cannot read is worse than an
