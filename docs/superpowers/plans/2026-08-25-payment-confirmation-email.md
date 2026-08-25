@@ -131,27 +131,53 @@ is changed to any address not verified on `aasshop100@gmail.com`, Gmail silently
 rewrites it back to `aasshop100@gmail.com` and the buyer sees a personal Gmail
 address on their order confirmation.
 
-- [ ] **Step 3: Add an SPF record — do this before go-live**
+- [ ] **Step 3: EDIT the existing SPF record — do not add a second one**
 
-Sending as `admin@godmusclegears.com` through Gmail's servers means the From
-domain is `godmusclegears.com` while the message is signed for `gmail.com`.
-Nothing authenticates the From domain, so the mail is unaligned and lands in
-spam far more often — the failure mode that makes a confirmation email worse
-than none.
-
-Fix, in Namecheap DNS for `godmusclegears.com`, one TXT record on the root:
+DNS as it actually stands, checked 2026-08-25:
 
 ```
-v=spf1 include:_spf.google.com ~all
+godmusclegears.com  TXT  "v=spf1 include:_spf.mx.cloudflare.net ~all"
+godmusclegears.com  MX   route1/2/3.mx.cloudflare.net
+_dmarc.godmusclegears.com  — no record
 ```
 
-If a `v=spf1` TXT record already exists, **edit it to add `include:_spf.google.com`**
-rather than adding a second one — two SPF records on a domain is a permanent
-failure, not a merge.
+Three things follow from that.
 
-> Check first whether the domain already sends mail some other way. An SPF
-> record that omits an existing sender starts spam-foldering mail that works
-> today.
+**An SPF record already exists.** It must be EDITED, not added to. Two `v=spf1`
+records on one domain is a permanent SPF failure — receivers treat it as
+`permerror` rather than merging them — which would break the domain's mail
+rather than improve it. Change the existing record to:
+
+```
+v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all
+```
+
+Keep the Cloudflare include. Dropping it breaks inbound forwarding, which is how
+`admin@godmusclegears.com` reaches the Gmail inbox at all.
+
+**The MX records confirm Cloudflare Email Routing**, which is receive-and-forward
+only — it provides no outbound SMTP. So `admin@godmusclegears.com` is a
+forwarding address, and the actual sending is Gmail's "Send mail as" feature on
+`aasshop100@gmail.com`. Confirm that alias is already set up there
+(Gmail → Settings → Accounts → "Send mail as"); if it is not, add it, and the
+verification email will arrive through the Cloudflare forward.
+
+**There is no DMARC record.** That is why this arrangement works at all today:
+mail sent through Gmail as a custom-domain alias is unaligned — the DKIM
+signature is `d=gmail.com` and the envelope sender is the Gmail account, neither
+matching the `godmusclegears.com` From header — and with no DMARC policy
+published, receivers have nothing instructing them to reject it.
+
+Be honest about what the SPF edit buys: it helps where the envelope sender
+carries the domain, and it is correct and harmless regardless, but it does not
+produce true DMARC alignment for Gmail-alias sending. **The only way to get
+that is a real mailbox on the domain** — Google Workspace or Zoho — which is
+Option B from the original decision. Not needed now; revisit if confirmation
+emails start landing in spam.
+
+> Do not publish a DMARC record while sending this way. A `p=quarantine` or
+> `p=reject` policy on an unaligned setup would send your own order
+> confirmations to spam by instruction.
 
 - [ ] **Step 4: Prove deliverability**
 
