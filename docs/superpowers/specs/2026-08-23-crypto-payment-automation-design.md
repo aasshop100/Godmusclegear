@@ -143,6 +143,27 @@ customer instructed to send `512.73` may have `511.73` arrive. Exact matching
 alone would miss these routinely and generate constant false unmatched-payment
 alerts.
 
+> ### ⚠ SUPERSEDED 2026-08-25 — read `2026-08-25-payment-fee-tolerance.md`
+>
+> This section and the failure table below describe a **2% near-match band that
+> always required a human tap**. That is no longer how the system behaves.
+>
+> **What actually runs now:** a flat auto-accept ceiling of **3.00 USDT /
+> 0.0005 BTC** sets `PAID` automatically, in **both** directions; beyond it, a
+> 10% band goes to `REVIEW`; beyond that, unmatched.
+>
+> Flat rather than percentage because the fee it absorbs is flat — roughly 1.50
+> whether the order is $85 or $500. The old 2% was simultaneously too tight on a
+> small order (1.70 on $85, under a 2.5 fee) and far too generous on a large one
+> ($10 on $500).
+>
+> Overpayments inside the ceiling now auto-confirm too, reversing this spec's
+> reasoning: attribution is handled independently by the single-candidate check,
+> so treating over and under asymmetrically was guarding a case already covered.
+>
+> Two things below still hold exactly as written: **ambiguity is never guessed**,
+> and **nothing auto-ships**.
+
 The watcher therefore runs a second pass. When no exact match exists, it looks
 for a single open order whose expected amount is within **2%** above the amount
 received. If exactly one candidate is found the order is set to `REVIEW` and the

@@ -14,9 +14,15 @@
 - USDT contract address on Tron: `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t`.
 - Quote expiry is **30 minutes** from order creation.
 - BTC confirms at **1 confirmation**. USDT confirms on on-chain arrival.
-- Near-match tolerance is **2%**.
+- ~~Near-match tolerance is **2%**.~~ **SUPERSEDED 2026-08-25** by a flat
+  auto-accept ceiling of 3.00 USDT / 0.0005 BTC, then a 10% review band. See
+  `2026-08-25-payment-fee-tolerance.md`.
 - Poll interval is **2 minutes**.
-- **Only an exact amount match may set `PAID`.** Every other outcome is `REVIEW` or an alert. No exceptions.
+- ~~**Only an exact amount match may set `PAID`.**~~ **SUPERSEDED 2026-08-25.** A
+  payment within the flat auto-accept ceiling also sets `PAID`, in both
+  directions, because exchanges deduct their withdrawal fee from the amount
+  sent. What still holds without exception: **a payment that could belong to
+  more than one open order is never matched**, and **nothing auto-ships**.
 - **Nothing auto-ships.** The system reports payment; a human releases the order.
 - **Receiving addresses, the Sheet ID, and API keys must never be committed to this repository.** It is public and serves GitHub Pages. They live in n8n configuration only.
 - n8n holds **no private keys**. It only reads public chain data.
@@ -28,64 +34,64 @@
 
 ---
 
-## PROGRESS — paused 2026-08-24 end of day
+## PROGRESS — updated 2026-08-26
 
 Branch: `crypto-payment-automation` (all work committed, not merged).
-`main` is untouched. **Both n8n workflows are UNPUBLISHED.** The live site still
-runs the old manual crypto flow.
+**`main` is untouched.** The live site still runs the old manual crypto flow.
+**All THREE n8n workflows are UNPUBLISHED.**
+
+Everything is built. One thing is left before go-live: a live USDT payment test,
+parked to **2026-08-31** at Lester's direction.
+
+### This plan
 
 | Task | State |
 |---|---|
-| 1 — `payment-matching.js` | ✅ done, 52 unit tests passing |
+| 1 — `payment-matching.js` | ✅ done — see the note on test counts below |
 | 2 — `GMG Orders` sheet | ✅ created, id in `api-keys.md` |
-| 3 — `GMG - Create Order` | ✅ built + verified — workflow `YTYSoa22Gu9L6NzC` |
-| 4 — `GMG - Payment Watcher` | ✅ built + all 7 paths verified — workflow `UEIXJauCOKOhxIUh` |
-| 5 — checkout coin selection | ✅ done + verified locally |
-| 6 — payment panel + FAQ | ✅ done + verified locally |
-| 7 — real-money test | ⏸️ **PAUSED HERE** — waiting on one live USDT payment |
-| 8 — go live | ⏹️ not started |
+| 3 — `GMG - Create Order` | ✅ `YTYSoa22Gu9L6NzC` — extended twice since (see below) |
+| 4 — `GMG - Payment Watcher` | ✅ `UEIXJauCOKOhxIUh` — extended twice since |
+| 5 — checkout coin selection | ✅ done |
+| 6 — payment panel + FAQ | ✅ done |
+| 7 — real-money test | ⏸️ **parked to 2026-08-31** — the only outstanding item |
+| 8 — go live | ⏹️ follow `docs/GO-LIVE-RUNBOOK.md` |
 
-### Where Task 7 stopped
+> The "52 unit tests" this table used to cite was the whole suite, not just
+> `payment-matching.js`. The suite is now **83** (`node --test tests/*.test.js`).
 
-Everything is verified except one thing: **a real USDT transfer has never been
-seen**, because the configured Tron address has no on-chain history at all
-(confirmed: valid checksum, account not yet activated — it is a fresh deposit
-address that has never received anything).
+### Four follow-on plans, all built and verified 2026-08-25/26
 
-Bitcoin parsing WAS proven against real chain data for free, by temporarily
-lowering `watchFrom` to catch one historical inbound transaction. It detected
-`00c89a368e54870dec44369a` at `0.00130761 BTC` correctly. `watchFrom` has been
-restored to `2026-08-24 22:45:00`.
+| Plan | What it changed |
+|---|---|
+| `2026-08-25-payment-fee-tolerance.md` | Replaced the 2% near-match band with a flat auto-accept ceiling (**3.00 USDT / 0.0005 BTC**) that sets `PAID` in both directions. Supersedes this plan's "only an exact match may set PAID". |
+| `2026-08-25-payment-confirmation-email.md` | The watcher now emails the customer on `PAID` and `REVIEW`. |
+| `2026-08-25-payment-status-polling.md` | Third workflow **`GMG - Order Status` (`1v3236DBmMZBL88h`)** + `payment-status.js` + a `statusToken` column, so the success page shows real status instead of counting down to "expired" after payment. |
+| `2026-08-26-retire-emailjs.md` | **EmailJS is gone.** All four emails come from n8n. The checkout now posts **every** order — including bank transfer, which never reached n8n before — retries three times, then degrades rather than aborting. |
 
-**An order is waiting for that payment:**
+### What is left before go-live
 
-- `LIVE-BINANCE-TEST` in the Orders sheet, `AWAITING_PAYMENT`, expects
-  **exactly `3.50` USDT**, valid until `2026-08-25 23:20:00`.
-- 3.50 was chosen because Binance's minimum withdrawal is $5 with a 1.50 USDT
-  fee deducted from the amount, so 3.50 is the most that can actually arrive.
-- When Lester sends it, the watcher is NOT running — it must be run manually
-  (`execute_workflow`, manual mode) or republished to pick the payment up. The
-  payment stays on-chain, so there is no rush and nothing is lost.
+**One item, and it is Lester's:** the live USDT payment test on 2026-08-31.
 
-### To resume — updated 2026-08-25
+`LIVE-BINANCE-TEST` has long expired — **issue a fresh order, do not revive it.**
+The Tron address has still never received anything, so real TRC-20 parsing has
+never run against real chain data. Bitcoin parsing was proven against real chain
+data back on 2026-08-24.
 
-**The live payment test is PARKED until 2026-08-31** at Lester's direction.
+Everything else that was outstanding is done: SPF edited and verified,
+deliverability proven at an independent provider, and the EmailJS work retired
+rather than completed.
 
-`LIVE-BINANCE-TEST` expires `2026-08-25 23:20` and the sweep will mark it
-`EXPIRED`. **Do not try to revive it — issue a fresh order** on the 31st. Note
-that a fresh order should be quoted under the new fee rules, so build the fee
-tolerance plan first and the live test then validates the real behaviour rather
-than the superseded one.
+Then work `docs/GO-LIVE-RUNBOOK.md` top to bottom. Its Step 3 is the one to
+re-read first — `watchFrom` must be advanced **after** the test rows are deleted,
+never before.
 
-Recommended order of work:
+### Where Task 7 originally stopped, kept for context
 
-1. `2026-08-25-payment-fee-tolerance.md` — changes how matching works.
-2. `2026-08-25-payment-status-polling.md` — changes what the customer sees.
-3. Issue a fresh live order, send the USDT, confirm `PAID` + Telegram. This is
-   still the one unproven path: the Tron address has never received anything,
-   so real TRC-20 parsing has never run against real data. Bitcoin parsing was
-   proven against real chain data.
-4. Then Task 8, with the extended checklist below.
+The 2026-08-24 pause was waiting on a `3.50` USDT payment for order
+`LIVE-BINANCE-TEST`. That order is expired and superseded; 3.50 was chosen under
+the old assumption that Binance's 1.50 fee had to be worked around, which the
+auto-accept ceiling now absorbs. A fresh test order should simply be the smallest
+convenient amount.
 
 ### Deviations from this plan, already applied
 
