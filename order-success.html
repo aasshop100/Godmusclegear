@@ -65,6 +65,12 @@
       <span id="pay-amount"></span> <span id="pay-coin"></span>
     </p>
 
+    <!-- A BTC amount is unreadable as money. Without a dollar figure a customer
+         has no way to check 0.00106392 BTC against the total they agreed to.
+         USDT needs no such line: it is already denominated in dollars, and one
+         there would only draw attention to the uniqueness tail. -->
+    <p id="pay-usd" style="display:none; font-size:0.85rem; color:var(--grey); margin:-6px 0 14px;"></p>
+
     <!-- Exchanges deduct their withdrawal fee from the amount sent; self-custody
          wallets do not. This is the single most important instruction on the
          page, so it sits directly under the amount rather than in fine print. -->
@@ -153,6 +159,226 @@
   document.getElementById('pay-address').textContent = p.address;
   document.getElementById('pay-network').textContent =
     p.coin === 'USDT' ? 'TRC-20 / Tron network' : 'Bitcoin network';
+
+  // BTC only, and only when the quote actually carried a total. A quote sitting
+  // in sessionStorage from before usdTotal was returned has none, and must still
+  // render a complete page rather than "$NaN".
+  (function () {
+    var el = document.getElementById('pay-usd');
+    if (!el || p.coin === 'USDT') return;
+    var usd = Number(p.usdTotal);
+    if (!isFinite(usd) || usd <= 0) return;
+    el.textContent = '≈ 
+
+  // Fee instruction. Exchanges take their withdrawal fee OUT of the amount sent,
+  // so a buyer who types the quoted amount underpays by it. Phrased as a
+  // condition ("if there's a fee") so it covers self-custody wallets too — they
+  // pay the network fee separately, so there is nothing for them to add.
+  //
+  // Never state the auto-accept ceiling here. A published tolerance is a
+  // discount every buyer can take.
+  (function () {
+    var body = document.getElementById('pay-fee-body');
+    var note = document.getElementById('pay-fee-note');
+    if (!body || !note) return;
+
+    // p comes from the network, so the coin is whitelisted and the amount is
+    // coerced to a number before either reaches innerHTML.
+    var isUsdt = p.coin === 'USDT';
+    var amount = Number(p.expectedAmount);
+    if (!isFinite(amount) || amount <= 0) { note.style.display = 'none'; return; }
+    var amountText = amount.toFixed(isUsdt ? 2 : 8) + ' ' + (isUsdt ? 'USDT' : 'BTC');
+
+    body.innerHTML =
+      'If there’s a fee when you send, add it on top so the full ' +
+      '<strong style="color:var(--black);">' + amountText + '</strong> arrives.';
+  })();
+
+  // QR encodes the plain address. Wallet support for BIP-21 and TRC-20 payment
+  // URIs is inconsistent, and a URI a wallet cannot read is worse than an
+  // address every wallet can.
+  document.getElementById('pay-qr').src =
+    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=' +
+    encodeURIComponent(p.address);
+
+  var copyBtn = document.getElementById('pay-copy');
+  if (copyBtn && navigator.clipboard) {
+    copyBtn.addEventListener('click', function () {
+      navigator.clipboard.writeText(p.address).then(function () {
+        copyBtn.textContent = 'Copied';
+        setTimeout(function () { copyBtn.textContent = 'Copy address'; }, 2000);
+      });
+    });
+  } else if (copyBtn) {
+    copyBtn.style.display = 'none';
+  }
+
+  // expiresAt is Philippine local time with no offset. Parsing it with a bare
+  // new Date() would resolve it in the CUSTOMER's timezone — hours wrong for
+  // buyers in the USA — so the +08:00 offset is applied explicitly.
+  function parseManila(text) {
+    if (!text) return NaN;
+    var s = String(text).trim();
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(s)) {
+      if (s.length === 16) s += ':00';
+      return new Date(s.replace(' ', 'T') + '+08:00').getTime();
+    }
+    return new Date(s).getTime();
+  }
+
+  var countdown = document.getElementById('pay-countdown');
+  var expiry    = parseManila(p.expiresAt);
+
+  // Set by the poller once the order is no longer simply awaiting payment.
+  // tick() reschedules itself every second, so without a flag it would keep
+  // counting down underneath a "Payment confirmed" message.
+  var countdownStopped = false;
+
+  function tick() {
+    if (countdownStopped) return;
+    var left = expiry - Date.now();
+    if (left <= 0) {
+      countdown.textContent = 'expired — message us on Telegram';
+      return;
+    }
+    var totalSeconds = Math.floor(left / 1000);
+    var h = Math.floor(totalSeconds / 3600);
+    var m = Math.floor((totalSeconds % 3600) / 60);
+    var s = totalSeconds % 60;
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    countdown.textContent = h > 0
+      ? h + 'h ' + pad(m) + 'm ' + pad(s) + 's'
+      : m + 'm ' + pad(s) + 's';
+    setTimeout(tick, 1000);
+  }
+
+  if (isNaN(expiry)) {
+    countdown.textContent = 'see your confirmation email';
+    countdownStopped = true;
+  } else {
+    tick();
+  }
+
+  // ── live status polling ────────────────────────────────────────────
+  // The page used to render this quote once and never speak to the server
+  // again, so a customer who paid correctly watched the countdown run out and
+  // was told "expired — message us on Telegram". This asks the order-status
+  // endpoint what actually happened.
+  //
+  // Every failure path here is silent. A customer must never see an error
+  // because a poll failed — the page simply behaves as it did before polling
+  // existed.
+  (function () {
+    if (typeof statusView !== 'function') return;      // module failed to load
+    if (!p.orderId || !p.statusToken) return;          // nothing to poll with
+
+    var STATUS_URL = 'https://n8n.godmusclegears.com/webhook/gmg-order-status';
+    var box      = document.getElementById('pay-status');
+    var headline = document.getElementById('pay-status-headline');
+    var bodyEl   = document.getElementById('pay-status-body');
+    var details  = document.getElementById('pay-details');
+    if (!box || !headline || !bodyEl || !details) return;
+
+    var TONES = {
+      progress:  { bg: '#eff6ff', border: '#bfdbfe', fg: '#1d4ed8' },
+      success:   { bg: '#ecfdf5', border: '#a7f3d0', fg: '#047857' },
+      attention: { bg: '#fff7ed', border: '#fed7aa', fg: '#b45309' }
+    };
+
+    var startedAt = Date.now();
+    var HARD_CAP_MS = 4 * 60 * 60 * 1000;  // longer than the 3h BTC quote
+    var MAX_FAILURES = 5;
+    var failures = 0;
+    var stopped = false;
+    var timer = null;
+
+    // Most payments land in the first few minutes. An abandoned tab must not
+    // keep hammering a 1GB VM that is already running on swap.
+    function intervalMs() {
+      var age = Date.now() - startedAt;
+      if (age < 5 * 60 * 1000) return 15000;
+      if (age < 20 * 60 * 1000) return 30000;
+      return 60000;
+    }
+
+    function stop() {
+      stopped = true;
+      if (timer) { clearTimeout(timer); timer = null; }
+    }
+
+    function render(view) {
+      if (view.headline) {
+        var tone = TONES[view.tone];
+        if (tone) {
+          box.style.background  = tone.bg;
+          box.style.border      = '1px solid ' + tone.border;
+          headline.style.color  = tone.fg;
+        }
+        headline.textContent = view.headline;
+        bodyEl.textContent   = view.body;
+        box.style.display    = 'block';
+      }
+      details.style.display = view.showPanel ? 'block' : 'none';
+      if (!view.showCountdown) countdownStopped = true;
+      if (view.stopPolling) stop();
+    }
+
+    function schedule() {
+      if (stopped) return;
+      if (Date.now() - startedAt > HARD_CAP_MS) return stop();
+      timer = setTimeout(poll, intervalMs());
+    }
+
+    function poll() {
+      if (stopped) return;
+      // Skip while the tab is hidden — a customer who switched to their
+      // exchange app does not need this running, and gets a fresh answer the
+      // moment they come back.
+      if (document.hidden) return schedule();
+
+      fetch(STATUS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: p.orderId, statusToken: p.statusToken })
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('status ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          failures = 0;
+          render(statusView(data.status, {
+            coin: data.coin || p.coin,
+            shortfall: data.shortfall,
+            expired: !isNaN(expiry) && Date.now() > expiry
+          }));
+          schedule();
+        })
+        .catch(function () {
+          // Leave the UI exactly as it is and try again. Give up quietly after
+          // a run of failures rather than retrying forever.
+          failures++;
+          if (failures >= MAX_FAILURES) return stop();
+          schedule();
+        });
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && !stopped) {
+        if (timer) clearTimeout(timer);
+        poll();
+      }
+    });
+
+    poll();
+  })();
+})();
+</script>
+</body>
+</html>
+ + usd.toFixed(2) + ' USD · rate locked for this order';
+    el.style.display = 'block';
+  })();
 
   // Fee instruction. Exchanges take their withdrawal fee OUT of the amount sent,
   // so a buyer who types the quoted amount underpays by it. Phrased as a
