@@ -57,7 +57,7 @@ parked to **2026-08-31** at Lester's direction.
 | 8 — go live | ⏹️ follow `docs/GO-LIVE-RUNBOOK.md` |
 
 > The "52 unit tests" this table used to cite was the whole suite, not just
-> `payment-matching.js`. The suite is now **83** (`node --test tests/*.test.js`).
+> `payment-matching.js`. The suite is now **85** (`node --test tests/*.test.js`).
 
 ### Four follow-on plans, all built and verified 2026-08-25/26
 
@@ -104,7 +104,7 @@ convenient amount.
 - **`watchFrom` cutoff added** on the watcher's `Payment Addresses` node. These
   are live exchange deposit addresses with real history; without it the first
   run would have alerted on ~50 historical transactions.
-- **Overpayment is `REVIEW`, not `PAID`** (spec corrected).
+- ~~**Overpayment is `REVIEW`, not `PAID`** (spec corrected).~~ **REVERSED 2026-08-25** — an overpayment inside the auto-accept ceiling now sets `PAID` too, with the overage stated in the Telegram alert. Attribution is handled independently by the single-candidate check, so treating over and under differently was guarding a case already covered.
 - Task 7 Step 1's spec correction is DONE.
 
 ### MUST be undone before go-live (Task 8)
