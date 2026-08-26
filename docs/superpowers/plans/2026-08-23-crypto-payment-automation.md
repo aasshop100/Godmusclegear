@@ -67,6 +67,7 @@ parked to **2026-08-31** at Lester's direction.
 | `2026-08-25-payment-confirmation-email.md` | The watcher now emails the customer on `PAID` and `REVIEW`. |
 | `2026-08-25-payment-status-polling.md` | Third workflow **`GMG - Order Status` (`1v3236DBmMZBL88h`)** + `payment-status.js` + a `statusToken` column, so the success page shows real status instead of counting down to "expired" after payment. |
 | `2026-08-26-retire-emailjs.md` | **EmailJS is gone.** All four emails come from n8n. The checkout now posts **every** order — including bank transfer, which never reached n8n before — retries three times, then degrades rather than aborting. |
+| _(no plan — 2026-08-26)_ | `Respond With Quote` now returns **`usdTotal`**, and the success page prints `≈ $83.84 USD` under a **BTC** amount; the `PAID` email does the same. A bare `0.00106392 BTC` gave a customer no way to check what they were paying. Not shown for USDT, which is already dollars. |
 
 ### What is left before go-live
 
