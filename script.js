@@ -2,6 +2,85 @@
 // Cleaned: merged duplicate DOMContentLoaded blocks, fixed `email` variable bug,
 //          removed duplicate freeShippingCodes declaration, consolidated init.
 
+// ─────────────────────────────────────────────
+// MAINTENANCE MODE
+// ─────────────────────────────────────────────
+// Flip to false and push to lift it. GitHub Pages rebuilds in ~1-2 minutes.
+//
+// Deliberately lives in script.js, which is loaded by the 10 storefront pages
+// but NOT by order-success.html. That means a customer who already placed an
+// order and is looking at their payment address is never blocked, without
+// needing a page-name exception.
+//
+// Browsing stays open and checkout is hard-blocked, rather than sealing the
+// whole site: a customer who can still see products and reach Telegram is a
+// sale deferred, one who hits a wall is a sale lost. It also keeps the pages
+// intact for anything crawling during the window.
+//
+// Staff bypass: append ?staff=1 to any URL. It persists for the tab, so the
+// live end-to-end test can be run while customers still see the notice.
+const MAINTENANCE_MODE = true;
+const MAINTENANCE_MESSAGE = 'We are upgrading our order system. Browsing is open, but checkout is paused for the next hour or two.';
+
+(function () {
+  if (!MAINTENANCE_MODE) return;
+
+  try {
+    if (new URLSearchParams(location.search).get('staff') === '1') {
+      sessionStorage.setItem('gmgStaff', '1');
+    }
+    if (sessionStorage.getItem('gmgStaff') === '1') return;   // staff: behave normally
+  } catch (e) { /* private mode — fall through and show the notice */ }
+
+  const onCheckout = /checkout\.html$/i.test(location.pathname);
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const telegram = '<a href="https://t.me/Godmusclegears" style="color:#fff; text-decoration:underline; font-weight:700;">order via Telegram</a>';
+
+    // Banner on every page, so nobody reaches checkout surprised.
+    const bar = document.createElement('div');
+    bar.style.cssText = 'position:relative; z-index:99999; background:#ff4500; color:#fff; padding:12px 44px 12px 16px; font-family:Arial,Helvetica,sans-serif; font-size:0.9rem; line-height:1.5; text-align:center;';
+    bar.innerHTML = MAINTENANCE_MESSAGE + ' You can still ' + telegram + '.'
+      + '<button type="button" aria-label="Dismiss" style="position:absolute; right:10px; top:8px; background:transparent; border:0; color:#fff; font-size:1.2rem; cursor:pointer; line-height:1;">&times;</button>';
+    bar.querySelector('button').addEventListener('click', function () { bar.remove(); });
+    document.body.insertBefore(bar, document.body.firstChild);
+
+    if (!onCheckout) return;
+
+    // Checkout is hard-blocked. Disabling the button alone would not do it —
+    // the form can still be submitted by pressing Enter in a text field.
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }, true);
+    }
+
+    const btn = document.getElementById('placeOrderBtn')
+      || (form && form.querySelector('button[type="submit"], .btn-custom'));
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Checkout paused — see above';
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
+    }
+
+    const notice = document.createElement('div');
+    notice.style.cssText = 'background:#fff3cd; border-left:5px solid #ff4500; padding:16px; margin:16px 0; font-family:Arial,Helvetica,sans-serif; font-size:0.95rem; line-height:1.6; color:#333;';
+    notice.innerHTML = '<strong>Checkout is temporarily paused</strong><br>'
+      + 'We are upgrading our order system and expect to be back within an hour or two. '
+      + 'Your cart is saved. To order right now, message us on '
+      + '<a href="https://t.me/Godmusclegears" style="color:#0088cc; font-weight:700;">Telegram @Godmusclegears</a> '
+      + 'and we will take care of it personally.';
+    if (btn && btn.parentElement) {
+      btn.parentElement.insertBefore(notice, btn);
+    } else if (form) {
+      form.insertBefore(notice, form.firstChild);
+    }
+  });
+})();
+
 document.addEventListener('touchstart', function () {}, { passive: true });
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
