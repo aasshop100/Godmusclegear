@@ -3,7 +3,36 @@
     "allow": [
       "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add products.html)",
       "Bash(git -C 'c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main' commit -m ' *)",
-      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add -u)"
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add -u)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(python -c ' *)",
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add proofs.html \"images/22.jpg\")",
+      "Bash(dir \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\\\\.netlify\" /s)",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\\\\.netlify\")",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://ai.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat\" -Method POST -Body '{\"action\":\"sendMessage\",\"sessionId\":\"test\",\"chatInput\":\"test\"}' -ContentType \"application/json\" -TimeoutSec 10; Write-Host \"Status: $\\($r.StatusCode\\)\"; Write-Host $r.Content } catch { Write-Host \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.ssh\\\\\" -ErrorAction SilentlyContinue | Select-Object Name; Get-Content \"$env:USERPROFILE\\\\.ssh\\\\config\" -ErrorAction SilentlyContinue)",
+      "PowerShell(icacls \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" /inheritance:r /grant:r \"${env:USERNAME}:R\" 2>&1; ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@193.122.248.225 \"echo connected && pm2 list 2>/dev/null || systemctl status n8n 2>/dev/null || echo 'checking...'\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"docker ps -a --format 'table {{.Names}}\\\\t{{.Status}}\\\\t{{.Image}}'; systemctl status cloudflared 2>/dev/null; ps aux | grep -E 'cloudflared|nginx|caddy' | grep -v grep\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"curl -s -o /dev/null -w '%{http_code}' http://localhost:5678/healthz; echo ''; cat /home/ubuntu/.cloudflared/config.yml 2>/dev/null\")",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://n8n.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat\" -Method POST -Body '{\"action\":\"sendMessage\",\"sessionId\":\"test\",\"chatInput\":\"test\"}' -ContentType \"application/json\" -TimeoutSec 10; Write-Host \"Status: $\\($r.StatusCode\\)\"; Write-Host $r.Content } catch { Write-Host \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"curl -s -o /dev/null -w '%{http_code}' -X POST https://n8n.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat -H 'Content-Type: application/json' -d '{\\\\\"action\\\\\":\\\\\"sendMessage\\\\\",\\\\\"sessionId\\\\\":\\\\\"test\\\\\",\\\\\"chatInput\\\\\":\\\\\"test\\\\\"}'\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"cat /home/ubuntu/.cloudflared/config.yml\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"cloudflared tunnel route dns 9e9da049-9017-4411-878c-a1baf430a88b ai.godmusclegears.com 2>&1\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"pkill -f cloudflared; sleep 2; nohup cloudflared tunnel --config /home/ubuntu/.cloudflared/config.yml run gmg-trt-tunnel > /home/ubuntu/cloudflared.log 2>&1 & echo 'cloudflared restarted, PID:' $!\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"sudo systemctl restart cloudflared 2>/dev/null && echo 'systemctl restarted' || \\(pkill cloudflared; sleep 1; nohup cloudflared tunnel --config /home/ubuntu/.cloudflared/config.yml run > /home/ubuntu/cloudflared.log 2>&1 & sleep 2; echo 'manual restart done'; ps aux | grep cloudflared | grep -v grep\\)\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"sleep 3; curl -s -o /dev/null -w '%{http_code}' -X POST https://ai.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat -H 'Content-Type: application/json' -d '{\\\\\"action\\\\\":\\\\\"sendMessage\\\\\",\\\\\"sessionId\\\\\":\\\\\"test\\\\\",\\\\\"chatInput\\\\\":\\\\\"test\\\\\"}'\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"tail -20 /home/ubuntu/cloudflared.log\")",
+      "PowerShell(Resolve-DnsName ai.godmusclegears.com -Type CNAME -ErrorAction SilentlyContinue)",
+      "PowerShell(Resolve-DnsName n8n.godmusclegears.com -Type CNAME -ErrorAction SilentlyContinue)",
+      "PowerShell(Resolve-DnsName ai.godmusclegears.com -ErrorAction SilentlyContinue)",
+      "PowerShell(Resolve-DnsName n8n.godmusclegears.com -ErrorAction SilentlyContinue)",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"curl -s -o /dev/null -w '%{http_code}' -X POST https://ai.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat -H 'Content-Type: application/json' -d '{\\\\\"action\\\\\":\\\\\"sendMessage\\\\\",\\\\\"sessionId\\\\\":\\\\\"test\\\\\",\\\\\"chatInput\\\\\":\\\\\"test\\\\\"}'\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"ps aux | grep cloudflared | grep -v grep; echo '---'; cat /home/ubuntu/.cloudflared/config.yml; echo '---'; tail -5 /home/ubuntu/cloudflared.log\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"cat /home/ubuntu/cloudflared.log | tail -40\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"curl -s -X POST https://n8n.godmusclegears.com/webhook/godmuscle-trt-chatbot/chat -H 'Content-Type: application/json' -d '{\\\\\"action\\\\\":\\\\\"sendMessage\\\\\",\\\\\"sessionId\\\\\":\\\\\"gmg-abc123\\\\\",\\\\\"chatInput\\\\\":\\\\\"hello\\\\\"}'\")",
+      "PowerShell(ssh -i \"$env:USERPROFILE\\\\Downloads\\\\ssh-key-2026-06-14.key\" -o StrictHostKeyChecking=no ubuntu@193.122.248.225 \"cloudflared tunnel route dns --overwrite-dns 9e9da049-9017-4411-878c-a1baf430a88b ai.godmusclegears.com 2>&1\")"
     ]
   }
 }

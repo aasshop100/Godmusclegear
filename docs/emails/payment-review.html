@@ -1,0 +1,95 @@
+<!--
+  GOD MUSCLE GEARS — "payment received, being checked" email
+  Sent by the GMG - Payment Watcher when an order reaches REVIEW.
+
+  Paste as the HTML body of the "Send Review Email" node. Field must be in
+  expression mode (=) for the n8n expressions to resolve.
+
+  REVIEW covers two cases: a payment outside the auto-accept ceiling, and a
+  payment that arrived after the quote expired. The copy deliberately covers
+  both without naming which, because the customer's next action is the same
+  either way: wait, and do not send again.
+
+  ┌─ TWO RULES FOR THIS FILE ────────────────────────────────────────────────┐
+  │ 1. It must read as neither success nor failure. The money arrived; only  │
+  │    the amount or the timing is in question. A buyer who reads this as    │
+  │    "failed" and re-sends creates a SECOND payment that matches nothing,  │
+  │    and turns one review tap into a refund.                               │
+  │                                                                          │
+  │ 2. Do NOT state the shortfall or the received amount. Naming the gap     │
+  │    invites the buyer to "top up" the difference — producing a second     │
+  │    small payment that matches no order and compounds the problem. It     │
+  │    would also leak roughly where the auto-accept ceiling sits.           │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  "Please don't send anything further" is the load-bearing sentence. Keep it
+  visually prominent.
+-->
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5; padding:24px 0; font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden;">
+
+        <tr>
+          <td style="background:#111111; padding:20px 24px;">
+            <p style="margin:0; font-size:15px; font-weight:bold; letter-spacing:2px; color:#ffffff;">
+              GOD MUSCLE GEARS
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:28px 24px 8px;">
+            <p style="margin:0 0 6px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#b45309;">
+              Payment received — being checked
+            </p>
+            <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">
+              We've got your payment{{ $("Match Payments").item.json.customerName ? ", " + $("Match Payments").item.json.customerName : "" }}
+            </p>
+
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">
+              We've received a payment for order
+              <strong style="color:#111111;">{{ $("Match Payments").item.json.matchedOrderId }}</strong>,
+              but it doesn't quite match the quote we issued, so it needs a quick
+              manual check before we confirm the order.
+            </p>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
+              <tr>
+                <td style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:16px;">
+                  <p style="margin:0; font-size:15px; line-height:1.6; color:#333333;">
+                    <strong style="color:#111111;">Please don't send anything further.</strong>
+                    Your payment is safe and we can see it. Sending again would create a
+                    second payment we'd have to refund separately.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">
+              Someone is looking at it now and we'll confirm your order shortly — usually
+              within a few hours.
+            </p>
+
+            <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">
+              If you'd rather sort it out directly, message us on Telegram at
+              <a href="https://t.me/Godmusclegears" style="color:#0088cc; text-decoration:none;">@Godmusclegears</a>
+              and quote your order number.
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="border-top:1px solid #e5e5e5; padding:16px 24px;">
+            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">
+              GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>
+              This is an automated message about order {{ $("Match Payments").item.json.matchedOrderId }}.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>

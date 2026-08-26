@@ -14,9 +14,15 @@
 - USDT contract address on Tron: `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t`.
 - Quote expiry is **30 minutes** from order creation.
 - BTC confirms at **1 confirmation**. USDT confirms on on-chain arrival.
-- Near-match tolerance is **2%**.
+- ~~Near-match tolerance is **2%**.~~ **SUPERSEDED 2026-08-25** by a flat
+  auto-accept ceiling of 3.00 USDT / 0.00005 BTC, then a 10% review band. See
+  `2026-08-25-payment-fee-tolerance.md`.
 - Poll interval is **2 minutes**.
-- **Only an exact amount match may set `PAID`.** Every other outcome is `REVIEW` or an alert. No exceptions.
+- ~~**Only an exact amount match may set `PAID`.**~~ **SUPERSEDED 2026-08-25.** A
+  payment within the flat auto-accept ceiling also sets `PAID`, in both
+  directions, because exchanges deduct their withdrawal fee from the amount
+  sent. What still holds without exception: **a payment that could belong to
+  more than one open order is never matched**, and **nothing auto-ships**.
 - **Nothing auto-ships.** The system reports payment; a human releases the order.
 - **Receiving addresses, the Sheet ID, and API keys must never be committed to this repository.** It is public and serves GitHub Pages. They live in n8n configuration only.
 - n8n holds **no private keys**. It only reads public chain data.
@@ -25,6 +31,141 @@
 - Line numbers cited below are as of the unmodified files; locate targets by the quoted code, not the number.
 
 **Reference spec:** `docs/superpowers/specs/2026-08-23-crypto-payment-automation-design.md`
+
+---
+
+## PROGRESS — updated 2026-08-26
+
+Branch: `crypto-payment-automation` (all work committed, not merged).
+**`main` is untouched.** The live site still runs the old manual crypto flow.
+**All THREE n8n workflows are UNPUBLISHED.**
+
+Everything is built. One thing is left before go-live: a live USDT payment test,
+parked to **2026-08-31** at Lester's direction.
+
+### This plan
+
+| Task | State |
+|---|---|
+| 1 — `payment-matching.js` | ✅ done — see the note on test counts below |
+| 2 — `GMG Orders` sheet | ✅ created, id in `api-keys.md` |
+| 3 — `GMG - Create Order` | ✅ `YTYSoa22Gu9L6NzC` — extended twice since (see below) |
+| 4 — `GMG - Payment Watcher` | ✅ `UEIXJauCOKOhxIUh` — extended twice since |
+| 5 — checkout coin selection | ✅ done |
+| 6 — payment panel + FAQ | ✅ done |
+| 7 — real-money test | ⏸️ **parked to 2026-08-31** — the only outstanding item |
+| 8 — go live | ⏹️ follow `docs/GO-LIVE-RUNBOOK.md` |
+
+> The "52 unit tests" this table used to cite was the whole suite, not just
+> `payment-matching.js`. The suite is now **85** (`node --test tests/*.test.js`).
+
+### Four follow-on plans, all built and verified 2026-08-25/26
+
+| Plan | What it changed |
+|---|---|
+| `2026-08-25-payment-fee-tolerance.md` | Replaced the 2% near-match band with a flat auto-accept ceiling (**3.00 USDT / 0.00005 BTC**) that sets `PAID` in both directions. Supersedes this plan's "only an exact match may set PAID". |
+| `2026-08-25-payment-confirmation-email.md` | The watcher now emails the customer on `PAID` and `REVIEW`. |
+| `2026-08-25-payment-status-polling.md` | Third workflow **`GMG - Order Status` (`1v3236DBmMZBL88h`)** + `payment-status.js` + a `statusToken` column, so the success page shows real status instead of counting down to "expired" after payment. |
+| `2026-08-26-retire-emailjs.md` | **EmailJS is gone.** All four emails come from n8n. The checkout now posts **every** order — including bank transfer, which never reached n8n before — retries three times, then degrades rather than aborting. |
+
+### What is left before go-live
+
+**One item, and it is Lester's:** the live USDT payment test on 2026-08-31.
+
+`LIVE-BINANCE-TEST` has long expired — **issue a fresh order, do not revive it.**
+The Tron address has still never received anything, so real TRC-20 parsing has
+never run against real chain data. Bitcoin parsing was proven against real chain
+data back on 2026-08-24.
+
+Everything else that was outstanding is done: SPF edited and verified,
+deliverability proven at an independent provider, and the EmailJS work retired
+rather than completed.
+
+Then work `docs/GO-LIVE-RUNBOOK.md` top to bottom. Its Step 3 is the one to
+re-read first — `watchFrom` must be advanced **after** the test rows are deleted,
+never before.
+
+### Where Task 7 originally stopped, kept for context
+
+The 2026-08-24 pause was waiting on a `3.50` USDT payment for order
+`LIVE-BINANCE-TEST`. That order is expired and superseded; 3.50 was chosen under
+the old assumption that Binance's 1.50 fee had to be worked around, which the
+auto-accept ceiling now absorbs. A fresh test order should simply be the smallest
+convenient amount.
+
+### Deviations from this plan, already applied
+
+- **Per-coin expiry.** BTC 3 hours, USDT 30 minutes — not 30 for both. A
+  customer's exchange can sit on a BTC withdrawal for an hour before broadcast.
+  Values live on the `Payment Addresses` node in each workflow.
+- **`PAYMENT_SEEN` status added.** A payment seen in the mempool stops the
+  expiry clock so slow Bitcoin confirmations still auto-complete. Dedupe keys
+  are staged (`txid:seen` then `txid`).
+- **`watchFrom` cutoff added** on the watcher's `Payment Addresses` node. These
+  are live exchange deposit addresses with real history; without it the first
+  run would have alerted on ~50 historical transactions.
+- ~~**Overpayment is `REVIEW`, not `PAID`** (spec corrected).~~ **REVERSED 2026-08-25** — an overpayment inside the auto-accept ceiling now sets `PAID` too, with the overage stated in the Telegram alert. Attribution is handled independently by the single-candidate check, so treating over and under differently was guarding a case already covered.
+- Task 7 Step 1's spec correction is DONE.
+
+### MUST be undone before go-live (Task 8)
+
+**Updated 2026-08-25.** Three workflows now, not two.
+
+**Remove `http://localhost:8899` from `allowedOrigins` on BOTH webhooks:**
+- `GMG - Create Order` → `Order Webhook`
+- `GMG - Order Status` → `Status Webhook`
+
+**Publish all three workflows.** `GMG - Create Order`, `GMG - Payment Watcher`,
+`GMG - Order Status`. A published create-order that hands out a `statusToken`
+while the status workflow is unpublished means every customer page polls a dead
+endpoint — harmless, because it degrades silently, but the fix is then not
+actually live.
+
+**Delete test rows by exact id:**
+- `Orders`: TEST-001..008, LIVE-USDT-TEST, LIVE-BINANCE-TEST,
+  `ORDER-1787584663956`, and **`TOKEN-TEST-001`** (added 2026-08-25 while
+  verifying the statusToken change — it carries a real token and a real quote).
+- `processed_tx`: 8 rows.
+
+**Manual dashboard work, none of it in this repo:**
+- ~~**EmailJS**~~ — **RETIRED 2026-08-26.** Both order emails are now sent by
+  `GMG - Create Order` as `admin@godmusclegears.com`, so the sender mismatch and
+  the template paste are both moot. See
+  `2026-08-26-retire-emailjs.md`. Nothing in the EmailJS dashboard needs touching
+  before go-live.
+- ~~**SPF record**~~ — **DONE 2026-08-26**, verified live as
+  `v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all`.
+- ~~**Deliverability test**~~ — **DONE 2026-08-26**, inbox at an independent
+  provider with the alias intact.
+
+**The single remaining pre-go-live item is the live USDT payment test**, parked
+to 2026-08-31.
+
+### Withdrawal-fee handling — DECIDED 2026-08-25
+
+Was: "Binance deducts 1.50 from the amount sent, so those orders land in REVIEW
+instead of auto-confirming — Lester's call, not yet decided."
+
+**Decided.** Buyers are not Binance-only; fees vary by platform (~0.8–2.5 on
+TRC-20) and self-custody wallets deduct nothing at all, so no fixed markup can
+be correct. Quote the true amount, instruct the buyer to add their fee on top,
+and auto-accept shortfalls up to a flat ceiling (3.00 USDT / 0.00005 BTC).
+Overpayments inside the ceiling auto-confirm too.
+
+Full reasoning and implementation:
+`docs/superpowers/plans/2026-08-25-payment-fee-tolerance.md`.
+
+> That plan **modifies `payment-matching.js` and the `Match Payments` node**,
+> which Tasks 1 and 4 already built. The 2% `NEAR_MATCH_TOLERANCE` described
+> elsewhere in this document is superseded by it.
+
+### Also outstanding before go-live
+
+`order-success.html` never polls, so a customer who pays correctly still watches
+the countdown run out to "expired — message us on Telegram". Spec:
+`docs/superpowers/plans/2026-08-25-payment-status-polling.md`. Adds a third
+workflow (`GMG - Order Status`) and a `statusToken` column, both of which extend
+the go-live checklist above.
 
 ---
 
@@ -1170,7 +1311,9 @@ the watcher stays silent while the transaction is unconfirmed.
 Delete every test row from `Orders` and `processed_tx` **by exact `orderId` and
 `txHash`** — never by a content match, and count the rows before and after.
 
-- [ ] **Step 7: Hand off the EmailJS template change**
+- [x] **Step 7: Hand off the EmailJS template change** — SUPERSEDED 2026-08-26.
+      EmailJS was retired entirely rather than edited; both order emails now
+      come from n8n. See `2026-08-26-retire-emailjs.md`.
 
 The customer template `template_0ry9w0v` lives in the EmailJS dashboard, not in
 this repository, and must be edited by hand — the same handoff as the shipping
@@ -1247,7 +1390,7 @@ Test URL. A Test URL reaching production would silently break every order.
 - [ ] **Step 4: Run the full test suite**
 
 ```bash
-node --check script.js && node --check payment-matching.js && node --test tests/
+node --check script.js && node --check payment-matching.js && node --test tests/*.test.js
 ```
 
 Expected: both checks silent; all tests pass.

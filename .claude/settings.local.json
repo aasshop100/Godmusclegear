@@ -5,7 +5,11 @@
       "Bash(git -C 'c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main' commit -m ' *)",
       "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" push origin main)",
       "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add -A)",
-      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add style.css)"
+      "Bash(git -C \"c:\\\\Users\\\\LESTER\\\\Desktop\\\\GODMUSCLEGEARS\\\\Godmusclegear-main\" add style.css)",
+      "Skill(anthropic-skills:skill-creator)",
+      "Skill(anthropic-skills:skill-creator:*)",
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\LESTER\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\e2443af9-74ff-4a7b-9aa4-5910bb50ce61\\\\6081e9a5-2107-464b-9f75-a66c37cf3312\\\\skills\\\\manychat-message-writer\\\\references\")",
+      "Bash(ls \"/mnt/c/Users/LESTER/AppData/Roaming/Claude/\" 2>/dev/null || echo \"WSL path not accessible\")"
     ]
   }
 }

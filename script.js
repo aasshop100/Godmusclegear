@@ -2,6 +2,85 @@
 // Cleaned: merged duplicate DOMContentLoaded blocks, fixed `email` variable bug,
 //          removed duplicate freeShippingCodes declaration, consolidated init.
 
+// ─────────────────────────────────────────────
+// MAINTENANCE MODE
+// ─────────────────────────────────────────────
+// Flip to false and push to lift it. GitHub Pages rebuilds in ~1-2 minutes.
+//
+// Deliberately lives in script.js, which is loaded by the 10 storefront pages
+// but NOT by order-success.html. That means a customer who already placed an
+// order and is looking at their payment address is never blocked, without
+// needing a page-name exception.
+//
+// Browsing stays open and checkout is hard-blocked, rather than sealing the
+// whole site: a customer who can still see products and reach Telegram is a
+// sale deferred, one who hits a wall is a sale lost. It also keeps the pages
+// intact for anything crawling during the window.
+//
+// Staff bypass: append ?staff=1 to any URL. It persists for the tab, so the
+// live end-to-end test can be run while customers still see the notice.
+const MAINTENANCE_MODE = true;
+const MAINTENANCE_MESSAGE = 'We are upgrading our order system. Browsing is open, but checkout is paused for the next hour or two.';
+
+(function () {
+  if (!MAINTENANCE_MODE) return;
+
+  try {
+    if (new URLSearchParams(location.search).get('staff') === '1') {
+      sessionStorage.setItem('gmgStaff', '1');
+    }
+    if (sessionStorage.getItem('gmgStaff') === '1') return;   // staff: behave normally
+  } catch (e) { /* private mode — fall through and show the notice */ }
+
+  const onCheckout = /checkout\.html$/i.test(location.pathname);
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const telegram = '<a href="https://t.me/Godmusclegears" style="color:#fff; text-decoration:underline; font-weight:700;">order via Telegram</a>';
+
+    // Banner on every page, so nobody reaches checkout surprised.
+    const bar = document.createElement('div');
+    bar.style.cssText = 'position:relative; z-index:99999; background:#ff4500; color:#fff; padding:12px 44px 12px 16px; font-family:Arial,Helvetica,sans-serif; font-size:0.9rem; line-height:1.5; text-align:center;';
+    bar.innerHTML = MAINTENANCE_MESSAGE + ' You can still ' + telegram + '.'
+      + '<button type="button" aria-label="Dismiss" style="position:absolute; right:10px; top:8px; background:transparent; border:0; color:#fff; font-size:1.2rem; cursor:pointer; line-height:1;">&times;</button>';
+    bar.querySelector('button').addEventListener('click', function () { bar.remove(); });
+    document.body.insertBefore(bar, document.body.firstChild);
+
+    if (!onCheckout) return;
+
+    // Checkout is hard-blocked. Disabling the button alone would not do it —
+    // the form can still be submitted by pressing Enter in a text field.
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }, true);
+    }
+
+    const btn = document.getElementById('placeOrderBtn')
+      || (form && form.querySelector('button[type="submit"], .btn-custom'));
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Checkout paused — see above';
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
+    }
+
+    const notice = document.createElement('div');
+    notice.style.cssText = 'background:#fff3cd; border-left:5px solid #ff4500; padding:16px; margin:16px 0; font-family:Arial,Helvetica,sans-serif; font-size:0.95rem; line-height:1.6; color:#333;';
+    notice.innerHTML = '<strong>Checkout is temporarily paused</strong><br>'
+      + 'We are upgrading our order system and expect to be back within an hour or two. '
+      + 'Your cart is saved. To order right now, message us on '
+      + '<a href="https://t.me/Godmusclegears" style="color:#0088cc; font-weight:700;">Telegram @Godmusclegears</a> '
+      + 'and we will take care of it personally.';
+    if (btn && btn.parentElement) {
+      btn.parentElement.insertBefore(notice, btn);
+    } else if (form) {
+      form.insertBefore(notice, form.firstChild);
+    }
+  });
+})();
+
 document.addEventListener('touchstart', function () {}, { passive: true });
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -321,10 +400,10 @@ function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddres
 }
 
 // ─────────────────────────────────────────────
-// CHECKOUT SUBMIT (EmailJS via fetch)
+// CHECKOUT SUBMIT (order + emails handled by n8n)
 // ─────────────────────────────────────────────
 
-function handleCheckoutSubmit(event) {
+async function handleCheckoutSubmit(event) {
   event.preventDefault();
 
   const placeOrderBtn = document.querySelector('.place-order-btn');
@@ -375,6 +454,7 @@ function handleCheckoutSubmit(event) {
     .join(' | ');
   const packageCount = String(shippingResult.packageCount);
 
+
   // Short customer-facing sentence. Always populated so the email never renders a blank line.
   const shippingNote = shippingResult.packageCount > 1
     ? `Your order ships in ${shippingResult.packageCount} separate packages — each brand ships separately.`
@@ -393,89 +473,101 @@ function handleCheckoutSubmit(event) {
   const promoCode    = localStorage.getItem('appliedPromoCode') || 'None';
   const discountLine = pctDiscount > 0 ? `-${pctDiscount}% off items (-$${discountAmount.toFixed(2)})` : 'None';
 
-  const itemsTableHTML = storedCart.map((item, i) => {
-    const qty       = item.quantity || 1;
-    const price     = Number(item.price).toFixed(2);
-    const lineTotal = (Number(item.price) * qty).toFixed(2);
-    const rowBg     = i % 2 === 0 ? '#111c2d' : '#0d1825';
-    return `<tr style="background-color:${rowBg};">
-      <td style="padding:10px 14px;font-size:13px;color:#ffffff;border-bottom:1px solid rgba(0,200,255,0.07);">${item.name}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#7a9ab0;text-align:center;border-bottom:1px solid rgba(0,200,255,0.07);">${qty}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#7a9ab0;text-align:right;border-bottom:1px solid rgba(0,200,255,0.07);">$${price}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#00c8ff;font-weight:600;text-align:right;border-bottom:1px solid rgba(0,200,255,0.07);">$${lineTotal}</td>
-    </tr>`;
-  }).join('');
-
-  const _j = (...a) => a.join('');
-  const serviceID = _j('serv','ice_','uer','k41r');
-  const userID    = _j('8tI','W2Rq','hek','SLK','VqLT');
   const fullAddress = `${address}, ${city}, ${state} ${zip}, ${country}`;
 
-  const customerPayload = {
-    service_id: serviceID,
-    template_id: _j('temp','late_','0ry9','w0v'),
-    user_id: userID,
-    template_params: {
-      order_id: orderId, customer_name: fullName, customer_email: customerEmail,
-      full_address: fullAddress, items_table_html: itemsTableHTML,
-      subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
-      shipping_note: shippingNote,
-      total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
-      payment_method: paymentMethod
-    }
-  };
-
-  const ownerPayload = {
-    service_id: serviceID,
-    template_id: _j('temp','late_','8x2z','86l'),
-    user_id: userID,
-    template_params: {
-      order_id: orderId, customer_name: fullName, customer_email: customerEmail,
-      phone, whatsapp: whatsapp || 'Not provided', full_address: fullAddress, items_table_html: itemsTableHTML,
-      subtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2),
-      shipping_breakdown: shippingBreakdownText, package_count: packageCount,
-      total: grandTotal.toFixed(2), promo_code: promoCode, discount: discountLine,
-      payment_method: paymentMethod,
-      to_email: 'aasshop100@gmail.com'
-    }
-  };
-
-  const sendEmail = (payload) => fetch('https://api.emailjs.com/api/v1.0/email/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  // Telegram notification (fire-and-forget, token hidden in Cloudflare Worker)
+  // Telegram FIRST, deliberately. It runs through a Cloudflare Worker that does
+  // not depend on n8n, so it is the one notification that survives an n8n
+  // outage. It used to sit after the create-order call, which meant a failed
+  // quote returned early and Lester never learned the order had been attempted.
   sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddress, storedCart, grandTotal.toFixed(2), promoCode, discountLine, shipping.toFixed(2), paymentMethod, shippingBreakdownText, packageCount);
 
-  // Send customer email (fire-and-forget)
-  sendEmail(customerPayload)
-    .then(res => res.ok ? console.log('📧 Customer email sent') : console.error('❌ Customer email failed'))
-    .catch(err => console.error('❌ Customer email error', err));
+  // EVERY order goes to n8n now, not just crypto — it is what writes the order
+  // row and sends both emails. Bank-transfer orders get a row and no quote.
+  // Must sit after orderId and grandTotal are declared — both are used here.
+  const CREATE_ORDER_URL = 'https://n8n.godmusclegears.com/webhook/gmg-create-order';
+  let payment = null;
 
-  // Send owner email, then redirect
-  sendEmail(ownerPayload)
-    .then(res => {
-      if (res.ok) {
-        const firstName = fullName.split(' ')[0];
-        localStorage.setItem('customerFirstName', firstName);
-        localStorage.removeItem('cart');
-        localStorage.removeItem('appliedPromoCode');
-        localStorage.removeItem('freeShipping');
-        localStorage.removeItem('percentageDiscount');
-        updateCartCount();
-        setTimeout(() => { window.location.href = 'order-success.html'; }, 600);
-      } else {
-        alert('⚠ Order email did not send correctly. Please try again.');
-        if (placeOrderBtn) { placeOrderBtn.disabled = false; placeOrderBtn.textContent = 'Place Order'; }
+  const orderBody = JSON.stringify({
+    orderId: orderId,
+    coin: paymentMethod,
+    usdTotal: Number(grandTotal.toFixed(2)),
+    customerName: fullName,
+    email: customerEmail,
+    phone: phone,
+    whatsapp: whatsapp || 'Not provided',
+    items: storedCart.map(i => `${i.name} x${i.quantity || 1}`).join(' | '),
+    // Structured, so the email tables are built server-side. The browser used
+    // to post rendered HTML, which meant trusting the client with the contents
+    // of an email sent to the owner.
+    itemsDetailed: storedCart.map(i => ({
+      name: i.name,
+      quantity: i.quantity || 1,
+      price: Number(i.price),
+      lineTotal: Number(i.price) * (i.quantity || 1)
+    })),
+    shippingTotal: Number(shipping.toFixed(2)),
+    packageCount: Number(packageCount),
+    fullAddress: fullAddress,
+    subtotal: Number(discountedSubtotal.toFixed(2)),
+    promoCode: promoCode,
+    discountLine: discountLine,
+    shippingNote: shippingNote,
+    shippingBreakdown: shippingBreakdownText
+  });
+
+  // Three attempts, ~1s apart. Most failures are momentary — a container
+  // restarting, a tunnel reconnecting, a dropped packet — and a retry turns
+  // those into a success the customer never sees.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const quoteRes = await fetch(CREATE_ORDER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: orderBody
+      });
+      if (!quoteRes.ok) throw new Error('create-order returned ' + quoteRes.status);
+      const quote = await quoteRes.json();
+      // requiresPayment distinguishes a legitimate bank-transfer order, which
+      // has no address by design, from a genuinely broken crypto quote.
+      if (quote && quote.requiresPayment) {
+        if (!quote.address || !quote.expectedAmount) {
+          throw new Error('create-order returned an incomplete quote');
+        }
+        payment = quote;
       }
-    })
-    .catch(err => {
-      console.error('❌ Owner email error', err);
-      alert('⚠ Connection issue. Please try again.');
-      if (placeOrderBtn) { placeOrderBtn.disabled = false; placeOrderBtn.textContent = 'Place Order'; }
-    });
+      break;
+    } catch (err) {
+      console.error(`❌ create-order attempt ${attempt} failed`, err);
+      if (attempt < 3) await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+
+  // DEGRADE, never abort. If n8n is unreachable the order still completes and
+  // the success page falls back to "we'll contact you shortly" — the manual
+  // flow this store ran on for months. Lester already has the Telegram above,
+  // so the sale is recoverable by hand. An outage should cost emails, not sales.
+  if (payment) {
+    sessionStorage.setItem('gmgPayment', JSON.stringify(payment));
+  } else {
+    sessionStorage.removeItem('gmgPayment');
+  }
+
+  // Order emails are sent by n8n, from admin@godmusclegears.com. They used to
+  // fire from here via EmailJS, which capped the store at 200 emails a month,
+  // could not send from the store domain, and silently sent nothing if the
+  // customer closed the tab mid-submit.
+  //
+  // The redirect is unconditional. It used to hang off the owner email
+  // succeeding, which meant a mail problem stranded the customer on checkout
+  // with an alert - after their order had already been recorded.
+  const firstName = fullName.split(' ')[0];
+  localStorage.setItem('customerFirstName', firstName);
+  localStorage.removeItem('cart');
+  localStorage.removeItem('appliedPromoCode');
+  localStorage.removeItem('freeShipping');
+  localStorage.removeItem('percentageDiscount');
+  updateCartCount();
+  setTimeout(() => { window.location.href = 'order-success.html'; }, 600);
 }
 
 // ─────────────────────────────────────────────
