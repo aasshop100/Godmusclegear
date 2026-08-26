@@ -61,7 +61,8 @@ shortfall ceiling as a safety net, not as the default path.**
   the order still flows and no one is chased.
 - A self-custody buyer matches exactly → `PAID`. Never overcharged.
 
-**Ceilings:** `3.00` USDT, `0.0005` BTC.
+**Ceilings:** `3.00` USDT, ~~`0.0005`~~ **`0.00005`** BTC (corrected 2026-08-26 —
+see "The BTC ceiling was wrong" below).
 
 **Overpayments within the ceiling also auto-confirm**, with the overage stated
 in the Telegram alert so Lester can refund at his discretion.
@@ -360,6 +361,31 @@ directions, and that overpayment inside the ceiling now auto-confirms.
 
 ---
 
+## The BTC ceiling was wrong — corrected 2026-08-26
+
+This plan shipped `0.0005 BTC` and flagged it as "a guess to revisit once there
+are real BTC orders to look at". Lester suggested testing against historical
+transactions on the actual receiving address, which finally made it judgeable.
+
+Real inbound payments to that address run **0.0012–0.0035 BTC** — roughly
+$95–$275 at ~$79k. So the ceiling was **14–38% of a typical order**. The watcher
+would have auto-confirmed a payment about **$39 short** and emailed the buyer a
+thank-you. Real BTC withdrawal fees are ~$1–15.
+
+Corrected to **`0.00005 BTC`**, about $4 — economically comparable to the 3.00
+USDT ceiling, still comfortably above both a real withdrawal fee and the ~$0.79
+uniqueness tail.
+
+**Why it slipped through:** every earlier test asserted the *constant* and the
+*boundary either side of it*. Those all passed, because they were checking the
+code did what the number said — never whether the number was sensible. Two tests
+now pin it against reality instead: the ceiling must stay under 5% of the real
+payment sizes seen on-chain, and the two coins must write off comparable amounts
+of money at a plausible BTC price. Either would have caught the original figure.
+
+> The lesson generalises: a constant expressed in one unit (BTC) standing in for
+> a quantity that matters in another (dollars) needs a test in the *second* unit.
+
 ## Residual risks
 
 - **The ceiling is free money if it is discovered.** A buyer who learns they can
@@ -375,6 +401,6 @@ directions, and that overpayment inside the ceiling now auto-confirms.
   entirely. That means key management on the VM, which is a materially bigger
   and more dangerous project, and is the same reason BTCPay Server was rejected.
   Not now. Named so it is not rediscovered later as if it were new.
-- **The BTC ceiling of `0.0005` is a guess.** BTC withdrawal fees move with
+- **The BTC ceiling is a fixed BTC amount standing in for a fixed dollar one.** BTC withdrawal fees move with
   network congestion and are much larger in dollar terms than USDT's. Revisit
   once there are real BTC orders to look at.
