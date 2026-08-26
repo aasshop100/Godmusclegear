@@ -1,4 +1,4 @@
-# Silent-failure alerts — SPEC (nothing built yet)
+# Silent-failure alerts — BUILT
 
 **Status: BUILT AND PUBLISHED 2026-08-26.** Both workflows are live with these
 changes. **Live failure-injection tests 1, 2, 3, 4 and 6 are still OUTSTANDING** —
