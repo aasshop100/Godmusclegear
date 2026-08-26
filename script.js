@@ -407,6 +407,12 @@ async function handleCheckoutSubmit(event) {
   event.preventDefault();
 
   const placeOrderBtn = document.querySelector('.place-order-btn');
+  // Captured before the spinner overwrites it, so every bail-out below puts
+  // the real label back rather than a guess at what it said.
+  const originalBtnHtml = placeOrderBtn ? placeOrderBtn.innerHTML : '';
+  const releaseButton = () => {
+    if (placeOrderBtn) { placeOrderBtn.disabled = false; placeOrderBtn.innerHTML = originalBtnHtml; }
+  };
   if (placeOrderBtn) {
     placeOrderBtn.disabled = true;
     placeOrderBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Processing Order...`;
@@ -415,8 +421,29 @@ async function handleCheckoutSubmit(event) {
   const form = document.getElementById('checkout-form');
   if (!form.checkValidity()) {
     alert('⚠ Please fill all required fields!');
-    if (placeOrderBtn) { placeOrderBtn.disabled = false; placeOrderBtn.textContent = 'Place Order'; }
+    releaseButton();
     return;
+  }
+
+  // reCAPTCHA gate. The widget has sat on this page since launch but nothing
+  // ever read it, so it blocked precisely nothing. This check sits BEFORE the
+  // Telegram notification below, so an unverified submit cannot even reach
+  // Lester's phone.
+  //
+  // Fails open only when Google's script never loaded at all — there is then
+  // no token to obtain and nothing this check could tell us. That is safe
+  // because n8n verifies the token server-side, and a missing token is
+  // rejected there. Server-side is the check that actually counts: the
+  // webhook's allowedOrigins is CORS, and CORS does not stop a bot POSTing
+  // straight to the endpoint.
+  let captchaToken = '';
+  if (typeof grecaptcha !== 'undefined' && typeof grecaptcha.getResponse === 'function') {
+    try { captchaToken = grecaptcha.getResponse() || ''; } catch (e) { captchaToken = ''; }
+    if (!captchaToken) {
+      showCaptchaWarning();
+      releaseButton();
+      return;
+    }
   }
 
   const formData = new FormData(form);
@@ -512,7 +539,12 @@ async function handleCheckoutSubmit(event) {
     promoCode: promoCode,
     discountLine: discountLine,
     shippingNote: shippingNote,
-    shippingBreakdown: shippingBreakdownText
+    shippingBreakdown: shippingBreakdownText,
+    // Single-use, and valid for about two minutes. The retry loop below can
+    // therefore re-send a token Google has already burned; that attempt is
+    // rejected and the order takes the degrade path, where the Telegram above
+    // has already reached Lester and the sale is recoverable by hand.
+    captchaToken: captchaToken
   });
 
   // Three attempts, ~1s apart. Most failures are momentary — a container
@@ -1236,6 +1268,15 @@ function highlightActiveNavLink() {
 // ─────────────────────────────────────────────
 // CAPTCHA MODAL
 // ─────────────────────────────────────────────
+
+// Shows the warning modal that has been sitting unused in checkout.html.
+// Falls back to alert() so the gate still communicates on any page that has
+// no modal markup.
+function showCaptchaWarning() {
+  const modal = document.getElementById('captchaModal');
+  if (modal) { modal.style.display = 'flex'; return; }
+  alert('⚠ Please verify that you are not a robot before placing your order.');
+}
 
 function initCaptchaModal() {
   const closeBtn = document.getElementById('closeCaptchaModal');
