@@ -791,6 +791,7 @@ const FEATURED_CATALOG = (function () {
     ['sixpex-oxapex25',            'OXAPEX 25',                                162.00, 'images/sixpex-oxapex25.jpg',            'Sixpex', 'Oral'],
     ['sixpex-oxypex',              'OXYPEX 50',                                 67.50, 'images/sixpex-oxypex.jpg',              'Sixpex', 'Oral'],
     ['sixpex-primopex25',          'PRIMOPEX 25',                               67.50, 'images/sixpex-primopex25.jpg',          'Sixpex', 'Oral'],
+    ['sixpex-primopex100',         'PRIMOPEX 100',                             270.00, 'images/sixpex-primopex100.jpg',         'Sixpex', 'Injectable'],
     ['sixpex-provipex',            'PROVIPEX 25',                              162.00, 'images/sixpex-provipex.jpg',            'Sixpex', 'Oral'],
     ['sixpex-sildepex-100',        'SILDEPEX 100',                              48.60, 'images/sixpex-sildepex-100.jpg',        'Sixpex', 'Oral'],
     ['sixpex-stanopex10',          'STANOPEX 10',                               67.50, 'images/sixpex-stanopex10.jpg',          'Sixpex', 'Oral'],
