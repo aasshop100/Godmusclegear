@@ -1,11 +1,27 @@
 # Silent-failure alerts — BUILT
 
-**Status: BUILT AND PUBLISHED 2026-08-26.** Both workflows are live with these
-changes. **Live failure-injection tests 1, 2, 3, 4 and 6 are still OUTSTANDING** —
-see the Verification section. The health-check logic was unit-tested against six
-cases before being added (threshold, quiet night, both-chains-down, recovery,
-array shape, no early alert), and a post-edit diff confirmed zero parameter
-stripping on either workflow, but no email has yet been made to fail on purpose.
+**Status: BUILT, PUBLISHED AND VERIFIED 2026-08-26.** All seven verification items
+passed against the live system, by deliberately breaking things rather than
+reasoning about them:
+
+1. **Email alert fires** — customer email forced to a malformed address; the alert
+   arrived naming the intended recipient and the real error, "No recipients defined".
+2. **Owner email survives a failed customer email** — the regression the re-branch
+   exists to prevent. Owner email arrived, customer email did not. **This is the
+   test that matters; the failure would have been invisible in production.**
+3. **Both emails send on a normal order** — confirmed before and after the rewire.
+4. **Watcher counter increments** — Tron URL pointed at an unreachable host; silence
+   for four cycles, exactly one WATCHER BLIND - USDT at cycle 5. **This also proved
+   $getWorkflowStaticData persists between scheduled runs** — the one thing unit
+   tests could not show, because they stub it. Had it not persisted, the counter
+   would reset every cycle and the alert could never fire in a real outage.
+5. **Quiet night is not an outage** — 40 consecutive valid-but-empty responses give
+   zero alerts (unit test), and the live watcher ran clean throughout.
+6. **Recovery message** — one WATCHER RECOVERED on restore.
+7. **No parameter stripping** — both workflows diffed after every edit: zero drift,
+   and both deliberate breakages restored byte-exact.
+
+The alert also correctly omitted the "orders waiting" line while nothing was pending.
 **Date:** 2026-08-26
 
 ---
