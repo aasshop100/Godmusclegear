@@ -4,12 +4,15 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** COMPLETE. Tasks 1-4 done 2026-08-25; the EmailJS paste that was
-outstanding became moot on 2026-08-26 when EmailJS was retired entirely and the
-fee instruction moved into the n8n template (`docs/emails/build-emails.js`). Module + 65 tests passing; logic ported
-to `GMG - Payment Watcher` and verified on the deployed node via pinned data
-(execution `5018`, all six bands correct). **Workflow remains UNPUBLISHED.**
-Tasks 4–5 (panel + EmailJS copy, plan/memory updates) not started.
+**Status:** COMPLETE. All tasks done. The EmailJS paste that was outstanding
+became moot on 2026-08-26 when EmailJS was retired entirely and the fee
+instruction moved into the n8n template (`docs/emails/build-emails.js`).
+
+Logic is in `payment-matching.js` and ported to `GMG - Payment Watcher`, verified
+on the deployed node (execution `5018`, all six bands). **The BTC ceiling was
+corrected 2026-08-26** from `0.0005` to `0.00005` after testing against real
+chain data — see "The BTC ceiling was wrong" below; re-verified by execution
+`5042`. Suite is now **85 tests**. **Workflow remains UNPUBLISHED.**
 
 **Depends on:** `2026-08-23-crypto-payment-automation.md` Tasks 1–6 (done).
 This plan **modifies artifacts those tasks already built** — `payment-matching.js`
@@ -141,7 +144,7 @@ Remove `NEAR_MATCH_TOLERANCE = 0.02`. Add:
 // types the exact quoted amount underpays by that fee. The fee is FLAT (~0.8-2.5
 // on TRC-20 regardless of order size), so the ceiling is flat too - a percentage
 // would be too tight on an $85 order and far too generous on a $500 one.
-const AUTO_ACCEPT_MAX = { USDT: 3.00, BTC: 0.0005 };
+const AUTO_ACCEPT_MAX = { USDT: 3.00, BTC: 0.00005 };  // BTC corrected 2026-08-26
 
 // Beyond the auto-accept ceiling but still plausibly this order: a human decides.
 const REVIEW_TOLERANCE = 0.10;
@@ -186,7 +189,10 @@ Boundary cases first — they are where a flat ceiling actually bites:
 - short by `3.01` → `NEAR_UNDER`
 - over by exactly `3.00` → `AUTO_OVER`
 - over by `3.01` → `NEAR_OVER`
-- BTC short by `0.0005` → `AUTO_UNDER`; by `0.00051` → `NEAR_UNDER`
+- BTC short by `0.00005` → `AUTO_UNDER`; by `0.00006` → `NEAR_UNDER`
+- the BTC ceiling stays **under 5% of a real order** (0.0012–0.0035 BTC), and
+  the two coins write off comparable dollar amounts — the checks that would have
+  caught the original `0.0005`
 - **two open orders both within 3.00 of the received amount → `NONE`**, not an
   auto-accept of the nearer one. This is the load-bearing safety test.
 - one order within 3.00 and a second within 10% but outside 3.00 → `NONE`
