@@ -149,7 +149,7 @@ alerts.
 > always required a human tap**. That is no longer how the system behaves.
 >
 > **What actually runs now:** a flat auto-accept ceiling of **3.00 USDT /
-> 0.0005 BTC** sets `PAID` automatically, in **both** directions; beyond it, a
+> 0.00005 BTC** sets `PAID` automatically, in **both** directions; beyond it, a
 > 10% band goes to `REVIEW`; beyond that, unmatched.
 >
 > Flat rather than percentage because the fee it absorbs is flat — roughly 1.50

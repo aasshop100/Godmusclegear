@@ -15,7 +15,7 @@
 - Quote expiry is **30 minutes** from order creation.
 - BTC confirms at **1 confirmation**. USDT confirms on on-chain arrival.
 - ~~Near-match tolerance is **2%**.~~ **SUPERSEDED 2026-08-25** by a flat
-  auto-accept ceiling of 3.00 USDT / 0.0005 BTC, then a 10% review band. See
+  auto-accept ceiling of 3.00 USDT / 0.00005 BTC, then a 10% review band. See
   `2026-08-25-payment-fee-tolerance.md`.
 - Poll interval is **2 minutes**.
 - ~~**Only an exact amount match may set `PAID`.**~~ **SUPERSEDED 2026-08-25.** A
@@ -63,7 +63,7 @@ parked to **2026-08-31** at Lester's direction.
 
 | Plan | What it changed |
 |---|---|
-| `2026-08-25-payment-fee-tolerance.md` | Replaced the 2% near-match band with a flat auto-accept ceiling (**3.00 USDT / 0.0005 BTC**) that sets `PAID` in both directions. Supersedes this plan's "only an exact match may set PAID". |
+| `2026-08-25-payment-fee-tolerance.md` | Replaced the 2% near-match band with a flat auto-accept ceiling (**3.00 USDT / 0.00005 BTC**) that sets `PAID` in both directions. Supersedes this plan's "only an exact match may set PAID". |
 | `2026-08-25-payment-confirmation-email.md` | The watcher now emails the customer on `PAID` and `REVIEW`. |
 | `2026-08-25-payment-status-polling.md` | Third workflow **`GMG - Order Status` (`1v3236DBmMZBL88h`)** + `payment-status.js` + a `statusToken` column, so the success page shows real status instead of counting down to "expired" after payment. |
 | `2026-08-26-retire-emailjs.md` | **EmailJS is gone.** All four emails come from n8n. The checkout now posts **every** order — including bank transfer, which never reached n8n before — retries three times, then degrades rather than aborting. |
@@ -149,7 +149,7 @@ instead of auto-confirming — Lester's call, not yet decided."
 **Decided.** Buyers are not Binance-only; fees vary by platform (~0.8–2.5 on
 TRC-20) and self-custody wallets deduct nothing at all, so no fixed markup can
 be correct. Quote the true amount, instruct the buyer to add their fee on top,
-and auto-accept shortfalls up to a flat ceiling (3.00 USDT / 0.0005 BTC).
+and auto-accept shortfalls up to a flat ceiling (3.00 USDT / 0.00005 BTC).
 Overpayments inside the ceiling auto-confirm too.
 
 Full reasoning and implementation:
