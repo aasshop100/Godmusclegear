@@ -16,7 +16,7 @@ const order = (id, coin, expectedAmount, opts) => Object.assign({
 test('constants match the agreed configuration', () => {
   assert.strictEqual(USDT_CONTRACT, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
   assert.strictEqual(AUTO_ACCEPT_MAX.USDT, 3.00);
-  assert.strictEqual(AUTO_ACCEPT_MAX.BTC, 0.0005);
+  assert.strictEqual(AUTO_ACCEPT_MAX.BTC, 0.00005);
   assert.strictEqual(REVIEW_TOLERANCE, 0.10);
   assert.strictEqual(EXPIRY_MINUTES, 30);
 });
@@ -271,12 +271,36 @@ test('USDT over by one cent beyond the ceiling drops to review', () => {
 
 test('BTC short by exactly the ceiling is auto-accepted', () => {
   const orders = [order('A', 'BTC', 0.00648502)];
-  assert.strictEqual(findMatch(0.00598502, 'BTC', orders, NOW).type, 'AUTO_UNDER');
+  assert.strictEqual(findMatch(0.00643502, 'BTC', orders, NOW).type, 'AUTO_UNDER');
 });
 
 test('BTC short by one satoshi beyond the ceiling drops to review', () => {
   const orders = [order('A', 'BTC', 0.00648502)];
-  assert.strictEqual(findMatch(0.00598501, 'BTC', orders, NOW).type, 'NEAR_UNDER');
+  assert.strictEqual(findMatch(0.00643501, 'BTC', orders, NOW).type, 'NEAR_UNDER');
+});
+
+// The BTC ceiling was 0.0005 until 2026-08-26 — a guess made before any real
+// BTC amounts existed to judge it against. Real payments to the receiving
+// address run 0.0012–0.0035 BTC, so that ceiling was 14–38% of a typical order
+// and would have auto-confirmed a payment ~$39 short. These two tests pin the
+// corrected value against reality so it cannot silently drift back.
+test('the BTC ceiling is small relative to a real order, not a third of it', () => {
+  const realWorldPayments = [0.00130761, 0.00218741, 0.00345067];
+  for (const amount of realWorldPayments) {
+    const share = AUTO_ACCEPT_MAX.BTC / amount;
+    assert.ok(share < 0.05,
+      `ceiling is ${(share * 100).toFixed(1)}% of a ${amount} BTC order — too generous`);
+  }
+});
+
+// Both coins should write off roughly the same amount of money. At ~$79k/BTC
+// the BTC ceiling is ~$4 against a $3 USDT ceiling; an order of magnitude apart
+// would mean one coin is treated far more loosely than the other.
+test('the two ceilings are economically comparable at a plausible BTC price', () => {
+  const btcUsd = 79200;
+  const btcCeilingUsd = AUTO_ACCEPT_MAX.BTC * btcUsd;
+  assert.ok(btcCeilingUsd > 1 && btcCeilingUsd < 12,
+    `BTC ceiling is $${btcCeilingUsd.toFixed(2)}, USDT ceiling is $${AUTO_ACCEPT_MAX.USDT}`);
 });
 
 // The load-bearing safety test. A wider auto-accept window is only safe because

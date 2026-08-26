@@ -33,8 +33,20 @@
   // $85 or $500. The 2% band this replaced was simultaneously too tight on a
   // small order (missing a 2.5 fee) and far too generous on a large one ($10).
   //
-  // Never surface this number to customers — a published ceiling is a discount.
-  const AUTO_ACCEPT_MAX = { USDT: 3.00, BTC: 0.0005 };
+  // The two coins are set to be ECONOMICALLY EQUIVALENT — roughly $3–4 each.
+  // BTC was 0.0005 until 2026-08-26, which was a guess made before any real BTC
+  // amounts existed to judge it against. Real payments to the receiving address
+  // run 0.0012–0.0035 BTC ($95–$275 at ~$79k), so that ceiling was 14–38% of a
+  // typical order — it would have auto-confirmed a payment $39 short and emailed
+  // the buyer a thank-you. Actual BTC withdrawal fees are ~$1–15. 0.00005 is
+  // about $4: comfortably above a real fee and above the ~$0.79 uniqueness tail,
+  // nowhere near enough to matter if someone underpays deliberately.
+  //
+  // Revisit if BTC moves a long way from ~$79k, since this is a fixed BTC
+  // amount standing in for a fixed dollar amount.
+  //
+  // Never surface these numbers to customers — a published ceiling is a discount.
+  const AUTO_ACCEPT_MAX = { USDT: 3.00, BTC: 0.00005 };
 
   // Beyond the auto-accept ceiling but still plausibly this order: a human decides.
   const REVIEW_TOLERANCE = 0.10;
