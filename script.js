@@ -514,6 +514,11 @@ async function handleCheckoutSubmit(event) {
   const CREATE_ORDER_URL = 'https://n8n.godmusclegears.com/webhook/gmg-create-order';
   let payment = null;
 
+  // Set when n8n turns the order away for a failed captcha, so the buyer can
+  // be told the truth instead of being shown the same "order received" page
+  // that a successful order produces.
+  let captchaRejected = false;
+
   const orderBody = JSON.stringify({
     orderId: orderId,
     coin: paymentMethod,
@@ -557,6 +562,11 @@ async function handleCheckoutSubmit(event) {
         headers: { 'Content-Type': 'application/json' },
         body: orderBody
       });
+      // A rejected captcha is final. The token is single-use and Google has
+      // already consumed it, so every retry re-sends a burned token, fails
+      // identically, and only multiplies the alert Lester receives. Retrying
+      // is for momentary transport faults, not for a verdict.
+      if (quoteRes.status === 403) { captchaRejected = true; break; }
       if (!quoteRes.ok) throw new Error('create-order returned ' + quoteRes.status);
       const quote = await quoteRes.json();
       // requiresPayment distinguishes a legitimate bank-transfer order, which
@@ -582,6 +592,18 @@ async function handleCheckoutSubmit(event) {
     sessionStorage.setItem('gmgPayment', JSON.stringify(payment));
   } else {
     sessionStorage.removeItem('gmgPayment');
+  }
+
+  // Never send a blocked buyer to the success page. Unlike an n8n outage,
+  // where the Telegram already reached Lester and the sale is recoverable,
+  // a captcha rejection means no order exists anywhere and never will.
+  if (captchaRejected) {
+    showCaptchaWarning();
+    releaseButton();
+    if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+      try { grecaptcha.reset(); } catch (e) {}
+    }
+    return;
   }
 
   // Order emails are sent by n8n, from admin@godmusclegears.com. They used to
