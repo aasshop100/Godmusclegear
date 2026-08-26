@@ -1,6 +1,11 @@
 # Silent-failure alerts — SPEC (nothing built yet)
 
-**Status:** spec only. No workflow has been touched.
+**Status: BUILT AND PUBLISHED 2026-08-26.** Both workflows are live with these
+changes. **Live failure-injection tests 1, 2, 3, 4 and 6 are still OUTSTANDING** —
+see the Verification section. The health-check logic was unit-tested against six
+cases before being added (threshold, quiet night, both-chains-down, recovery,
+array shape, no early alert), and a post-edit diff confirmed zero parameter
+stripping on either workflow, but no email has yet been made to fail on purpose.
 **Date:** 2026-08-26
 
 ---
