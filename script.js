@@ -19,7 +19,7 @@
 //
 // Staff bypass: append ?staff=1 to any URL. It persists for the tab, so the
 // live end-to-end test can be run while customers still see the notice.
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 const MAINTENANCE_MESSAGE = 'We are upgrading our order system. Browsing is open, but checkout is paused for the next hour or two.';
 
 (function () {

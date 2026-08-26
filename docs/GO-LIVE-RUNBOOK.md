@@ -8,6 +8,30 @@ customers can reach has changed — unpublish the workflows and stop.
 
 ---
 
+> ## EXECUTED — 2026-08-26
+>
+> All nine steps are done. The store is live and taking orders through the
+> automated flow. Kept as the record of what was done and as the rollback
+> reference, not as a to-do list.
+>
+> **Deviations from the plan as written:**
+>
+> - **Step 6 shipped behind a maintenance notice.** `MAINTENANCE_MODE` in
+>   `script.js` blocked checkout for customers while the live tests ran, so the
+>   deploy was not the point of no return the step describes. Flipped to
+>   `false` at the end.
+> - **Google Sheets moved to a service account** (`RTB2LRrgc21oSmZG`) mid-run,
+>   after the OAuth credential expired and blocked the go-live. OAuth under
+>   "Testing" publishing status expires its refresh token every 7 days.
+> - **The reCAPTCHA was wired up before going live.** It had rendered on the
+>   checkout since launch and nothing read it. See the section below.
+> - **Step 7 is only half done.** Bank transfer and both crypto quote paths are
+>   verified. No real crypto payment has been detected end-to-end yet — the
+>   first live USDT or BTC payment will be the first run of the watcher's
+>   matching leg against real money.
+
+---
+
 ## 0 — Pre-flight
 
 Do not start until all of these are true:
@@ -200,6 +224,50 @@ n8n at all — so it deserves the same attention as the crypto one.
 
 ---
 
+## The reCAPTCHA — added 2026-08-26, during go-live
+
+The widget had been on `checkout.html` since launch and **nothing ever read
+it**. No `grecaptcha.getResponse()` call existed anywhere, the submit handler
+never consulted it, and the `captchaModal` written for it was never displayed.
+Google's own console showed `0` total verifications and the banner "your site
+is not verifying reCAPTCHA solutions". A test order submitted without touching
+the box.
+
+Both halves are now real:
+
+- **Client** (`script.js`): submit is blocked until the box is ticked, and the
+  gate sits *before* the Telegram notification, so an unverified submit cannot
+  reach Lester's phone. The token is posted as `captchaToken`.
+- **Server** (`GMG - Create Order`): `Order Webhook → Verify Captcha →
+  Captcha Passed?`, and only the true branch reaches `Payment Addresses`. The
+  false branch responds `403 captcha_failed` and alerts Telegram. This is the
+  half that matters — `allowedOrigins` is CORS, and CORS does not stop a bot
+  POSTing straight at the webhook.
+
+**The trap, if this ever needs touching again.** The secret lives in the
+`reCAPTCHA Secret` Custom Auth credential and MUST be shaped as:
+
+```json
+{"qs":{"secret":"..."}}
+```
+
+`{"body":{...}}` silently fails. With a form-urlencoded body n8n builds the
+payload as `form`, so an injected `body` never reaches Google. Both verify
+fields are therefore sent as query params.
+
+What made that expensive to find: **Google returns `invalid-input-response` for
+a missing secret and for a bad token alike.** Confirmed directly — a request
+with no secret and no response at all returns exactly that code. Never read it
+as "the secret is good". Diagnose instead by reporting the received token
+*length* (0 means none arrived, a real one is ~2400 chars) — the length, never
+the token.
+
+A rejected captcha is also never retried: the token is single-use and Google
+has already consumed it, so retries re-send a burned token and only multiply
+the alerts.
+
+---
+
 ## After go-live — worth a look in the first week
 
 - **`auto-accepted, short by` notes in the sheet.** A cluster of shortfalls at
@@ -211,6 +279,12 @@ n8n at all — so it deserves the same attention as the crypto one.
   watcher — all on the one credential `wbNyEh5HUE1ugRdl`. If that credential
   breaks, the store keeps taking orders and silently stops emailing anyone.
   Worth glancing at the executions in the first week.
+- **`ORDER REJECTED - captcha` alerts.** A burst means bots, which is the check
+  doing its job. A steady trickle alongside real customers complaining means the
+  captcha is misconfigured and turning away genuine orders — check the token
+  length in the alert first.
+- **The reCAPTCHA dashboard.** Pass/fail bars should now be green rather than
+  the blue "No CAPTCHAs", and total verifications should climb off zero.
 - **Orders arriving with no row.** The checkout now degrades rather than aborting
   when n8n is unreachable, so an outage produces a Telegram with no matching
   sheet row. That is the design working — but it means a Telegram you cannot

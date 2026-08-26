@@ -70,14 +70,37 @@ parked to **2026-08-31** at Lester's direction.
 | _(no plan — 2026-08-26)_ | `Respond With Quote` now returns **`usdTotal`**, and the success page prints `≈ $83.84 USD` under a **BTC** amount; the `PAID` email does the same. A bare `0.00106392 BTC` gave a customer no way to check what they were paying. Not shown for USDT, which is already dollars. |
 | _(no plan — 2026-08-26)_ | **The checkout reCAPTCHA now actually blocks.** It rendered since launch but nothing read it — Google's own console showed `0` verifications and "your site is not verifying reCAPTCHA solutions". `GMG - Create Order` verifies every token with Google before writing a row; a fake or missing token gets `403 captcha_failed` and a Telegram alert. The secret lives in the `reCAPTCHA Secret` Custom Auth credential as **`{"qs":{...}}`, NOT `{"body":{...}}`** — with a form-urlencoded body n8n builds `form`, and the injected `body` never reaches Google. Google returns `invalid-input-response` for a missing secret AND a bad token alike, so that failure is invisible from the response; diagnose with the token length instead. |
 
-### What is left before go-live
+### Status — LIVE as of 2026-08-26
 
-**One item, and it is Lester's:** the live USDT payment test on 2026-08-31.
+**The store is live and taking orders through this flow.** All three workflows
+are published, `MAINTENANCE_MODE` is `false`, and both sheet tabs are clean.
+The runbook in `docs/GO-LIVE-RUNBOOK.md` records what was actually done,
+including where it deviated from the plan.
 
-`LIVE-BINANCE-TEST` has long expired — **issue a fresh order, do not revive it.**
-The Tron address has still never received anything, so real TRC-20 parsing has
-never run against real chain data. Bitcoin parsing was proven against real chain
-data back on 2026-08-24.
+**Verified end-to-end:** bank transfer, the USDT quote, the BTC quote, both
+order emails, the owner Telegram, the status poller, and the reCAPTCHA in both
+directions (a real tick passes; a fake token, a missing token and an unticked
+box are all refused).
+
+#### The one leg that has never run against real money
+
+No crypto payment has ever been **detected** end-to-end. The watcher's matching
+logic is unit-tested (85 tests) and the BTC auto-accept ceiling is pinned against
+real transaction amounts from the receiving address, but no payment has yet
+arrived and been matched to an order automatically.
+
+- **Tron/USDT:** the address has still never received anything, so real TRC-20
+  parsing has never run against real chain data.
+- **Bitcoin:** parsing was proven against real chain data on 2026-08-24, but no
+  payment has been matched to a live order.
+
+Lester chose to let a real customer be that test rather than send his own funds.
+So **watch the first crypto order closely**: confirm the row flips to `PAID`,
+the confirmation email sends, and `processed_tx` gains the transaction. If the
+watcher fails, the money still arrives — it just is not noticed automatically,
+and the order sits at `AWAITING_PAYMENT` until someone looks.
+
+Do not revive `LIVE-BINANCE-TEST`; it expired long ago. Issue a fresh order.
 
 Everything else that was outstanding is done: SPF edited and verified,
 deliverability proven at an independent provider, and the EmailJS work retired
