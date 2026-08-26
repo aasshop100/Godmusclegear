@@ -273,12 +273,17 @@ the alerts.
 - **`auto-accepted, short by` notes in the sheet.** A cluster of shortfalls at
   exactly the ceiling is not exchange fees, it is someone who worked out the
   tolerance.
-- **Email failing silently.** Every send node uses `continueRegularOutput`, so a
-  broken SMTP credential loses email without failing any run. There are now four
-  of them — two order emails on `GMG - Create Order`, two payment emails on the
-  watcher — all on the one credential `wbNyEh5HUE1ugRdl`. If that credential
-  breaks, the store keeps taking orders and silently stops emailing anyone.
-  Worth glancing at the executions in the first week.
+- **~~Email failing silently~~ — FIXED 2026-08-26.** All four email nodes now use
+  `continueErrorOutput` with their error output wired to Telegram, so a broken
+  SMTP credential (`wbNyEh5HUE1ugRdl`, shared by all four) is loud instead of
+  silent. The order still completes — alerting was added, blocking was not.
+  See `docs/superpowers/plans/2026-08-26-silent-failure-alerts.md`.
+- **~~Watcher going blind~~ — FIXED 2026-08-26.** `Check Watcher Health` counts
+  consecutive failed polls and alerts after 5 (~10 min), then hourly, with one
+  recovery message. A valid-but-empty response is a quiet cycle, never a failure.
+- **`WATCHER BLIND` alerts.** Not an emergency: payments still arrive on-chain,
+  they are just not being noticed. Never tell a customer their payment failed on
+  the strength of one of these — check the address manually first.
 - **`ORDER REJECTED - captcha` alerts.** A burst means bots, which is the check
   doing its job. A steady trickle alongside real customers complaining means the
   captcha is misconfigured and turning away genuine orders — check the token
