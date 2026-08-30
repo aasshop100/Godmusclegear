@@ -98,68 +98,75 @@
 <section style="padding:56px 0;">
   <div class="container">
 
-    <div class="row g-4 mb-5">
+    <!-- Inputs -->
+    <div class="calc-panel">
 
-      <!-- Reconstitution Calculator -->
-      <div class="col-lg-6">
-        <div class="calculator-card p-4">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-            <div style="width:48px; height:48px; background:var(--orange-light); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">💉</div>
-            <div>
-              <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; text-transform:uppercase; margin:0; color:var(--black);">Reconstitution Calculator</h4>
-              <p style="font-size:0.78rem; color:var(--grey); margin:0;">Calculate concentration after mixing</p>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="peptideAmount">Peptide Amount (mg)</label>
-            <input type="number" id="peptideAmount" class="form-control" placeholder="e.g. 5" min="0">
-          </div>
-          <div class="mb-4">
-            <label class="form-label" for="bacterioWater">Bacteriostatic Water (mL)</label>
-            <input type="number" id="bacterioWater" class="form-control" placeholder="e.g. 2" min="0">
-          </div>
-          <button class="btn btn-primary w-100" onclick="calculateReconstitution()" style="background:var(--orange) !important; border:none !important; font-family:'DM Sans',sans-serif; font-weight:700; padding:12px; border-radius:10px; font-size:0.9rem; cursor:pointer;">
-            Calculate →
-          </button>
-          <div id="reconResult" class="result-card mt-3 p-3">
-            <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:8px;">Results</p>
-            <p id="reconOutput" style="font-size:0.9rem; color:var(--charcoal); margin:0; line-height:1.7;"></p>
-          </div>
-        </div>
+      <div class="calc-unit-toggle" id="unitToggle" role="group" aria-label="Measurement unit">
+        <button type="button" class="unit-btn" data-unit="mg" aria-pressed="true">mg</button>
+        <button type="button" class="unit-btn" data-unit="IU" aria-pressed="false">IU</button>
       </div>
 
-      <!-- Dosage Calculator -->
-      <div class="col-lg-6">
-        <div class="calculator-card p-4">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-            <div style="width:48px; height:48px; background:var(--orange-light); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">⚖️</div>
-            <div>
-              <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; text-transform:uppercase; margin:0; color:var(--black);">Dosage Calculator</h4>
-              <p style="font-size:0.78rem; color:var(--grey); margin:0;">Find your injection volume</p>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="desiredDose">Desired Dose (mcg)</label>
-            <input type="number" id="desiredDose" class="form-control" placeholder="e.g. 250" min="0">
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="totalPeptide">Total Peptide (mg)</label>
-            <input type="number" id="totalPeptide" class="form-control" placeholder="e.g. 5" min="0">
-          </div>
-          <div class="mb-4">
-            <label class="form-label" for="totalVolume">Reconstitution Volume (mL)</label>
-            <input type="number" id="totalVolume" class="form-control" placeholder="e.g. 2" min="0">
-          </div>
-          <button class="btn btn-success w-100" onclick="calculateDosage()" style="font-family:'DM Sans',sans-serif; font-weight:700; padding:12px; border-radius:10px; font-size:0.9rem; cursor:pointer;">
-            Calculate →
-          </button>
-          <div id="doseResult" class="result-card mt-3 p-3">
-            <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:8px;">Results</p>
-            <p id="doseOutput" style="font-size:0.9rem; color:var(--charcoal); margin:0; line-height:1.7;"></p>
-          </div>
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <h3 class="calc-col-title" id="doseLabel">Dose of Peptide</h3>
+          <div class="calc-chips" id="doseChips" role="group" aria-labelledby="doseLabel"></div>
+          <input type="number" class="calc-custom" id="doseCustom" min="0" step="any"
+                 placeholder="Enter custom dose (mg)" aria-label="Custom dose">
+        </div>
+
+        <div class="col-lg-4">
+          <h3 class="calc-col-title" id="strengthLabel">Strength of Peptide</h3>
+          <div class="calc-chips" id="strengthChips" role="group" aria-labelledby="strengthLabel"></div>
+          <input type="number" class="calc-custom" id="strengthCustom" min="0" step="any"
+                 placeholder="Enter custom strength (mg)" aria-label="Custom vial strength">
+        </div>
+
+        <div class="col-lg-4">
+          <h3 class="calc-col-title" id="waterLabel">Water of Peptide</h3>
+          <div class="calc-chips" id="waterChips" role="group" aria-labelledby="waterLabel"></div>
+          <input type="number" class="calc-custom" id="waterCustom" min="0" step="any"
+                 placeholder="Enter custom water (mL)" aria-label="Custom water volume">
         </div>
       </div>
+    </div>
 
+    <!-- Results -->
+    <div class="calc-panel">
+      <h2 class="calc-results-title">Results</h2>
+
+      <div id="resultsEmpty" class="calc-empty" hidden>
+        Choose a dose, a vial strength and a water volume to see your draw.
+      </div>
+
+      <div id="resultsBody" aria-live="polite">
+        <p class="calc-readout">Peptide dose: <strong id="resultDose">—</strong></p>
+        <p class="calc-readout calc-readout-lead">Draw syringe to: <strong id="resultUnits">—</strong></p>
+
+        <svg class="calc-syringe" viewBox="0 0 800 190" role="img" aria-labelledby="syringeTitle">
+          <title id="syringeTitle">Insulin syringe showing the fill level for your dose</title>
+
+          <!-- needle -->
+          <rect x="0" y="88" width="70" height="7" fill="#5b6b7a"></rect>
+          <!-- hub -->
+          <rect x="70" y="72" width="26" height="40" rx="4" fill="#5b6b7a"></rect>
+          <!-- barrel -->
+          <rect x="96" y="62" width="580" height="60" fill="#ffffff" stroke="#5b6b7a" stroke-width="7"></rect>
+          <!-- liquid fill (width driven by JS) -->
+          <rect id="syringeFill" x="99" y="65" width="0" height="54" fill="#ff4500" opacity="0.35"></rect>
+          <!-- gradations, drawn by JS -->
+          <g id="syringeTicks" fill="none" stroke="#5b6b7a" stroke-width="2"></g>
+          <g id="syringeLabels" font-family="DM Sans, sans-serif" font-size="15" font-weight="700" fill="#5b6b7a" text-anchor="middle"></g>
+          <!-- plunger -->
+          <rect x="676" y="52" width="44" height="80" rx="4" fill="#5b6b7a"></rect>
+          <rect x="720" y="84" width="60" height="16" fill="#5b6b7a"></rect>
+          <rect x="780" y="46" width="14" height="92" rx="4" fill="#5b6b7a"></rect>
+        </svg>
+
+        <p class="calc-readout">Your vial contains: <strong id="resultDoses">—</strong></p>
+        <p class="calc-readout">Concentration: <strong id="resultConc">—</strong></p>
+      </div>
+
+      <div id="calcWarning" class="calc-warning" hidden></div>
     </div>
 
     <!-- How To Use -->

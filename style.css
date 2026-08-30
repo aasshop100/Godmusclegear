@@ -1683,3 +1683,162 @@ footer {
   background: transparent !important;
   color: var(--orange) !important;
 }
+
+/* ============================================================
+   PEPTIDE CALCULATOR
+   ============================================================ */
+
+.calc-panel {
+  background: var(--white);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 1.75rem;
+}
+
+.calc-unit-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 2rem;
+}
+
+.unit-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 9px 26px;
+  border-radius: 999px;
+  border: 1.5px solid var(--black);
+  background: transparent;
+  color: var(--black);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.unit-btn[aria-pressed="true"] {
+  background: var(--black);
+  color: var(--white);
+}
+
+.unit-btn:focus-visible,
+.calc-chip:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.calc-col-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+  color: var(--black);
+  margin-bottom: 1.1rem;
+}
+
+.calc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.calc-chip {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(17, 17, 17, 0.18);
+  background: var(--white);
+  color: var(--charcoal);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.calc-chip:hover { border-color: var(--orange); color: var(--orange); }
+
+.calc-chip[aria-pressed="true"] {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--white);
+}
+
+.calc-custom {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(17, 17, 17, 0.18);
+  background: var(--white);
+  color: var(--charcoal);
+}
+
+.calc-custom:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+/* Results ---------------------------------------------------- */
+
+.calc-results-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--black);
+  margin-bottom: 1.5rem;
+}
+
+.calc-readout {
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.calc-readout strong { color: var(--black); font-weight: 800; }
+
+.calc-readout-lead strong {
+  color: var(--orange);
+  font-size: 1.15rem;
+}
+
+.calc-syringe { display: block; width: 100%; max-width: 780px; margin: 2rem auto; height: auto; }
+
+.calc-empty {
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--grey);
+  padding: 2.5rem 0;
+}
+
+.calc-warning {
+  border: 1.5px solid var(--orange);
+  background: var(--orange-light);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 1.25rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--charcoal);
+  text-align: center;
+}
+
+.calc-warning strong { color: var(--orange); }
+
+@media (max-width: 767px) {
+  .calc-panel { padding: 1.4rem; }
+  .calc-col-title { margin-top: 1.25rem; }
+  .calc-chip { font-size: 0.78rem; padding: 6px 13px; }
+}
