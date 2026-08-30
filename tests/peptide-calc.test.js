@@ -147,6 +147,15 @@ test('float error does not surface in the returned numbers', () => {
   assert.equal(r.concentration, 10);
 });
 
+test('the second rounding guard matters - mL is clean but mL*100 drifts', () => {
+  // dose 0.1mg, strength 15mg, water 2mL. mL cleans to exactly 0.0133333333,
+  // but 0.0133333333 * 100 is 1.3333333299999999 in binary floating point -
+  // the FIRST clean() (on mL) does NOT cover this; only the units-level
+  // clean() does. This pins the guard the old float-error test missed.
+  const r = mg({ dose: 0.1, strength: 15, water: 2 });
+  assert.equal(r.units, 1.33333333);
+});
+
 // --- exported tables --------------------------------------------------------
 
 test('presets exist for both units and are ascending and unique', () => {
