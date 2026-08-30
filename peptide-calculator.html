@@ -6,7 +6,7 @@
 
   <!-- Primary SEO -->
   <title>Free Peptide Calculator | Reconstitution & Dosage - GOD MUSCLE GEARS</title>
-  <meta name="description" content="Free online peptide reconstitution and dosage calculator. Calculate how much bacteriostatic water to add and your exact injection volume in mL and IU.">
+  <meta name="description" content="Free peptide reconstitution and dosage calculator. Pick your dose, vial strength and water volume to see exactly how far to draw on an insulin syringe, plus doses per vial and concentration. Supports mg and IU.">
   <meta name="keywords" content="peptide calculator, peptide reconstitution calculator, peptide dosage calculator, BPC-157 calculator, semaglutide dosage, bacteriostatic water calculator">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://godmusclegears.com/peptide-calculator.html">
@@ -15,14 +15,14 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://godmusclegears.com/peptide-calculator.html">
   <meta property="og:title" content="Free Peptide Calculator | Reconstitution & Dosage - GOD MUSCLE GEARS">
-  <meta property="og:description" content="Free online peptide reconstitution and dosage calculator. Calculate how much bacteriostatic water to add and your exact injection volume in mL and IU.">
+  <meta property="og:description" content="Free peptide reconstitution and dosage calculator. Pick your dose, vial strength and water volume to see exactly how far to draw on an insulin syringe, plus doses per vial and concentration. Supports mg and IU.">
   <meta property="og:image" content="https://godmusclegears.com/images/logo.png">
   <meta property="og:site_name" content="GOD MUSCLE GEARS">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Free Peptide Calculator | Reconstitution & Dosage - GOD MUSCLE GEARS">
-  <meta name="twitter:description" content="Free online peptide reconstitution and dosage calculator. Calculate how much bacteriostatic water to add and your exact injection volume in mL and IU.">
+  <meta name="twitter:description" content="Free peptide reconstitution and dosage calculator. Pick your dose, vial strength and water volume to see exactly how far to draw on an insulin syringe, plus doses per vial and concentration. Supports mg and IU.">
   <meta name="twitter:image" content="https://godmusclegears.com/images/logo.png">
 
   <!-- Schema Markup -->
@@ -32,7 +32,7 @@
     "@type": "WebApplication",
     "name": "GOD MUSCLE GEARS",
     "url": "https://godmusclegears.com/peptide-calculator.html",
-    "description": "Free online peptide reconstitution and dosage calculator. Calculate how much bacteriostatic water to add and your exact injection volume in mL and IU."
+    "description": "Free peptide reconstitution and dosage calculator. Pick your dose, vial strength and water volume to see exactly how far to draw on an insulin syringe, plus doses per vial and concentration. Supports mg and IU."
   }
   </script>
   <link rel="icon" type="image/png" href="images/logo.png">
@@ -98,81 +98,92 @@
 <section style="padding:56px 0;">
   <div class="container">
 
-    <div class="row g-4 mb-5">
+    <!-- Inputs -->
+    <div class="calc-panel">
 
-      <!-- Reconstitution Calculator -->
-      <div class="col-lg-6">
-        <div class="calculator-card p-4">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-            <div style="width:48px; height:48px; background:var(--orange-light); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">💉</div>
-            <div>
-              <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; text-transform:uppercase; margin:0; color:var(--black);">Reconstitution Calculator</h4>
-              <p style="font-size:0.78rem; color:var(--grey); margin:0;">Calculate concentration after mixing</p>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="peptideAmount">Peptide Amount (mg)</label>
-            <input type="number" id="peptideAmount" class="form-control" placeholder="e.g. 5" min="0">
-          </div>
-          <div class="mb-4">
-            <label class="form-label" for="bacterioWater">Bacteriostatic Water (mL)</label>
-            <input type="number" id="bacterioWater" class="form-control" placeholder="e.g. 2" min="0">
-          </div>
-          <button class="btn btn-primary w-100" onclick="calculateReconstitution()" style="background:var(--orange) !important; border:none !important; font-family:'DM Sans',sans-serif; font-weight:700; padding:12px; border-radius:10px; font-size:0.9rem; cursor:pointer;">
-            Calculate →
-          </button>
-          <div id="reconResult" class="result-card mt-3 p-3">
-            <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:8px;">Results</p>
-            <p id="reconOutput" style="font-size:0.9rem; color:var(--charcoal); margin:0; line-height:1.7;"></p>
-          </div>
-        </div>
+      <div class="calc-unit-toggle" id="unitToggle" role="group" aria-label="Measurement unit">
+        <button type="button" class="unit-btn" data-unit="mg" aria-pressed="true">mg</button>
+        <button type="button" class="unit-btn" data-unit="IU" aria-pressed="false">IU</button>
       </div>
 
-      <!-- Dosage Calculator -->
-      <div class="col-lg-6">
-        <div class="calculator-card p-4">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-            <div style="width:48px; height:48px; background:var(--orange-light); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">⚖️</div>
-            <div>
-              <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; text-transform:uppercase; margin:0; color:var(--black);">Dosage Calculator</h4>
-              <p style="font-size:0.78rem; color:var(--grey); margin:0;">Find your injection volume</p>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="desiredDose">Desired Dose (mcg)</label>
-            <input type="number" id="desiredDose" class="form-control" placeholder="e.g. 250" min="0">
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="totalPeptide">Total Peptide (mg)</label>
-            <input type="number" id="totalPeptide" class="form-control" placeholder="e.g. 5" min="0">
-          </div>
-          <div class="mb-4">
-            <label class="form-label" for="totalVolume">Reconstitution Volume (mL)</label>
-            <input type="number" id="totalVolume" class="form-control" placeholder="e.g. 2" min="0">
-          </div>
-          <button class="btn btn-success w-100" onclick="calculateDosage()" style="font-family:'DM Sans',sans-serif; font-weight:700; padding:12px; border-radius:10px; font-size:0.9rem; cursor:pointer;">
-            Calculate →
-          </button>
-          <div id="doseResult" class="result-card mt-3 p-3">
-            <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:8px;">Results</p>
-            <p id="doseOutput" style="font-size:0.9rem; color:var(--charcoal); margin:0; line-height:1.7;"></p>
-          </div>
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <h3 class="calc-col-title" id="doseLabel">Dose of Peptide</h3>
+          <div class="calc-chips" id="doseChips" role="group" aria-labelledby="doseLabel"></div>
+          <input type="number" class="calc-custom" id="doseCustom" min="0" step="any"
+                 placeholder="Enter custom dose (mg)" aria-label="Custom dose">
+        </div>
+
+        <div class="col-lg-4">
+          <h3 class="calc-col-title" id="strengthLabel">Strength of Peptide</h3>
+          <div class="calc-chips" id="strengthChips" role="group" aria-labelledby="strengthLabel"></div>
+          <input type="number" class="calc-custom" id="strengthCustom" min="0" step="any"
+                 placeholder="Enter custom strength (mg)" aria-label="Custom vial strength">
+        </div>
+
+        <div class="col-lg-4">
+          <h3 class="calc-col-title" id="waterLabel">Water of Peptide</h3>
+          <div class="calc-chips" id="waterChips" role="group" aria-labelledby="waterLabel"></div>
+          <input type="number" class="calc-custom" id="waterCustom" min="0" step="any"
+                 placeholder="Enter custom water (mL)" aria-label="Custom water volume">
         </div>
       </div>
+    </div>
 
+    <!-- Results -->
+    <div class="calc-panel">
+      <h2 class="calc-results-title">Results</h2>
+
+      <div id="resultsEmpty" class="calc-empty" hidden>
+        Choose a dose, a vial strength and a water volume to see your draw.
+      </div>
+
+      <div id="resultsBody" aria-live="polite">
+        <p class="calc-readout">Peptide dose: <strong id="resultDose">—</strong></p>
+        <p class="calc-readout calc-readout-lead">Draw syringe to: <strong id="resultUnits">—</strong></p>
+
+        <svg class="calc-syringe" viewBox="0 0 800 190" role="img" aria-labelledby="syringeTitle">
+          <title id="syringeTitle">Insulin syringe showing the fill level for your dose</title>
+
+          <!-- needle -->
+          <rect x="0" y="88" width="70" height="7" class="syringe-steel"></rect>
+          <!-- hub -->
+          <rect x="70" y="72" width="26" height="40" rx="4" class="syringe-steel"></rect>
+          <!-- barrel -->
+          <rect x="96" y="62" width="580" height="60" class="syringe-barrel" stroke-width="7"></rect>
+          <!-- liquid fill (width driven by JS) -->
+          <rect id="syringeFill" x="99" y="65" width="0" height="54" opacity="0.35"></rect>
+          <!-- gradations, drawn by JS -->
+          <g id="syringeTicks" fill="none" stroke-width="2"></g>
+          <g id="syringeLabels" font-family="DM Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle"></g>
+          <!-- plunger -->
+          <rect x="676" y="52" width="44" height="80" rx="4" class="syringe-steel"></rect>
+          <rect x="720" y="84" width="60" height="16" class="syringe-steel"></rect>
+          <rect x="780" y="46" width="14" height="92" rx="4" class="syringe-steel"></rect>
+        </svg>
+
+        <p class="calc-readout">Your vial contains: <strong id="resultDoses">—</strong></p>
+        <p class="calc-readout">Concentration: <strong id="resultConc">—</strong></p>
+      </div>
+
+      <div id="calcWarning" class="calc-warning" hidden></div>
     </div>
 
     <!-- How To Use -->
     <div style="background:var(--black); border-radius:var(--radius-lg); padding:2.5rem; color:rgba(255,255,255,0.7);">
       <h4 style="font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; text-transform:uppercase; color:var(--white); text-align:center; margin-bottom:1.5rem;">💡 How to Use</h4>
       <div class="row g-4">
-        <div class="col-md-6">
-          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">Reconstitution Calculator</h6>
-          <p style="font-size:0.875rem; line-height:1.7; margin:0;">Enter the peptide amount in mg and the volume of bacteriostatic water in mL. The calculator will show you the final concentration in mcg/mL and per IU on an insulin syringe.</p>
+        <div class="col-md-4">
+          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">1. Pick your numbers</h6>
+          <p style="font-size:0.875rem; line-height:1.7; margin:0;">Choose your dose, the strength printed on your vial, and how much bacteriostatic water you are adding. Tap a preset or type your own &mdash; the results update as you go.</p>
         </div>
-        <div class="col-md-6">
-          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">Dosage Calculator</h6>
-          <p style="font-size:0.875rem; line-height:1.7; margin:0;">Enter your desired dose in mcg, total peptide amount, and reconstitution volume. The calculator tells you exactly how many mL to draw and the equivalent IU on your syringe.</p>
+        <div class="col-md-4">
+          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">2. Read the syringe</h6>
+          <p style="font-size:0.875rem; line-height:1.7; margin:0;">The shaded area shows how far to draw on a standard 100-unit insulin syringe. If your dose needs more than one full syringe, a warning tells you so.</p>
+        </div>
+        <div class="col-md-4">
+          <h6 style="color:var(--orange); font-family:'Barlow Condensed',sans-serif; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">3. Check the vial</h6>
+          <p style="font-size:0.875rem; line-height:1.7; margin:0;">&ldquo;Full doses&rdquo; is how many complete doses your vial yields at that dose size, rounded down &mdash; a small residue is normal. Switch to IU for HGH and HCG.</p>
         </div>
       </div>
       <p style="font-size:0.8rem; color:rgba(255,255,255,0.3); text-align:center; margin-top:1.5rem; margin-bottom:0;">⚠️ For educational purposes only. Always verify dosages with a medical professional.</p>
@@ -228,36 +239,219 @@
 </a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="peptide-calc.js"></script>
 <script>
-  function calculateReconstitution() {
-    const mg  = parseFloat(document.getElementById('peptideAmount').value);
-    const ml  = parseFloat(document.getElementById('bacterioWater').value);
-    const resultDiv = document.getElementById('reconResult');
-    const output    = document.getElementById('reconOutput');
-    if (!mg || !ml || mg <= 0 || ml <= 0) {
-      output.textContent = 'Please enter valid positive numbers.';
-    } else {
-      const mcgPerMl = (mg * 1000) / ml;
-      output.innerHTML = `Concentration: <strong>${mcgPerMl.toFixed(2)} mcg/mL</strong><br>1 IU (0.01 mL) = <strong>${(mcgPerMl * 0.01).toFixed(2)} mcg</strong>`;
-    }
-    resultDiv.style.display = 'block';
+(function () {
+  const PRESETS_ALL  = window.PeptideCalc.PRESETS;
+  const DEFAULTS_ALL = window.PeptideCalc.DEFAULTS;
+  const MAX_UNITS    = window.PeptideCalc.SYRINGE_UNITS;
+
+  // Barrel geometry, matching the SVG in the markup. The fill starts just
+  // inside the left stroke and spans to just inside the plunger.
+  const FILL_X = 99;
+  const FILL_MAX_WIDTH = 574;
+
+  const state = { unit: 'mg', dose: null, strength: null, water: null };
+
+  const el = (id) => document.getElementById(id);
+
+  const COLUMNS = [
+    { key: 'dose',     chips: 'doseChips',     custom: 'doseCustom' },
+    { key: 'strength', chips: 'strengthChips', custom: 'strengthCustom' },
+    { key: 'water',    chips: 'waterChips',    custom: 'waterCustom' }
+  ];
+
+  // Water is mL in both modes; only dose and strength carry the unit.
+  function unitFor(key) {
+    return key === 'water' ? 'mL' : state.unit;
   }
 
-  function calculateDosage() {
-    const desired  = parseFloat(document.getElementById('desiredDose').value);
-    const totalMg  = parseFloat(document.getElementById('totalPeptide').value);
-    const totalMl  = parseFloat(document.getElementById('totalVolume').value);
-    const resultDiv = document.getElementById('doseResult');
-    const output    = document.getElementById('doseOutput');
-    if (!desired || !totalMg || !totalMl || desired <= 0 || totalMg <= 0 || totalMl <= 0) {
-      output.textContent = 'Please fill in all fields with positive values.';
-    } else {
-      const mcgPerMl = (totalMg * 1000) / totalMl;
-      const mlNeeded = desired / mcgPerMl;
-      output.innerHTML = `Draw Volume: <strong>${mlNeeded.toFixed(3)} mL</strong><br>That's approximately <strong>${(mlNeeded * 100).toFixed(1)} IU</strong> on an insulin syringe.`;
-    }
-    resultDiv.style.display = 'block';
+  function labelFor(value, key) {
+    // Water reads better as 1.0mL than 1mL, matching the reference.
+    const text = key === 'water' ? Number(value).toFixed(1) : String(value);
+    return text + unitFor(key);
   }
+
+  function buildChips() {
+    COLUMNS.forEach(function (col) {
+      const host = el(col.chips);
+      host.innerHTML = '';
+      PRESETS_ALL[state.unit][col.key].forEach(function (value) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'calc-chip';
+        chip.textContent = labelFor(value, col.key);
+        chip.setAttribute('aria-pressed', String(state[col.key] === value));
+        chip.addEventListener('click', function () {
+          // A chip and a custom value must never both be live in one column.
+          state[col.key] = value;
+          el(col.custom).value = '';
+          syncChips(col);
+          render();
+        });
+        host.appendChild(chip);
+      });
+    });
+  }
+
+  function syncChips(col) {
+    const host = el(col.chips);
+    const values = PRESETS_ALL[state.unit][col.key];
+    Array.prototype.forEach.call(host.children, function (chip, i) {
+      chip.setAttribute('aria-pressed', String(state[col.key] === values[i]));
+    });
+  }
+
+  function updateLabels() {
+    const u = state.unit;
+    el('doseLabel').textContent = 'Dose of Peptide';
+    el('strengthLabel').textContent = 'Strength of Peptide';
+    el('doseCustom').placeholder = 'Enter custom dose (' + u + ')';
+    el('strengthCustom').placeholder = 'Enter custom strength (' + u + ')';
+    el('waterCustom').placeholder = 'Enter custom water (mL)';
+  }
+
+  function drawGradations() {
+    const ticks = el('syringeTicks');
+    const labels = el('syringeLabels');
+    ticks.innerHTML = '';
+    labels.innerHTML = '';
+    for (let u = 0; u <= MAX_UNITS; u += 2) {
+      const x = FILL_X + (u / MAX_UNITS) * FILL_MAX_WIDTH;
+      const major = u % 10 === 0;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', 65); line.setAttribute('y2', major ? 93 : 82);
+      ticks.appendChild(line);
+      if (major && u > 0) {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x); text.setAttribute('y', 145);
+        text.textContent = String(u);
+        labels.appendChild(text);
+      }
+    }
+  }
+
+  function readColumn(col) {
+    const custom = el(col.custom).value;
+    if (custom !== '') return Number(custom);
+    return state[col.key];
+  }
+
+  function render() {
+    const input = {
+      unit: state.unit,
+      dose: readColumn(COLUMNS[0]),
+      strength: readColumn(COLUMNS[1]),
+      water: readColumn(COLUMNS[2])
+    };
+
+    const nothingChosen = [input.dose, input.strength, input.water]
+      .some(function (v) { return v === null || v === undefined || v === ''; });
+
+    const body = el('resultsBody');
+    const empty = el('resultsEmpty');
+    const warning = el('calcWarning');
+
+    if (nothingChosen) {
+      body.hidden = true; empty.hidden = false; warning.hidden = true;
+      return;
+    }
+
+    const r = window.PeptideCalc.calculate(input);
+    empty.hidden = true;
+    body.hidden = false;
+
+    if (!r.valid) {
+      el('resultDose').textContent = '—';
+      el('resultUnits').textContent = '—';
+      el('resultDoses').textContent = '—';
+      el('resultConc').textContent = '—';
+      el('syringeFill').setAttribute('width', 0);
+      warning.hidden = false;
+      warning.innerHTML = '<strong>Check your figures.</strong> ' + r.reason;
+      return;
+    }
+
+    const unitWord = state.unit;
+    el('resultDose').textContent = input.dose + ' ' + unitWord;
+    el('resultUnits').textContent = r.units.toFixed(2) + ' units';
+    el('resultDoses').textContent = r.dosesPerVial + ' full dose' + (r.dosesPerVial === 1 ? '' : 's');
+    el('resultConc').textContent = r.concentration.toFixed(2) + ' ' + unitWord + '/mL';
+
+    // The bar caps at a full syringe; the NUMBER above it stays true.
+    const ratio = Math.min(r.units, MAX_UNITS) / MAX_UNITS;
+    el('syringeFill').setAttribute('width', (ratio * FILL_MAX_WIDTH).toFixed(2));
+
+    if (r.overflow) {
+      warning.hidden = false;
+      warning.innerHTML =
+        '<strong>This dose needs more than one full syringe.</strong> ' +
+        'At ' + r.units.toFixed(2) + ' units (' + r.mL.toFixed(2) + ' mL) it will not fit in a ' +
+        MAX_UNITS + '-unit insulin syringe. Check your vial strength and water volume, ' +
+        'or split it across more than one injection.';
+    } else {
+      warning.hidden = true;
+    }
+  }
+
+  function setUnit(unit) {
+    if (state.unit === unit) return;
+    state.unit = unit;
+    // Dose and strength change meaning with the unit, so they reset. Water is
+    // mL either way and is deliberately left alone.
+    state.dose = DEFAULTS_ALL[unit].dose;
+    state.strength = DEFAULTS_ALL[unit].strength;
+    el('doseCustom').value = '';
+    el('strengthCustom').value = '';
+    Array.prototype.forEach.call(el('unitToggle').children, function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.unit === unit));
+    });
+    updateLabels();
+    buildChips();
+    render();
+  }
+
+  function init() {
+    state.dose = DEFAULTS_ALL.mg.dose;
+    state.strength = DEFAULTS_ALL.mg.strength;
+    state.water = DEFAULTS_ALL.mg.water;
+
+    Array.prototype.forEach.call(el('unitToggle').children, function (btn) {
+      btn.addEventListener('click', function () { setUnit(btn.dataset.unit); });
+    });
+
+    COLUMNS.forEach(function (col) {
+      el(col.custom).addEventListener('input', function () {
+        if (el(col.custom).value !== '') {
+          // Typing a custom value deselects every chip in that column.
+          state[col.key] = null;
+        } else {
+          // Clearing the box must not strand the user with nothing selected.
+          // Without this the column falls back to null, readColumn returns
+          // null, and the whole results panel disappears into the empty state
+          // with no way back except clicking a chip — the calculator looks
+          // broken. Falling back to this column's default keeps a result on
+          // screen and re-lights the matching chip.
+          state[col.key] = DEFAULTS_ALL[state.unit][col.key];
+        }
+        syncChips(col);
+        render();
+      });
+    });
+
+    updateLabels();
+    buildChips();
+    drawGradations();
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 <script src="shipping.js"></script>
 <script src="script.js"></script>
