@@ -146,20 +146,20 @@
           <title id="syringeTitle">Insulin syringe showing the fill level for your dose</title>
 
           <!-- needle -->
-          <rect x="0" y="88" width="70" height="7" fill="#5b6b7a"></rect>
+          <rect x="0" y="88" width="70" height="7" class="syringe-steel"></rect>
           <!-- hub -->
-          <rect x="70" y="72" width="26" height="40" rx="4" fill="#5b6b7a"></rect>
+          <rect x="70" y="72" width="26" height="40" rx="4" class="syringe-steel"></rect>
           <!-- barrel -->
-          <rect x="96" y="62" width="580" height="60" fill="#ffffff" stroke="#5b6b7a" stroke-width="7"></rect>
+          <rect x="96" y="62" width="580" height="60" class="syringe-barrel" stroke-width="7"></rect>
           <!-- liquid fill (width driven by JS) -->
-          <rect id="syringeFill" x="99" y="65" width="0" height="54" fill="#ff4500" opacity="0.35"></rect>
+          <rect id="syringeFill" x="99" y="65" width="0" height="54" opacity="0.35"></rect>
           <!-- gradations, drawn by JS -->
-          <g id="syringeTicks" fill="none" stroke="#5b6b7a" stroke-width="2"></g>
-          <g id="syringeLabels" font-family="DM Sans, sans-serif" font-size="15" font-weight="700" fill="#5b6b7a" text-anchor="middle"></g>
+          <g id="syringeTicks" fill="none" stroke-width="2"></g>
+          <g id="syringeLabels" font-family="DM Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle"></g>
           <!-- plunger -->
-          <rect x="676" y="52" width="44" height="80" rx="4" fill="#5b6b7a"></rect>
-          <rect x="720" y="84" width="60" height="16" fill="#5b6b7a"></rect>
-          <rect x="780" y="46" width="14" height="92" rx="4" fill="#5b6b7a"></rect>
+          <rect x="676" y="52" width="44" height="80" rx="4" class="syringe-steel"></rect>
+          <rect x="720" y="84" width="60" height="16" class="syringe-steel"></rect>
+          <rect x="780" y="46" width="14" height="92" rx="4" class="syringe-steel"></rect>
         </svg>
 
         <p class="calc-readout">Your vial contains: <strong id="resultDoses">—</strong></p>

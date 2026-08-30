@@ -13,6 +13,7 @@
   --black:         #111111;
   --charcoal:      #2a2a2a;
   --grey:          #6b7280;
+  --syringe-steel: #5b6b7a;
   --light-grey:    #f4f4f5;
   --border:        #e5e7eb;
   --white:         #ffffff;
@@ -1813,6 +1814,16 @@ footer {
 }
 
 .calc-syringe { display: block; width: 100%; max-width: 780px; margin: 2rem auto; height: auto; }
+
+#syringeFill { fill: var(--orange); }
+
+.syringe-barrel { fill: var(--white); stroke: var(--syringe-steel); }
+
+.syringe-steel { fill: var(--syringe-steel); }
+
+#syringeTicks { stroke: var(--syringe-steel); }
+
+#syringeLabels { fill: var(--syringe-steel); }
 
 .calc-empty {
   text-align: center;
