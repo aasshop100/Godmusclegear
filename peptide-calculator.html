@@ -419,11 +419,19 @@
 
     COLUMNS.forEach(function (col) {
       el(col.custom).addEventListener('input', function () {
-        // Typing a custom value deselects every chip in that column.
         if (el(col.custom).value !== '') {
+          // Typing a custom value deselects every chip in that column.
           state[col.key] = null;
-          syncChips(col);
+        } else {
+          // Clearing the box must not strand the user with nothing selected.
+          // Without this the column falls back to null, readColumn returns
+          // null, and the whole results panel disappears into the empty state
+          // with no way back except clicking a chip — the calculator looks
+          // broken. Falling back to this column's default keeps a result on
+          // screen and re-lights the matching chip.
+          state[col.key] = DEFAULTS_ALL[state.unit][col.key];
         }
+        syncChips(col);
         render();
       });
     });
