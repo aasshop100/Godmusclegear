@@ -235,36 +235,211 @@
 </a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="peptide-calc.js"></script>
 <script>
-  function calculateReconstitution() {
-    const mg  = parseFloat(document.getElementById('peptideAmount').value);
-    const ml  = parseFloat(document.getElementById('bacterioWater').value);
-    const resultDiv = document.getElementById('reconResult');
-    const output    = document.getElementById('reconOutput');
-    if (!mg || !ml || mg <= 0 || ml <= 0) {
-      output.textContent = 'Please enter valid positive numbers.';
-    } else {
-      const mcgPerMl = (mg * 1000) / ml;
-      output.innerHTML = `Concentration: <strong>${mcgPerMl.toFixed(2)} mcg/mL</strong><br>1 IU (0.01 mL) = <strong>${(mcgPerMl * 0.01).toFixed(2)} mcg</strong>`;
-    }
-    resultDiv.style.display = 'block';
+(function () {
+  const PRESETS_ALL  = window.PeptideCalc.PRESETS;
+  const DEFAULTS_ALL = window.PeptideCalc.DEFAULTS;
+  const MAX_UNITS    = window.PeptideCalc.SYRINGE_UNITS;
+
+  // Barrel geometry, matching the SVG in the markup. The fill starts just
+  // inside the left stroke and spans to just inside the plunger.
+  const FILL_X = 99;
+  const FILL_MAX_WIDTH = 574;
+
+  const state = { unit: 'mg', dose: null, strength: null, water: null };
+
+  const el = (id) => document.getElementById(id);
+
+  const COLUMNS = [
+    { key: 'dose',     chips: 'doseChips',     custom: 'doseCustom' },
+    { key: 'strength', chips: 'strengthChips', custom: 'strengthCustom' },
+    { key: 'water',    chips: 'waterChips',    custom: 'waterCustom' }
+  ];
+
+  // Water is mL in both modes; only dose and strength carry the unit.
+  function unitFor(key) {
+    return key === 'water' ? 'mL' : state.unit;
   }
 
-  function calculateDosage() {
-    const desired  = parseFloat(document.getElementById('desiredDose').value);
-    const totalMg  = parseFloat(document.getElementById('totalPeptide').value);
-    const totalMl  = parseFloat(document.getElementById('totalVolume').value);
-    const resultDiv = document.getElementById('doseResult');
-    const output    = document.getElementById('doseOutput');
-    if (!desired || !totalMg || !totalMl || desired <= 0 || totalMg <= 0 || totalMl <= 0) {
-      output.textContent = 'Please fill in all fields with positive values.';
-    } else {
-      const mcgPerMl = (totalMg * 1000) / totalMl;
-      const mlNeeded = desired / mcgPerMl;
-      output.innerHTML = `Draw Volume: <strong>${mlNeeded.toFixed(3)} mL</strong><br>That's approximately <strong>${(mlNeeded * 100).toFixed(1)} IU</strong> on an insulin syringe.`;
-    }
-    resultDiv.style.display = 'block';
+  function labelFor(value, key) {
+    // Water reads better as 1.0mL than 1mL, matching the reference.
+    const text = key === 'water' ? Number(value).toFixed(1) : String(value);
+    return text + unitFor(key);
   }
+
+  function buildChips() {
+    COLUMNS.forEach(function (col) {
+      const host = el(col.chips);
+      host.innerHTML = '';
+      PRESETS_ALL[state.unit][col.key].forEach(function (value) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'calc-chip';
+        chip.textContent = labelFor(value, col.key);
+        chip.setAttribute('aria-pressed', String(state[col.key] === value));
+        chip.addEventListener('click', function () {
+          // A chip and a custom value must never both be live in one column.
+          state[col.key] = value;
+          el(col.custom).value = '';
+          syncChips(col);
+          render();
+        });
+        host.appendChild(chip);
+      });
+    });
+  }
+
+  function syncChips(col) {
+    const host = el(col.chips);
+    const values = PRESETS_ALL[state.unit][col.key];
+    Array.prototype.forEach.call(host.children, function (chip, i) {
+      chip.setAttribute('aria-pressed', String(state[col.key] === values[i]));
+    });
+  }
+
+  function updateLabels() {
+    const u = state.unit;
+    el('doseLabel').textContent = 'Dose of Peptide';
+    el('strengthLabel').textContent = 'Strength of Peptide';
+    el('doseCustom').placeholder = 'Enter custom dose (' + u + ')';
+    el('strengthCustom').placeholder = 'Enter custom strength (' + u + ')';
+    el('waterCustom').placeholder = 'Enter custom water (mL)';
+  }
+
+  function drawGradations() {
+    const ticks = el('syringeTicks');
+    const labels = el('syringeLabels');
+    ticks.innerHTML = '';
+    labels.innerHTML = '';
+    for (let u = 0; u <= MAX_UNITS; u += 2) {
+      const x = FILL_X + (u / MAX_UNITS) * FILL_MAX_WIDTH;
+      const major = u % 10 === 0;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', 65); line.setAttribute('y2', major ? 93 : 82);
+      ticks.appendChild(line);
+      if (major && u > 0) {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x); text.setAttribute('y', 145);
+        text.textContent = String(u);
+        labels.appendChild(text);
+      }
+    }
+  }
+
+  function readColumn(col) {
+    const custom = el(col.custom).value;
+    if (custom !== '') return Number(custom);
+    return state[col.key];
+  }
+
+  function render() {
+    const input = {
+      unit: state.unit,
+      dose: readColumn(COLUMNS[0]),
+      strength: readColumn(COLUMNS[1]),
+      water: readColumn(COLUMNS[2])
+    };
+
+    const nothingChosen = [input.dose, input.strength, input.water]
+      .some(function (v) { return v === null || v === undefined || v === ''; });
+
+    const body = el('resultsBody');
+    const empty = el('resultsEmpty');
+    const warning = el('calcWarning');
+
+    if (nothingChosen) {
+      body.hidden = true; empty.hidden = false; warning.hidden = true;
+      return;
+    }
+
+    const r = window.PeptideCalc.calculate(input);
+    empty.hidden = true;
+    body.hidden = false;
+
+    if (!r.valid) {
+      el('resultDose').textContent = '—';
+      el('resultUnits').textContent = '—';
+      el('resultDoses').textContent = '—';
+      el('resultConc').textContent = '—';
+      el('syringeFill').setAttribute('width', 0);
+      warning.hidden = false;
+      warning.innerHTML = '<strong>Check your figures.</strong> ' + r.reason;
+      return;
+    }
+
+    const unitWord = state.unit;
+    el('resultDose').textContent = input.dose + ' ' + unitWord;
+    el('resultUnits').textContent = r.units.toFixed(2) + ' units';
+    el('resultDoses').textContent = r.dosesPerVial + ' full dose' + (r.dosesPerVial === 1 ? '' : 's');
+    el('resultConc').textContent = r.concentration.toFixed(2) + ' ' + unitWord + '/mL';
+
+    // The bar caps at a full syringe; the NUMBER above it stays true.
+    const ratio = Math.min(r.units, MAX_UNITS) / MAX_UNITS;
+    el('syringeFill').setAttribute('width', (ratio * FILL_MAX_WIDTH).toFixed(2));
+
+    if (r.overflow) {
+      warning.hidden = false;
+      warning.innerHTML =
+        '<strong>This dose needs more than one full syringe.</strong> ' +
+        'At ' + r.units.toFixed(2) + ' units (' + r.mL.toFixed(2) + ' mL) it will not fit in a ' +
+        MAX_UNITS + '-unit insulin syringe. Check your vial strength and water volume, ' +
+        'or split it across more than one injection.';
+    } else {
+      warning.hidden = true;
+    }
+  }
+
+  function setUnit(unit) {
+    if (state.unit === unit) return;
+    state.unit = unit;
+    // Dose and strength change meaning with the unit, so they reset. Water is
+    // mL either way and is deliberately left alone.
+    state.dose = DEFAULTS_ALL[unit].dose;
+    state.strength = DEFAULTS_ALL[unit].strength;
+    el('doseCustom').value = '';
+    el('strengthCustom').value = '';
+    Array.prototype.forEach.call(el('unitToggle').children, function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.unit === unit));
+    });
+    updateLabels();
+    buildChips();
+    render();
+  }
+
+  function init() {
+    state.dose = DEFAULTS_ALL.mg.dose;
+    state.strength = DEFAULTS_ALL.mg.strength;
+    state.water = DEFAULTS_ALL.mg.water;
+
+    Array.prototype.forEach.call(el('unitToggle').children, function (btn) {
+      btn.addEventListener('click', function () { setUnit(btn.dataset.unit); });
+    });
+
+    COLUMNS.forEach(function (col) {
+      el(col.custom).addEventListener('input', function () {
+        // Typing a custom value deselects every chip in that column.
+        if (el(col.custom).value !== '') {
+          state[col.key] = null;
+          syncChips(col);
+        }
+        render();
+      });
+    });
+
+    updateLabels();
+    buildChips();
+    drawGradations();
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 <script src="shipping.js"></script>
 <script src="script.js"></script>
