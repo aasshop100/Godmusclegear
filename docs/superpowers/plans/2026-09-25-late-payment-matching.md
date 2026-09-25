@@ -1,8 +1,11 @@
 # Late payment matching — EXECUTED 2026-09-25
 
-> This is a record of what was done, not a to-do list. The one thing it leaves
-> OPEN is the concurrent-order ambiguity hole in the last section — that one is
-> real, reproducible, and not yet fixed.
+> This is a record of what was done, not a to-do list.
+>
+> **Updated later the same day: the ambiguity hole described in the last section
+> was ALSO fixed.** It is kept in full because the reasoning matters — the
+> obvious fix (widen the uniqueness tail) is arithmetically impossible, and
+> anyone revisiting this will reach for it first.
 
 ## What happened
 
@@ -104,9 +107,9 @@ that branch hangs off the MATCHED output, which was never reached.
 > succeeds, from the wrong identity. Always confirm `credentials.smtp.id` is
 > `wbNyEh5HUE1ugRdl` before executing anything that emails a GMG customer.
 
-## STILL OPEN — the uniqueness tail is narrower than the auto-accept ceiling
+## FIXED (same day) — the uniqueness tail is narrower than the auto-accept ceiling
 
-**This is the biggest remaining hole in BTC ordering, and the 12h window makes it
+**This was the biggest remaining hole in BTC ordering, and the 12h window made it
 more likely, not less.**
 
 | Coin | Uniqueness tail | Auto-accept ceiling | |
@@ -133,9 +136,55 @@ customer A pays 0.00414095  (exactly)
   -> EXACT, order A
 ```
 
-Two concurrent same-cart BTC orders therefore work **only if both customers pay
-to the satoshi** — which an exchange withdrawal never does. Fix is to widen
-`STEPS` so the tail exceeds the ceiling, or to narrow the ceiling. Not yet done.
+Two concurrent same-cart BTC orders therefore worked **only if both customers paid
+to the satoshi** — which an exchange withdrawal never does.
+
+### Why widening the tail CANNOT fix it
+
+This was the first instinct and it is wrong. A payment is ambiguous whenever two
+orders are within **2x the ceiling** ($8.42), and the tail is added to the
+customer's price — so buying a guaranteed gap means overcharging by that much.
+
+| STEPS | tail span | collision rate, 2 same-cart orders |
+|---|---|---|
+| 1,000 (was) | $0.84 | **100%** |
+| 10,000 | $8.42 | **100%** |
+| 100,000 | $84.24 | 19% |
+| 1,000,000 | $842.41 | 2% |
+
+There is no value that both hides in a price and guarantees separation. Random
+assignment can always place two orders adjacent, so no tail width *guarantees*
+anything — it only lowers the odds.
+
+### What was done instead
+
+Ambiguity became a **reported outcome** rather than an impossible state, the same
+principle as `EXPIRED_NEAR`: stop discarding what the matcher already knows.
+
+`AMBIGUOUS` carries the candidate orders. The alert lists them:
+
+```
+AMBIGUOUS PAYMENT - NOT MATCHED
+0.00412095 BTC received
+Fits 2 orders, so none was touched:
+  ORDER-A expects 0.00414095 (Jane Doe)
+  ORDER-B expects 0.00414327 (John Roe)
+tx abc123...
+Decide which one and close it by hand.
+```
+
+**Rule 1 is unchanged** — nothing is auto-assigned and no row is touched. Four
+tests asserted `NONE` for ambiguity; they were **inverted, not deleted**, each
+keeping its real invariant (`order === null`, never auto-accepted).
+
+`Matched An Order?` now routes on `matchedOrderId` rather than `matchType`, so
+any result without an order is **structurally incapable** of reaching
+`Update Order Row`.
+
+**Residual risk, accepted:** a genuinely ambiguous payment still needs a human to
+decide which order it belongs to. That is unavoidable when two orders are priced
+within a withdrawal fee of each other — but it is now a 30-second decision with
+both candidates on screen, instead of money that appears to belong to nobody.
 
 ### Smaller open items
 
