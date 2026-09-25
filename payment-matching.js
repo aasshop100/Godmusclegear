@@ -21,7 +21,17 @@
 })(typeof window !== 'undefined' ? window : null, function () {
 
   const USDT_CONTRACT  = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-  const EXPIRY_MINUTES = 30;
+  // How long a quote stays open, per coin. This is DOCUMENTATION of what the
+  // Payment Addresses node on GMG - Create Order is set to (expiryMinutesUsdt /
+  // expiryMinutesBtc); that node is what actually stamps expiresAt. Keep them
+  // in step - a stale constant here is how the BTC ceiling went wrong in 2026-08.
+  //
+  // USDT settles in seconds on Tron and is a stablecoin, so it carries no rate
+  // risk and stays tight. BTC was 180 until 2026-09-25, which is shorter than
+  // Bitcoin's own worst-case path to the mempool: the customer's exchange
+  // batches the withdrawal before it is ever broadcast. A real payment landed
+  // 7h16m after the order, missed the window, and had to be closed by hand.
+  const EXPIRY_MINUTES = { USDT: 30, BTC: 720 };
 
   // Exchanges deduct their withdrawal fee FROM the amount sent, so a buyer who
   // types the quoted amount exactly underpays by that fee. Self-custody wallets
@@ -187,21 +197,51 @@
       };
     }
 
+    // Outside the ceiling, but proportionally close enough to name.
+    function inReviewBand(o) {
+      const expected = Number(o.expectedAmount);
+      return Math.abs(receivedAmount - expected) / expected <= REVIEW_TOLERANCE;
+    }
+
     // 3. Outside the ceiling but still close enough to name: a human decides.
     //    Two orders inside the ceiling are necessarily inside this band too, so
     //    an ambiguous payment falls through to NONE rather than being attributed
     //    at lower confidence to whichever order happened to be nearest.
-    const nearHit = only(open.filter(function (o) {
-      const expected = Number(o.expectedAmount);
-      return Math.abs(receivedAmount - expected) / expected <= REVIEW_TOLERANCE;
-    }));
-    if (!nearHit) return none;
+    const nearOpen = open.filter(inReviewBand);
+    const nearHit  = only(nearOpen);
+    if (nearHit) {
+      const difference = diffFor(nearHit);
+      return {
+        type: difference < 0 ? 'NEAR_UNDER' : 'NEAR_OVER',
+        order: nearHit,
+        difference: difference
+      };
+    }
 
-    const difference = diffFor(nearHit);
+    // An open order was in the running but could not be told apart from
+    // another. Rule 1 outranks surfacing late money: never resolve an
+    // ambiguous payment by reaching past the open orders to an expired one.
+    if (nearOpen.length > 0) return none;
+
+    // 4. Nothing open fits. An expired row may still be the right order.
+    //    An exchange payment is BOTH late (withdrawals are batched, and
+    //    Bitcoin confirmation is slow) and short (the fee comes out of the
+    //    amount sent), so the two commonest properties of real money used to
+    //    combine into an anonymous "no matching open order" alert while the
+    //    matcher was holding the order all along. Name it instead.
+    //
+    //    NEVER auto-accepted: past expiry the rate may have moved, so this is
+    //    always a human decision. Reported once, attached to the order.
+    const expiredHit = only(all.filter(function (o) {
+      return !isOpen(o, nowMs) && Number(o.expectedAmount) &&
+             (Math.abs(diffFor(o)) <= ceiling || inReviewBand(o));
+    }));
+    if (!expiredHit) return none;
+
     return {
-      type: difference < 0 ? 'NEAR_UNDER' : 'NEAR_OVER',
-      order: nearHit,
-      difference: difference
+      type: 'EXPIRED_NEAR',
+      order: expiredHit,
+      difference: diffFor(expiredHit)
     };
   }
 
