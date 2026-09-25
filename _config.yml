@@ -1,0 +1,44 @@
+# GitHub Pages publishes EVERY file in this repository, not just the storefront.
+# That quietly put development files on the public web, including:
+#
+#   /payment-matching.js  - the auto-accept tolerances, under a comment
+#                           reading "Never surface these numbers to customers -
+#                           a published ceiling is a discount". A buyer who
+#                           read it could underpay by exactly the ceiling on
+#                           every order and always be auto-confirmed.
+#   /tests/...            - the same constants plus their exact boundaries
+#   /docs/...             - design specs and runbooks
+#
+# Everything listed below is excluded from the published site. Nothing here is
+# referenced by any page - verified before excluding. The files the storefront
+# actually loads (script.js, shipping.js, chat-widget.js, payment-status.js,
+# peptide-calc.js, style.css, images/, blog/) are deliberately NOT listed.
+#
+# NOTE: setting `exclude` REPLACES Jekyll's defaults, so the standard entries
+# are repeated here rather than lost.
+exclude:
+  # Jekyll defaults - must be restated, not dropped
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+
+  # Node modules that mirror the n8n Code nodes. Loaded by no page; they exist
+  # so the payment logic can be unit-tested outside n8n.
+  - payment-matching.js
+  - chain-parsing.js
+
+  # Test suite - states every tolerance and its boundary explicitly
+  - tests/
+
+  # Internal design docs, specs, plans and runbooks
+  - docs/
+
+  # Tooling / agent scratch
+  - .superpowers/
+  - .claude/
+  - package.json
+  - package-lock.json

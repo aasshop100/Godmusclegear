@@ -8,3 +8,6 @@
 *iam.gserviceaccount*.json
 service-account*.json
 godmusclegears-[0-9]*.json
+
+# Internal infrastructure notes must never live in this repo - it is PUBLIC.
+CLOUDFLARE-TUNNEL-TROUBLESHOOTING.md
