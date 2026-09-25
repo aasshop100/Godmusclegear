@@ -264,6 +264,9 @@ test('a payment matching two open orders is never attributed to either', () => {
   // because makeUniqueAmount guarantees two open orders never share an amount.
   // The guard that matters is one step out: near-misses must stay unmatched.
   const near = findMatch(round(amount - 1.5, 'USDT'), 'USDT', orders, Date.now());
-  assert.equal(near.type, 'NONE');
+  // Was NONE until 2026-09-25; it now reports AMBIGUOUS and carries the
+  // candidates. What must never change is that no single order is picked.
+  assert.equal(near.type, 'AMBIGUOUS');
   assert.equal(near.order, null);
+  assert.equal(near.candidates.length, 2);
 });

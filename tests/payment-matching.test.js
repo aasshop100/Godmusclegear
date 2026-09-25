@@ -18,7 +18,15 @@ test('constants match the agreed configuration', () => {
   assert.strictEqual(AUTO_ACCEPT_MAX.USDT, 3.00);
   assert.strictEqual(AUTO_ACCEPT_MAX.BTC, 0.00005);
   assert.strictEqual(REVIEW_TOLERANCE, 0.10);
-  assert.strictEqual(EXPIRY_MINUTES, 30);
+  // Per-coin, and BOTH numbers are load-bearing. USDT settles in seconds on
+  // Tron and is a stablecoin, so it carries no rate risk and stays tight. BTC
+  // was 180 until 2026-09-25, which is shorter than Bitcoin's own worst-case
+  // path to the mempool - an exchange batches the withdrawal before it is ever
+  // broadcast. A real payment arrived 7h16m after the order and missed the
+  // window entirely. These mirror expiryMinutesUsdt / expiryMinutesBtc on the
+  // Payment Addresses node of GMG - Create Order, which is what actually sets
+  // expiresAt; this constant is documentation, so it must not drift from them.
+  assert.deepStrictEqual(EXPIRY_MINUTES, { USDT: 30, BTC: 720 });
 });
 
 // ── makeUniqueAmount ────────────────────────────────────────────────
@@ -118,9 +126,13 @@ test('underpayment beyond tolerance is NONE', () => {
   assert.strictEqual(findMatch(400.00, 'USDT', orders, NOW).type, 'NONE');
 });
 
-test('two orders inside the ceiling is NONE, never the nearer one', () => {
+test('two orders inside the ceiling never picks the nearer one', () => {
   const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.80)];
-  assert.strictEqual(findMatch(511.90, 'USDT', orders, NOW).type, 'NONE');
+  const r = findMatch(511.90, 'USDT', orders, NOW);
+  // Was NONE until 2026-09-25. The invariant is that neither order is picked,
+  // not that the candidates are hidden from the alert.
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.strictEqual(r.order, null);
 });
 
 test('exact match wins even when another order is a near-match', () => {
@@ -144,7 +156,12 @@ test('BTC exact match tolerates floating point representation', () => {
 
 test('a shortfall against an expired order is never auto-accepted', () => {
   const orders = [order('A', 'USDT', 512.73, { expiresAt: NOW - 1 })];
-  assert.strictEqual(findMatch(511.73, 'USDT', orders, NOW).type, 'NONE');
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  // Was NONE until 2026-09-25. The invariant this test defends is that late
+  // money never auto-confirms — not that the order is withheld from the alert.
+  assert.strictEqual(r.type, 'EXPIRED_NEAR');
+  assert.notStrictEqual(r.type, 'AUTO_UNDER');
+  assert.strictEqual(r.order.orderId, 'A');
 });
 
 // ── expiresAt arriving as a date string from the Orders sheet ────────
@@ -309,8 +326,9 @@ test('the two ceilings are economically comparable at a plausible BTC price', ()
 test('two open orders inside the ceiling auto-accepts NEITHER', () => {
   const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 513.90)];
   const r = findMatch(511.50, 'USDT', orders, NOW);
-  assert.strictEqual(r.type, 'NONE');
+  assert.strictEqual(r.type, 'AMBIGUOUS');
   assert.strictEqual(r.order, null);
+  assert.notStrictEqual(r.type, 'AUTO_UNDER');
 });
 
 // One candidate in the tight band and a far-off second in the loose band is NOT
@@ -324,7 +342,9 @@ test('a distant second order in the review band does not block an auto-accept', 
 
 test('an expired order is never auto-accepted even one cent short', () => {
   const orders = [order('A', 'USDT', 512.73, { expiresAt: NOW - 1 })];
-  assert.strictEqual(findMatch(512.72, 'USDT', orders, NOW).type, 'NONE');
+  const r = findMatch(512.72, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'EXPIRED_NEAR');
+  assert.notStrictEqual(r.type, 'AUTO_UNDER');
 });
 
 // The old 2% band gave away $10 on a $500 order. A flat ceiling does not.
@@ -352,4 +372,125 @@ test('an exact match still beats an auto-accept candidate', () => {
   assert.strictEqual(r.type, 'EXACT');
   assert.strictEqual(r.order.orderId, 'A');
   assert.strictEqual(r.difference, 0);
+});
+
+// ── late payments against an expired order ──────────────────────────
+// Regression: ORDER-1790270782250 (2026-09-25). A real customer paid
+// 0.00409839 BTC against a 0.00413711 quote — short 0.00003872, well
+// inside the 0.00005 ceiling — but 4h16m after the quote expired. Every
+// tolerance band was gated behind isOpen(), so the matcher found the
+// order, discarded it, and alerted "no matching open order". An exchange
+// BTC payment is BOTH likely to be late and guaranteed to be short, so
+// the two commonest properties of a real payment combined into the one
+// state the matcher refused to name.
+//
+// Late money still never auto-confirms — expiry means the rate may have
+// moved. It now surfaces as EXPIRED_NEAR, carrying the order, so a human
+// decides with the order in hand instead of an anonymous alert.
+
+test('an expired order inside the auto-accept ceiling is EXPIRED_NEAR, not NONE', () => {
+  const orders = [order('A', 'BTC', 0.00413711, { expiresAt: NOW - 4 * 60 * MIN })];
+  const r = findMatch(0.00409839, 'BTC', orders, NOW);
+  assert.strictEqual(r.type, 'EXPIRED_NEAR');
+  assert.strictEqual(r.order.orderId, 'A');
+  assert.strictEqual(r.difference, -0.00003872);
+});
+
+test('an expired order within the review tolerance is EXPIRED_NEAR', () => {
+  const orders = [order('A', 'USDT', 500.00, { expiresAt: NOW - 1 })];
+  const r = findMatch(480.00, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'EXPIRED_NEAR');
+  assert.strictEqual(r.order.orderId, 'A');
+  assert.strictEqual(r.difference, -20);
+});
+
+test('an expired order beyond the review tolerance is still NONE', () => {
+  const orders = [order('A', 'USDT', 500.00, { expiresAt: NOW - 1 })];
+  assert.strictEqual(findMatch(300.00, 'USDT', orders, NOW).type, 'NONE');
+});
+
+// An expired row must never outrank a live one, or a stale order could
+// swallow the payment for an order that is still open.
+test('an open order inside the ceiling wins over an expired one at the same amount', () => {
+  const orders = [
+    order('OLD', 'USDT', 512.73, { expiresAt: NOW - 1 }),
+    order('NEW', 'USDT', 512.73)
+  ];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AUTO_UNDER');
+  assert.strictEqual(r.order.orderId, 'NEW');
+});
+
+// Rule 1 is absolute: ambiguity is never matched, expired or not.
+test('two expired candidates are never resolved to one of them', () => {
+  const orders = [
+    order('A', 'USDT', 512.73, { expiresAt: NOW - 1 }),
+    order('B', 'USDT', 512.10, { expiresAt: NOW - 1 })
+  ];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.strictEqual(r.order, null);
+});
+
+test('an EXPIRED_NEAR overpayment carries a positive difference', () => {
+  const orders = [order('A', 'USDT', 512.73, { expiresAt: NOW - 1 })];
+  const r = findMatch(514.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'EXPIRED_NEAR');
+  assert.strictEqual(r.difference, 2);
+});
+
+// ── ambiguity is REPORTED, not silently discarded ────────────────────
+// Rule 1 still holds: a payment that could belong to more than one order is
+// NEVER auto-assigned. But reporting it as a bare NONE threw away the one
+// thing worth knowing - WHICH orders it might be.
+//
+// This is not a rare edge. The uniqueness tail spans at most 999 sat while
+// the auto-accept ceiling is 5000 sat, so any two orders for the same cart
+// sit inside each other's tolerance. Widening the tail cannot fix it: a
+// payment is ambiguous whenever two orders are within 2x the ceiling
+// ($8.42), and no tail small enough to hide in a price can guarantee that
+// gap. So the payment is surfaced with its candidates instead.
+
+test('two open orders inside the ceiling report AMBIGUOUS, not NONE', () => {
+  const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.10)];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.deepStrictEqual(r.candidates.map(o => o.orderId), ['A', 'B']);
+});
+
+test('an AMBIGUOUS result never names a single order', () => {
+  const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.10)];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.order, null);
+  assert.strictEqual(r.difference, null);
+});
+
+test('two expired candidates also report AMBIGUOUS with both orders', () => {
+  const orders = [
+    order('A', 'USDT', 512.73, { expiresAt: NOW - 1 }),
+    order('B', 'USDT', 512.10, { expiresAt: NOW - 1 })
+  ];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.deepStrictEqual(r.candidates.map(o => o.orderId), ['A', 'B']);
+});
+
+test('no candidate at all is still NONE, never AMBIGUOUS', () => {
+  const r = findMatch(999, 'USDT', [order('A', 'USDT', 100)], NOW);
+  assert.strictEqual(r.type, 'NONE');
+  assert.strictEqual(r.candidates, undefined);
+});
+
+test('a single candidate is unaffected and still auto-accepts', () => {
+  const r = findMatch(511.73, 'USDT', [order('A', 'USDT', 512.73)], NOW);
+  assert.strictEqual(r.type, 'AUTO_UNDER');
+});
+
+// The real shape: two customers order the same cart, one pays with the
+// ordinary exchange fee deducted.
+test('two same-cart BTC orders and a fee-deducted payment name both orders', () => {
+  const orders = [order('A', 'BTC', 0.00414095), order('B', 'BTC', 0.00414327)];
+  const r = findMatch(0.00412095, 'BTC', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.strictEqual(r.candidates.length, 2);
 });

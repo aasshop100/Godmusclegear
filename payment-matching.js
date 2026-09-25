@@ -21,7 +21,17 @@
 })(typeof window !== 'undefined' ? window : null, function () {
 
   const USDT_CONTRACT  = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-  const EXPIRY_MINUTES = 30;
+  // How long a quote stays open, per coin. This is DOCUMENTATION of what the
+  // Payment Addresses node on GMG - Create Order is set to (expiryMinutesUsdt /
+  // expiryMinutesBtc); that node is what actually stamps expiresAt. Keep them
+  // in step - a stale constant here is how the BTC ceiling went wrong in 2026-08.
+  //
+  // USDT settles in seconds on Tron and is a stablecoin, so it carries no rate
+  // risk and stays tight. BTC was 180 until 2026-09-25, which is shorter than
+  // Bitcoin's own worst-case path to the mempool: the customer's exchange
+  // batches the withdrawal before it is ever broadcast. A real payment landed
+  // 7h16m after the order, missed the window, and had to be closed by hand.
+  const EXPIRY_MINUTES = { USDT: 30, BTC: 720 };
 
   // Exchanges deduct their withdrawal fee FROM the amount sent, so a buyer who
   // types the quoted amount exactly underpays by that fee. Self-custody wallets
@@ -167,41 +177,77 @@
       return round(receivedAmount - Number(o.expectedAmount), coin);
     }
 
-    // Ambiguity is always reported as unmatched, at every band. Guessing would
-    // risk crediting one customer's payment to another customer's order.
-    function only(candidates) {
-      return candidates.length === 1 ? candidates[0] : null;
+    // Ambiguity is never AUTO-ASSIGNED, at any band - guessing would risk
+    // crediting one customer's payment to another customer's order. But it is
+    // no longer discarded either: reporting a bare NONE threw away the one
+    // thing worth knowing, which orders it might belong to.
+    //
+    // This is not a rare edge. The uniqueness tail spans at most 999 sat while
+    // the ceiling is 5000, so ANY two orders for the same cart sit inside each
+    // other's tolerance. Widening the tail cannot fix it: a payment is
+    // ambiguous whenever two orders are within 2x the ceiling, and no tail
+    // small enough to hide in a price can guarantee that gap. The only honest
+    // answer is to hand the candidates to a human.
+    function ambiguous(candidates) {
+      return { type: 'AMBIGUOUS', order: null, difference: null, candidates: candidates };
     }
 
     // 2. Inside the flat ceiling: confident enough to auto-accept as PAID.
     const ceiling = AUTO_ACCEPT_MAX[coin];
-    const autoHit = only(open.filter(function (o) {
+    const autoBand = open.filter(function (o) {
       return Math.abs(diffFor(o)) <= ceiling;
-    }));
-    if (autoHit) {
-      const difference = diffFor(autoHit);
+    });
+    if (autoBand.length > 1) return ambiguous(autoBand);
+    if (autoBand.length === 1) {
+      const difference = diffFor(autoBand[0]);
       return {
         type: difference < 0 ? 'AUTO_UNDER' : 'AUTO_OVER',
-        order: autoHit,
+        order: autoBand[0],
         difference: difference
       };
+    }
+
+    // Outside the ceiling, but proportionally close enough to name.
+    function inReviewBand(o) {
+      const expected = Number(o.expectedAmount);
+      return Math.abs(receivedAmount - expected) / expected <= REVIEW_TOLERANCE;
     }
 
     // 3. Outside the ceiling but still close enough to name: a human decides.
     //    Two orders inside the ceiling are necessarily inside this band too, so
     //    an ambiguous payment falls through to NONE rather than being attributed
     //    at lower confidence to whichever order happened to be nearest.
-    const nearHit = only(open.filter(function (o) {
-      const expected = Number(o.expectedAmount);
-      return Math.abs(receivedAmount - expected) / expected <= REVIEW_TOLERANCE;
-    }));
-    if (!nearHit) return none;
+    const nearOpen = open.filter(inReviewBand);
+    if (nearOpen.length > 1) return ambiguous(nearOpen);
+    if (nearOpen.length === 1) {
+      const difference = diffFor(nearOpen[0]);
+      return {
+        type: difference < 0 ? 'NEAR_UNDER' : 'NEAR_OVER',
+        order: nearOpen[0],
+        difference: difference
+      };
+    }
 
-    const difference = diffFor(nearHit);
+    // 4. Nothing open fits. An expired row may still be the right order.
+    //    An exchange payment is BOTH late (withdrawals are batched, and
+    //    Bitcoin confirmation is slow) and short (the fee comes out of the
+    //    amount sent), so the two commonest properties of real money used to
+    //    combine into an anonymous "no matching open order" alert while the
+    //    matcher was holding the order all along. Name it instead.
+    //
+    //    NEVER auto-accepted: past expiry the rate may have moved, so this is
+    //    always a human decision. Reported once, attached to the order.
+    const expiredBand = all.filter(function (o) {
+      return !isOpen(o, nowMs) && Number(o.expectedAmount) &&
+             (Math.abs(diffFor(o)) <= ceiling || inReviewBand(o));
+    });
+    if (expiredBand.length > 1) return ambiguous(expiredBand);
+    if (expiredBand.length === 0) return none;
+
     return {
-      type: difference < 0 ? 'NEAR_UNDER' : 'NEAR_OVER',
-      order: nearHit,
-      difference: difference
+      type: 'EXPIRED_NEAR',
+      order: expiredBand[0],
+      difference: diffFor(expiredBand[0])
     };
   }
 

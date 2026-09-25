@@ -37,7 +37,7 @@ payment errors are welcome side benefits, but they are not the driver.
 |---|---|---|
 | Coins | USDT (TRC-20) and BTC | The two actually used |
 | Order store | Google Sheet | Already the house pattern; hand-inspectable and hand-fixable, which matters when money is involved |
-| Quote expiry | 30 min USDT, 3 hours BTC | A customer exchange can sit on a BTC withdrawal for an hour before broadcasting it, so 30 minutes expired before the payment reached the network. USDT is a stablecoin settling in seconds, so it carries no rate risk and stays tight. Both values are editable on the n8n config node. |
+| Quote expiry | 30 min USDT, **12 hours BTC** (was 3h until 2026-09-25) | A customer exchange can sit on a BTC withdrawal for an hour before broadcasting it, so 30 minutes expired before the payment reached the network. USDT is a stablecoin settling in seconds, so it carries no rate risk and stays tight. Both values are editable on the n8n config node. |
 | BTC confirmation | 1 confirmation, with a mempool pre-stage | A payment seen in the mempool sets PAYMENT_SEEN and stops the expiry clock; only a confirmation sets PAID. Bitcoin can take hours to confirm, and without this every slow payment would confirm against an expired order and need manual review. |
 | USDT confirmation | On-chain arrival | TRC-20 finality is immediate |
 | Amount uniqueness | Randomised low-order digits | Enables matching without per-order wallets |
@@ -105,7 +105,7 @@ Receiving addresses, the Sheet ID, and API keys live in n8n configuration.
    - computes the payable amount and adjusts its low-order digits until the
      value is unique among all rows currently `AWAITING_PAYMENT` for that coin
    - writes the order row with `status = AWAITING_PAYMENT` and
-     `expiresAt = now + 30 minutes for USDT, 3 hours for BTC`
+     `expiresAt = now + 30 minutes for USDT, 12 hours for BTC`
    - returns `{ orderId, coin, address, expectedAmount, expiresAt }`
 4. The browser redirects to `order-success.html`, which renders the address, the
    exact amount, a QR code and a live countdown to expiry.
@@ -161,6 +161,22 @@ alerts.
 > reasoning: attribution is handled independently by the single-candidate check,
 > so treating over and under asymmetrically was guarding a case already covered.
 >
+> **Superseded again 2026-09-25 — late money now keeps its order.** This spec
+> gated every tolerance band behind "open", so an expired order could only be
+> matched by an EXACT amount. That is precisely the payment an exchange never
+> sends: the withdrawal is batched (late) and the fee comes out of the amount
+> sent (short). ORDER-1790270782250 hit it for real — 0.00409839 BTC against a
+> 0.00413711 quote, inside the ceiling, 4h16m past expiry — and was reported as
+> an anonymous "no matching open order". The matcher had the order and threw it
+> away. A new `EXPIRED_NEAR` outcome now names it and routes to `REVIEW`. Still
+> never auto-accepted: past expiry the rate may have moved, and the alert states
+> the payment in DOLLARS at the quoted rate because the rate move, not the
+> satoshi delta, is what the decision turns on.
+>
+> **Open orders still outrank expired ones**, and an ambiguous payment is still
+> never matched - reaching past the open orders to an expired row would break
+> rule 1, so it is explicitly refused.
+>
 > Two things below still hold exactly as written: **ambiguity is never guessed**,
 > and **nothing auto-ships**.
 
@@ -186,7 +202,8 @@ Every row here represents real money, so none of these may fail silently.
 | Situation | Behaviour |
 |---|---|
 | Amount matches an open, unexpired order | `status = PAID`, Telegram confirmation |
-| Amount matches an **expired** order | `status = REVIEW` + alert. Late money is never discarded |
+| Amount matches an **expired** order EXACTLY | `status = REVIEW` + alert. Late money is never discarded |
+| Amount is near-but-not-exact against an **expired** order | `EXPIRED_NEAR` -> `status = REVIEW` + alert naming the order, with the payment stated in dollars. Never auto-confirms. **Added 2026-09-25** |
 | Amount matches no open order | Unmatched-payment alert with tx hash and amount |
 | Amount is less than expected, within 2% of exactly one open order | `status = REVIEW` + alert naming that order and the shortfall. Never auto-confirms |
 | Amount is less than expected, no single candidate | Reported as an unmatched payment |
