@@ -177,22 +177,32 @@
       return round(receivedAmount - Number(o.expectedAmount), coin);
     }
 
-    // Ambiguity is always reported as unmatched, at every band. Guessing would
-    // risk crediting one customer's payment to another customer's order.
-    function only(candidates) {
-      return candidates.length === 1 ? candidates[0] : null;
+    // Ambiguity is never AUTO-ASSIGNED, at any band - guessing would risk
+    // crediting one customer's payment to another customer's order. But it is
+    // no longer discarded either: reporting a bare NONE threw away the one
+    // thing worth knowing, which orders it might belong to.
+    //
+    // This is not a rare edge. The uniqueness tail spans at most 999 sat while
+    // the ceiling is 5000, so ANY two orders for the same cart sit inside each
+    // other's tolerance. Widening the tail cannot fix it: a payment is
+    // ambiguous whenever two orders are within 2x the ceiling, and no tail
+    // small enough to hide in a price can guarantee that gap. The only honest
+    // answer is to hand the candidates to a human.
+    function ambiguous(candidates) {
+      return { type: 'AMBIGUOUS', order: null, difference: null, candidates: candidates };
     }
 
     // 2. Inside the flat ceiling: confident enough to auto-accept as PAID.
     const ceiling = AUTO_ACCEPT_MAX[coin];
-    const autoHit = only(open.filter(function (o) {
+    const autoBand = open.filter(function (o) {
       return Math.abs(diffFor(o)) <= ceiling;
-    }));
-    if (autoHit) {
-      const difference = diffFor(autoHit);
+    });
+    if (autoBand.length > 1) return ambiguous(autoBand);
+    if (autoBand.length === 1) {
+      const difference = diffFor(autoBand[0]);
       return {
         type: difference < 0 ? 'AUTO_UNDER' : 'AUTO_OVER',
-        order: autoHit,
+        order: autoBand[0],
         difference: difference
       };
     }
@@ -208,20 +218,15 @@
     //    an ambiguous payment falls through to NONE rather than being attributed
     //    at lower confidence to whichever order happened to be nearest.
     const nearOpen = open.filter(inReviewBand);
-    const nearHit  = only(nearOpen);
-    if (nearHit) {
-      const difference = diffFor(nearHit);
+    if (nearOpen.length > 1) return ambiguous(nearOpen);
+    if (nearOpen.length === 1) {
+      const difference = diffFor(nearOpen[0]);
       return {
         type: difference < 0 ? 'NEAR_UNDER' : 'NEAR_OVER',
-        order: nearHit,
+        order: nearOpen[0],
         difference: difference
       };
     }
-
-    // An open order was in the running but could not be told apart from
-    // another. Rule 1 outranks surfacing late money: never resolve an
-    // ambiguous payment by reaching past the open orders to an expired one.
-    if (nearOpen.length > 0) return none;
 
     // 4. Nothing open fits. An expired row may still be the right order.
     //    An exchange payment is BOTH late (withdrawals are batched, and
@@ -232,16 +237,17 @@
     //
     //    NEVER auto-accepted: past expiry the rate may have moved, so this is
     //    always a human decision. Reported once, attached to the order.
-    const expiredHit = only(all.filter(function (o) {
+    const expiredBand = all.filter(function (o) {
       return !isOpen(o, nowMs) && Number(o.expectedAmount) &&
              (Math.abs(diffFor(o)) <= ceiling || inReviewBand(o));
-    }));
-    if (!expiredHit) return none;
+    });
+    if (expiredBand.length > 1) return ambiguous(expiredBand);
+    if (expiredBand.length === 0) return none;
 
     return {
       type: 'EXPIRED_NEAR',
-      order: expiredHit,
-      difference: diffFor(expiredHit)
+      order: expiredBand[0],
+      difference: diffFor(expiredBand[0])
     };
   }
 

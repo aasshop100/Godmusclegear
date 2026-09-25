@@ -126,9 +126,13 @@ test('underpayment beyond tolerance is NONE', () => {
   assert.strictEqual(findMatch(400.00, 'USDT', orders, NOW).type, 'NONE');
 });
 
-test('two orders inside the ceiling is NONE, never the nearer one', () => {
+test('two orders inside the ceiling never picks the nearer one', () => {
   const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.80)];
-  assert.strictEqual(findMatch(511.90, 'USDT', orders, NOW).type, 'NONE');
+  const r = findMatch(511.90, 'USDT', orders, NOW);
+  // Was NONE until 2026-09-25. The invariant is that neither order is picked,
+  // not that the candidates are hidden from the alert.
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.strictEqual(r.order, null);
 });
 
 test('exact match wins even when another order is a near-match', () => {
@@ -322,8 +326,9 @@ test('the two ceilings are economically comparable at a plausible BTC price', ()
 test('two open orders inside the ceiling auto-accepts NEITHER', () => {
   const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 513.90)];
   const r = findMatch(511.50, 'USDT', orders, NOW);
-  assert.strictEqual(r.type, 'NONE');
+  assert.strictEqual(r.type, 'AMBIGUOUS');
   assert.strictEqual(r.order, null);
+  assert.notStrictEqual(r.type, 'AUTO_UNDER');
 });
 
 // One candidate in the tight band and a far-off second in the loose band is NOT
@@ -417,12 +422,14 @@ test('an open order inside the ceiling wins over an expired one at the same amou
 });
 
 // Rule 1 is absolute: ambiguity is never matched, expired or not.
-test('two expired candidates inside the ceiling stay NONE', () => {
+test('two expired candidates are never resolved to one of them', () => {
   const orders = [
     order('A', 'USDT', 512.73, { expiresAt: NOW - 1 }),
     order('B', 'USDT', 512.10, { expiresAt: NOW - 1 })
   ];
-  assert.strictEqual(findMatch(511.73, 'USDT', orders, NOW).type, 'NONE');
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.strictEqual(r.order, null);
 });
 
 test('an EXPIRED_NEAR overpayment carries a positive difference', () => {
@@ -430,4 +437,60 @@ test('an EXPIRED_NEAR overpayment carries a positive difference', () => {
   const r = findMatch(514.73, 'USDT', orders, NOW);
   assert.strictEqual(r.type, 'EXPIRED_NEAR');
   assert.strictEqual(r.difference, 2);
+});
+
+// ── ambiguity is REPORTED, not silently discarded ────────────────────
+// Rule 1 still holds: a payment that could belong to more than one order is
+// NEVER auto-assigned. But reporting it as a bare NONE threw away the one
+// thing worth knowing - WHICH orders it might be.
+//
+// This is not a rare edge. The uniqueness tail spans at most 999 sat while
+// the auto-accept ceiling is 5000 sat, so any two orders for the same cart
+// sit inside each other's tolerance. Widening the tail cannot fix it: a
+// payment is ambiguous whenever two orders are within 2x the ceiling
+// ($8.42), and no tail small enough to hide in a price can guarantee that
+// gap. So the payment is surfaced with its candidates instead.
+
+test('two open orders inside the ceiling report AMBIGUOUS, not NONE', () => {
+  const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.10)];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.deepStrictEqual(r.candidates.map(o => o.orderId), ['A', 'B']);
+});
+
+test('an AMBIGUOUS result never names a single order', () => {
+  const orders = [order('A', 'USDT', 512.73), order('B', 'USDT', 512.10)];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.order, null);
+  assert.strictEqual(r.difference, null);
+});
+
+test('two expired candidates also report AMBIGUOUS with both orders', () => {
+  const orders = [
+    order('A', 'USDT', 512.73, { expiresAt: NOW - 1 }),
+    order('B', 'USDT', 512.10, { expiresAt: NOW - 1 })
+  ];
+  const r = findMatch(511.73, 'USDT', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.deepStrictEqual(r.candidates.map(o => o.orderId), ['A', 'B']);
+});
+
+test('no candidate at all is still NONE, never AMBIGUOUS', () => {
+  const r = findMatch(999, 'USDT', [order('A', 'USDT', 100)], NOW);
+  assert.strictEqual(r.type, 'NONE');
+  assert.strictEqual(r.candidates, undefined);
+});
+
+test('a single candidate is unaffected and still auto-accepts', () => {
+  const r = findMatch(511.73, 'USDT', [order('A', 'USDT', 512.73)], NOW);
+  assert.strictEqual(r.type, 'AUTO_UNDER');
+});
+
+// The real shape: two customers order the same cart, one pays with the
+// ordinary exchange fee deducted.
+test('two same-cart BTC orders and a fee-deducted payment name both orders', () => {
+  const orders = [order('A', 'BTC', 0.00414095), order('B', 'BTC', 0.00414327)];
+  const r = findMatch(0.00412095, 'BTC', orders, NOW);
+  assert.strictEqual(r.type, 'AMBIGUOUS');
+  assert.strictEqual(r.candidates.length, 2);
 });
