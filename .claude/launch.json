@@ -4,7 +4,14 @@
     {
       "name": "gmg-static",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "http-server", ".", "-p", "8899", "-c-1"],
+      "runtimeArgs": [
+        "-y",
+        "http-server",
+        "./Desktop/PROJECTS/GODMUSCLEGEARS/Godmusclegear-main",
+        "-p",
+        "8899",
+        "-c-1"
+      ],
       "port": 8899
     }
   ]

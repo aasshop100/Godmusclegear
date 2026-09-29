@@ -258,6 +258,9 @@ function updateCart() {
 // ─────────────────────────────────────────────
 
 function addToCart(button) {
+  // Held products must not enter the cart even from a stale or hand-enabled button.
+  if (isHeld(button.dataset.id)) { markHeld(button); return; }
+
   const name  = button.dataset.name  || 'Unknown Item';
   const price = Number(button.dataset.price) || 0;
   const id    = button.dataset.id    || name.toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -861,6 +864,32 @@ const FEATURED_CATALOG = (function () {
 window.FEATURED_CATALOG = FEATURED_CATALOG;
 
 // ─────────────────────────────────────────────
+// MANUAL HOLD — products forced unbuyable regardless of sheet stock
+// ─────────────────────────────────────────────
+// Sheet stock alone cannot express "do not sell this yet". These ids stay disabled
+// even when the inventory feed reports plenty, and even when the feed fails entirely
+// (the catch in initInventorySync re-enables every other button). Remove an id from
+// this set to put the product back on sale — that is the only step required.
+//
+// xeno-proviron / xeno-clomiphene: held 2026-09-30. Their sheet formulas searched for
+// master names that do not exist ("XENO Proviron", "XENO Clomiphene"), so both returned
+// #N/A, which the sync treats as in-stock — they were sellable at zero stock. The
+// formulas are fixed and both now read 0, but the 25mg-vs-10mg mapping is unconfirmed,
+// so they are held rather than trusted.
+const HELD_PRODUCTS = new Set(['xeno-proviron', 'xeno-clomiphene']);
+window.HELD_PRODUCTS = HELD_PRODUCTS;
+
+const isHeld = id => HELD_PRODUCTS.has(String(id || '').trim().toLowerCase());
+
+// Stamp a button as held. Used everywhere a button's state is (re)decided.
+function markHeld(button) {
+  button.textContent = 'Out of Stock';
+  button.disabled    = true;
+  button.classList.remove('btn-primary', 'btn-warning');
+  button.classList.add('btn-secondary');
+}
+
+// ─────────────────────────────────────────────
 // FEATURED CAROUSEL — dynamic, in-stock only
 // ─────────────────────────────────────────────
 
@@ -871,12 +900,17 @@ function buildFeaturedCarousel(inventoryMap) {
 
   // Keep only products that are in stock (stock >= 20). Unknown stock = include.
   const available = FEATURED_CATALOG.filter(p => {
+    if (isHeld(p.id)) return false;
     const stock = inventoryMap[p.id.toLowerCase()];
     return stock == null || isNaN(stock) || stock >= 20;
   });
 
   // Fallback: if somehow everything is out of stock, use the full catalog
-  const pool = available.length >= 3 ? available : FEATURED_CATALOG;
+  // The fallback must respect the hold too, or an everything-out-of-stock day
+  // would put a held product straight into the carousel.
+  const pool = available.length >= 3
+    ? available
+    : FEATURED_CATALOG.filter(p => !isHeld(p.id));
 
   // Fisher-Yates shuffle for random picks every visit
   const shuffled = [...pool];
@@ -957,6 +991,13 @@ function initInventorySync() {
         const productId = button.dataset.id?.trim().toLowerCase();
         const stock     = inventoryMap[productId];
 
+        // Manual hold outranks the feed, in-stock or not.
+        if (isHeld(productId)) {
+          card.dataset.stockLevel = 0;
+          markHeld(button);
+          return;
+        }
+
         if (stock == null || isNaN(stock)) {
           button.textContent = 'Add to Cart';
           button.disabled    = false;
@@ -1019,6 +1060,7 @@ function initInventorySync() {
       console.error('❌ Error fetching inventory:', error);
       // Restore all buttons to default if fetch fails
       document.querySelectorAll('.add-to-cart').forEach(btn => {
+        if (isHeld(btn.dataset.id)) { markHeld(btn); return; }
         btn.innerHTML = 'Add to Cart';
         btn.disabled  = false;
         btn.classList.remove('btn-warning', 'btn-secondary');
