@@ -123,3 +123,11 @@ test('free shipping on an empty cart waives nothing', () => {
 test('every rate matches the agreed table', () => {
   assert.deepStrictEqual(BRAND_SHIPPING, { Beligas: 20, Sixpex: 25, Xeno: 25 });
 });
+
+test('product-page-template SHIPPING_RATES matches shipping.js for every brand', () => {
+  const { SHIPPING_RATES } = require('../product-page-template.js');
+  assert.deepStrictEqual(Object.keys(SHIPPING_RATES).sort(), Object.keys(BRAND_SHIPPING).sort());
+  for (const brand of Object.keys(BRAND_SHIPPING)) {
+    assert.strictEqual(SHIPPING_RATES[brand], BRAND_SHIPPING[brand], `${brand} rate drifted`);
+  }
+});

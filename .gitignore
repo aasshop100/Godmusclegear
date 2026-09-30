@@ -1,5 +1,8 @@
 .netlify/
 
+# Internal working notes (plans, reports). This repo is PUBLIC.
+.superpowers/
+
 # Service-account / admin-SDK private keys. This repo is PUBLIC and serves
 # GitHub Pages, so a key committed here is published permanently and must be
 # treated as compromised, not just deleted. Keys live outside the repo; these

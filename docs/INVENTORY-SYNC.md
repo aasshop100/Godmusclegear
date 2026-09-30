@@ -97,7 +97,7 @@ feed fails entirely. It is enforced at all four places above, plus a guard in
 **To put a product back on sale: delete its id from the set.** That is the only
 step.
 
-## Adding a product to the site — four parts, not two
+## Adding a product to the site — five parts, not two
 
 Miss any one and it fails quietly:
 
@@ -108,6 +108,8 @@ Miss any one and it fails quietly:
 4. **a row in the storefront sheet** whose `ID` matches `data-id` exactly
    (lowercased, trimmed), with a `Stock` formula reading the right column for
    that brand section
+5. **regenerate the product pages** — `node build-product-pages.js` — so the
+   new product gets its own shareable page and a sitemap entry
 
 **Do the sheet row first, or with the deploy.** A card whose id has no sheet row
 gets `undefined` stock — and fail-open makes it buyable regardless of reality.
@@ -119,6 +121,10 @@ Changing a `data-id` means changing it in **three** places:
 1. `products.html` `data-id`
 2. the sheet's `ID` column
 3. **the `MATCH` name inside that row's formula**
+
+Re-keying also changes the product's public page URL (`/p/<id>.html`), so any
+link already shared for the old id will 404. Re-run
+`node build-product-pages.js` afterwards.
 
 Part 3 was missed when `sixpex-primopex25` was re-keyed to `sixpex-primopex100`
 on 2026-08-26. Both products read 0, so the card silently mirrored the wrong

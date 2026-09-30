@@ -245,7 +245,10 @@
   }
 
   function buildHTML() {
-    var img = 'images/trtspecialist.png';
+    // Root-relative, not document-relative: this widget loads on pages at the
+    // site root, in /blog/ and in /p/. A relative path resolved to
+    // /blog/images/... and 404'd on every blog guide.
+    var img = '/images/trtspecialist.png';
 
     var btn = document.createElement('button');
     btn.id = 'gmg-chat-btn';
