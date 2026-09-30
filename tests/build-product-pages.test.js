@@ -38,7 +38,9 @@ test('leaves absolute, anchor, mailto and tel URLs alone', () => {
 
 test('sitemap keeps the existing URLs and adds one per product', () => {
   const existing = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
-  const before = (existing.match(/<loc>/g) || []).length;
+  // Count only the non-product URLs: once pages are generated, the live sitemap
+  // already holds /p/ entries, which buildSitemap replaces rather than keeps.
+  const before = (existing.match(/<loc>(?!https:\/\/godmusclegears\.com\/p\/)/g) || []).length;
   const out = buildSitemap(existing, ['aaa', 'bbb']);
   assert.ok(out.includes('<loc>https://godmusclegears.com/products.html</loc>'));
   assert.ok(out.includes('<loc>https://godmusclegears.com/p/aaa.html</loc>'));
