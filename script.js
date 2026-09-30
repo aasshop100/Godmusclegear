@@ -864,6 +864,93 @@ const FEATURED_CATALOG = (function () {
 window.FEATURED_CATALOG = FEATURED_CATALOG;
 
 // ─────────────────────────────────────────────
+// SHARE BUTTONS
+// ─────────────────────────────────────────────
+// navigator.share is the mobile path — it opens the OS sheet, which is how a
+// product reaches WhatsApp or Telegram. Desktop browsers mostly lack it, so
+// the fallback copies the link. Never disabled: sharing is not buying, so a
+// held or out-of-stock product stays shareable.
+
+function initShareButtons() {
+  const buttons = document.querySelectorAll('.share-btn');
+  if (!buttons.length) return;
+
+  async function copy(text) {
+    // navigator.clipboard needs a secure context; fall back for the rest.
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+
+  function flash(btn, message) {
+    const original = btn.dataset.originalLabel || btn.textContent;
+    btn.dataset.originalLabel = original;
+    btn.textContent = message;
+    setTimeout(() => { btn.textContent = btn.dataset.originalLabel; }, 1800);
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const url = btn.dataset.shareUrl;
+      const title = btn.dataset.shareTitle || 'GOD MUSCLE GEARS';
+      if (!url) return;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title, text: title, url });
+          return;
+        } catch (err) {
+          // AbortError means the user dismissed the sheet — not a failure,
+          // and copying afterwards would be surprising.
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+
+      try {
+        await copy(url);
+        flash(btn, 'Link copied');
+      } catch (err) {
+        console.error('Share failed:', err);
+        flash(btn, 'Copy failed');
+      }
+    });
+  });
+}
+
+// A generated product page bakes the price into its HTML so crawlers and
+// no-JS visitors see one. That copy goes stale the moment a price changes
+// and the pages are not regenerated, so refresh it from FEATURED_CATALOG —
+// the same source the cart charges from. Baked value is only a fallback.
+
+function refreshPrices() {
+  const targets = document.querySelectorAll('[data-price-for]');
+  if (!targets.length) return;
+
+  const prices = {};
+  FEATURED_CATALOG.forEach(p => { prices[p.id.toLowerCase()] = p.price; });
+
+  targets.forEach(el => {
+    const price = prices[(el.dataset.priceFor || '').trim().toLowerCase()];
+    if (typeof price !== 'number') return;
+    el.textContent = '$' + price.toFixed(2);
+
+    // Keep the buy button in step, or the cart would charge the baked price.
+    const button = el.closest('.card')?.querySelector('.add-to-cart');
+    if (button) button.dataset.price = price.toFixed(2);
+  });
+}
+
+// ─────────────────────────────────────────────
 // MANUAL HOLD — products forced unbuyable regardless of sheet stock
 // ─────────────────────────────────────────────
 // Sheet stock alone cannot express "do not sell this yet". These ids stay disabled
@@ -1367,6 +1454,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.replaceWith(fresh);
     fresh.addEventListener('click', function () { addToCart(this); });
   });
+
+  initShareButtons();
+  refreshPrices();
 
   // Page-specific initialisation
   if (document.getElementById('cart-items'))     updateCart();
