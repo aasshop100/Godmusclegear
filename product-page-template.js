@@ -87,11 +87,12 @@ function renderProductPage(product, chrome) {
 <meta name="description" content="${escapeHtml(desc)}"/>
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="${escapeHtml(url)}"/>
-<meta property="og:type" content="product"/>
+<meta property="og:type" content="website"/>
 <meta property="og:site_name" content="GOD MUSCLE GEARS"/>
 <meta property="og:title" content="${escapeHtml(title)} — ${escapeHtml(brand)}"/>
 <meta property="og:description" content="${escapeHtml(desc)}"/>
 <meta property="og:image" content="${escapeHtml(imageUrl)}"/>
+<meta property="og:image:alt" content="${escapeHtml(title)}"/>
 <meta property="og:url" content="${escapeHtml(url)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="${escapeHtml(title)} — ${escapeHtml(brand)}"/>
