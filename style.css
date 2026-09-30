@@ -731,6 +731,34 @@ img { max-width: 100%; display: block; }
   background: var(--orange) !important;
 }
 
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: 0.75rem;
+}
+
+.price-row .fw-bold { margin-bottom: 0; }
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  padding: .3rem .45rem;
+  background: transparent;
+  border: 1px solid var(--grey, #6b7280);
+  border-radius: 6px;
+  color: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.share-btn:hover, .share-btn:focus-visible, .share-btn--done {
+  color: var(--orange, #ff4500);
+  border-color: var(--orange, #ff4500);
+}
+
 .card .btn.btn-warning  { background: #f59e0b !important; }
 .card .btn.btn-secondary { background: var(--grey) !important; }
 

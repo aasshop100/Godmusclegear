@@ -17,6 +17,14 @@ function guideFor(title) {
   return hit ? hit.guide : null;
 }
 
+// The catalog's data-type is only ever Injectable or Oral, so peptides are
+// identified by name, the same way guideFor identifies guides.
+const PEPTIDE_PATTERN = /bpc|tb-?500|ipamorelin|sermorelin|tesamorelin|semax|selank|epitalon|igf|ghk|hgh|somatrop|semaglutide|tirzepatide|retatrutide|mazdutide|cagrilintide|hcg|gonadopex|pt-?141|hexarelin|melanotan|mots|nad\+/i;
+
+function isPeptideProduct(title) {
+  return PEPTIDE_PATTERN.test(String(title || ''));
+}
+
 function decodeEntities(s) {
   return String(s)
     .replace(/&amp;/g, '&')
@@ -95,4 +103,4 @@ function checkPriceParity(html, scriptJs) {
   return { ok: problems.length === 0, problems };
 }
 
-module.exports = { parseProducts, guideFor, checkPriceParity, GUIDE_PATTERNS, decodeEntities };
+module.exports = { parseProducts, guideFor, isPeptideProduct, checkPriceParity, GUIDE_PATTERNS, decodeEntities };

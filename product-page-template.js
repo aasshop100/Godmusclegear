@@ -1,7 +1,7 @@
 // Build-time only. Renders one product page. Pure: no fs, no DOM.
 // Excluded from the published site.
 
-const { guideFor } = require('./product-data.js');
+const { guideFor, isPeptideProduct } = require('./product-data.js');
 
 const BASE = 'https://godmusclegears.com';
 
@@ -37,7 +37,7 @@ function renderProductPage(product, chrome) {
   const desc = metaDescription(description);
   const rate = SHIPPING_RATES[brand] || 25;
   const guide = guideFor(title);
-  const isPeptide = String(type).toLowerCase() === 'peptide';
+  const isPeptide = isPeptideProduct(title);
 
   // An unescaped "</script>" inside any string would terminate the JSON-LD
   // block early and inject live markup. Escaping "<" makes that impossible
@@ -90,6 +90,20 @@ function renderProductPage(product, chrome) {
 <meta name="twitter:image" content="${imageUrl}"/>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <link href="/style.css" rel="stylesheet"/>
+<link href="/images/logo.png" rel="icon" type="image/png"/>
+<!-- Google Analytics — loads only after cookie consent -->
+<script>
+  if (localStorage.getItem('cookieConsent') === 'accepted') {
+    var _ga = document.createElement('script');
+    _ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-23E1P2PH58';
+    _ga.async = true;
+    document.head.appendChild(_ga);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-23E1P2PH58');
+  }
+</script>
 <script type="application/ld+json">
 ${jsonLd}
 </script>
@@ -105,9 +119,11 @@ ${chrome.nav}
 <div class="card-body">
 <h1 class="card-title h3">${escapeHtml(title)}</h1>
 <p class="card-text">${escapeHtml(description)}</p>
+<div class="price-row">
 <span class="fw-bold" data-price-for="${escapeHtml(domId)}">$${price.toFixed(2)}</span>
+<button type="button" class="share-btn" data-share-url="${url}" data-share-title="${escapeHtml(title)}" aria-label="Share ${escapeHtml(title)}" title="Copy link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+</div>
 <button class="add-to-cart" data-id="${escapeHtml(domId)}" data-image="${escapeHtml(image)}" data-name="${escapeHtml(cartName)}" data-price="${price.toFixed(2)}">Add to Cart</button>
-<button type="button" class="share-btn btn btn-outline-secondary btn-sm ms-2" data-share-url="${url}" data-share-title="${escapeHtml(title)}" aria-label="Share ${escapeHtml(title)}">Share</button>
 </div>
 </div>
 </div>

@@ -893,6 +893,27 @@ function initShareButtons() {
   }
 
   function flash(btn, message) {
+    // An icon-only button holds an <svg>; replacing textContent would destroy
+    // it. Only swap text on a plain-text button. Otherwise signal through
+    // title/aria-label and a CSS class, then restore.
+    if (btn.children.length) {
+      if (btn.dataset.originalTitle === undefined) {
+        btn.dataset.originalTitle = btn.getAttribute('title') || '';
+        btn.dataset.originalAria = btn.getAttribute('aria-label') || '';
+      }
+      clearTimeout(btn._flashTimer);
+      btn.setAttribute('title', message);
+      btn.setAttribute('aria-label', message);
+      btn.classList.add('share-btn--done');
+      btn._flashTimer = setTimeout(() => {
+        btn.setAttribute('title', btn.dataset.originalTitle);
+        btn.setAttribute('aria-label', btn.dataset.originalAria);
+        btn.classList.remove('share-btn--done');
+        delete btn.dataset.originalTitle;
+        delete btn.dataset.originalAria;
+      }, 1800);
+      return;
+    }
     const original = btn.dataset.originalLabel || btn.textContent;
     btn.dataset.originalLabel = original;
     btn.textContent = message;

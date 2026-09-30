@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { parseProducts, guideFor, checkPriceParity, GUIDE_PATTERNS } = require('../product-data.js');
+const { parseProducts, guideFor, isPeptideProduct, checkPriceParity, GUIDE_PATTERNS } = require('../product-data.js');
 
 const ROOT = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'products.html'), 'utf8');
@@ -97,4 +97,13 @@ test('checkPriceParity reports a deliberately broken price', () => {
   const { ok, problems } = checkPriceParity(broken, scriptJs);
   assert.equal(ok, false);
   assert.ok(problems.some(p => p.includes('sustanon400mg')));
+});
+
+test('isPeptideProduct matches exactly the 13 real peptide products', () => {
+  const ids = parseProducts(html).filter(p => isPeptideProduct(p.title)).map(p => p.id).sort();
+  const expected = ['sixpex-hcg5000','sixpex-hgh100','sixpex-bpc157','sixpex-igf1-lr3-01','sixpex-ipamorelin','sixpex-semaglutide','sixpex-sermorelin','sixpex-tb500','xeno-semaglutide','xeno-epitalon','xeno-bpc-15710mg','xeno-semax','xeno-hcg'].sort();
+  assert.deepEqual(ids, expected);
+  assert.equal(ids.length, 13);
+  assert.equal(isPeptideProduct('Testosterone Cypionate, 250mg'), false);
+  assert.equal(isPeptideProduct(undefined), false);
 });

@@ -122,10 +122,30 @@ test('links to the matching guide, and omits the link when there is none', () =>
   assert.ok(!none.includes('/blog/'));
 });
 
-test('shows the peptide calculator link only for peptides', () => {
-  assert.ok(!renderProductPage(PRODUCT, CHROME).includes('peptide-calculator.html'));
-  const pep = renderProductPage({ ...PRODUCT, type: 'Peptide' }, CHROME);
-  assert.ok(pep.includes('/peptide-calculator.html'));
+// The real catalog's data-type is only Injectable or Oral, so the link is
+// keyed off the product name. Fixtures use real-shaped types.
+test('shows the peptide calculator link in main only for peptides', () => {
+  const main = html => html.slice(html.indexOf('<main'), html.indexOf('</main>'));
+  assert.ok(!main(renderProductPage(PRODUCT, CHROME)).includes('peptide-calculator.html'));
+  const pep = renderProductPage({ ...PRODUCT, title: 'BPC-157, 5mg', type: 'Injectable' }, CHROME);
+  assert.ok(main(pep).includes('/peptide-calculator.html'));
+});
+
+test('share button is icon-only with an inline svg and no bootstrap btn classes', () => {
+  const out = renderProductPage(PRODUCT, CHROME);
+  const btn = out.match(/<button type="button" class="share-btn"[^>]*>[\s\S]*?<\/button>/)[0];
+  assert.ok(btn.includes('<svg') && btn.includes('aria-hidden="true"') && btn.includes('focusable="false"'));
+  assert.ok(btn.includes('title="Copy link"'));
+  assert.ok(!/class="(?:[^"]* )?btn[ "]/.test(btn));
+  assert.ok(!/>\s*Share\s*</.test(btn));
+  assert.ok(/<div class="price-row">[\s\S]*data-price-for[\s\S]*share-btn[\s\S]*<\/div>/.test(out));
+});
+
+test('head has the favicon and the consent-gated analytics block', () => {
+  const out = renderProductPage(PRODUCT, CHROME);
+  assert.ok(out.includes('<link href="/images/logo.png" rel="icon" type="image/png"/>'));
+  assert.ok(out.includes("localStorage.getItem('cookieConsent') === 'accepted'"));
+  assert.ok(out.includes('G-23E1P2PH58'));
 });
 
 test('share button is present, enabled, and carries the absolute URL', () => {
