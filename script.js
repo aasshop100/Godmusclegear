@@ -933,7 +933,10 @@ function initShareButtons() {
 
       if (navigator.share) {
         try {
-          await navigator.share({ title, text: title, url });
+          // No `text`: iOS concatenates text and url, so passing the product
+          // name made "Copy" paste "<name> <url>" instead of just the link.
+          // `title` still labels the share sheet without entering the payload.
+          await navigator.share({ title, url });
           return;
         } catch (err) {
           // AbortError means the user dismissed the sheet — not a failure,
