@@ -888,8 +888,13 @@ function initShareButtons() {
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } finally {
+      document.body.removeChild(ta);
+    }
+    if (!ok) throw new Error('execCommand copy failed');
   }
 
   function flash(btn, message) {

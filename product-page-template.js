@@ -30,7 +30,7 @@ function metaDescription(s) {
 // The single definition of the share icon button. Used by the product page
 // template and by the products.html card editing script.
 function shareButtonHtml({ url, title }) {
-  return `<button type="button" class="share-btn" data-share-url="${url}" data-share-title="${escapeHtml(title)}" aria-label="Share ${escapeHtml(title)}" title="Copy link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>`;
+  return `<button type="button" class="share-btn" data-share-url="${escapeHtml(url)}" data-share-title="${escapeHtml(title)}" aria-label="Share ${escapeHtml(title)}" title="Copy link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>`;
 }
 
 function renderProductPage(product, chrome) {
@@ -64,7 +64,8 @@ function renderProductPage(product, chrome) {
       price: price.toFixed(2),
       priceCurrency: 'USD',
       url,
-      availability: 'https://schema.org/InStock',
+      // availability is deliberately omitted: stock is only known at runtime
+      // (fetched from the sheet), so the build cannot state it truthfully.
     },
   });
 
@@ -83,17 +84,17 @@ function renderProductPage(product, chrome) {
 <title>${escapeHtml(title)} — ${escapeHtml(brand)} | GOD MUSCLE GEARS</title>
 <meta name="description" content="${escapeHtml(desc)}"/>
 <meta name="robots" content="index, follow"/>
-<link rel="canonical" href="${url}"/>
+<link rel="canonical" href="${escapeHtml(url)}"/>
 <meta property="og:type" content="product"/>
 <meta property="og:site_name" content="GOD MUSCLE GEARS"/>
 <meta property="og:title" content="${escapeHtml(title)} — ${escapeHtml(brand)}"/>
 <meta property="og:description" content="${escapeHtml(desc)}"/>
-<meta property="og:image" content="${imageUrl}"/>
-<meta property="og:url" content="${url}"/>
+<meta property="og:image" content="${escapeHtml(imageUrl)}"/>
+<meta property="og:url" content="${escapeHtml(url)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="${escapeHtml(title)} — ${escapeHtml(brand)}"/>
 <meta name="twitter:description" content="${escapeHtml(desc)}"/>
-<meta name="twitter:image" content="${imageUrl}"/>
+<meta name="twitter:image" content="${escapeHtml(imageUrl)}"/>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <link href="/style.css" rel="stylesheet"/>
 <link href="/images/logo.png" rel="icon" type="image/png"/>
@@ -121,7 +122,7 @@ ${chrome.nav}
 <div class="row g-4">
 <div class="col-12 col-md-6">
 <div class="card" data-brand="${escapeHtml(brand)}" data-type="${escapeHtml(type)}">
-<img alt="${escapeHtml(title)}" class="card-img-top" src="/${String(image).replace(/^\/+/, '')}"/>
+<img alt="${escapeHtml(title)}" class="card-img-top" src="/${escapeHtml(String(image).replace(/^\/+/, ''))}"/>
 <div class="card-body">
 <h1 class="card-title h3">${escapeHtml(title)}</h1>
 <p class="card-text">${escapeHtml(description)}</p>

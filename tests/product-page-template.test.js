@@ -168,3 +168,28 @@ test('output is a complete document', () => {
   assert.ok(out.startsWith('<!DOCTYPE html>'));
   assert.ok(out.trimEnd().endsWith('</html>'));
 });
+
+const LD_RE = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/;
+
+test('JSON-LD offers has no availability field, but keeps price, currency and url', () => {
+  const out = renderProductPage(PRODUCT, CHROME);
+  const offers = JSON.parse(LD_RE.exec(out)[1]).offers;
+  assert.ok(!('availability' in offers), 'availability must not be stated at build time');
+  assert.ok(!out.includes('schema.org/InStock'));
+  assert.equal(offers.price, '63.84');
+  assert.equal(offers.priceCurrency, 'USD');
+  assert.ok(offers.url.endsWith('/p/testc250mg.html'));
+});
+
+test('an image filename containing a double quote cannot break out of an attribute', () => {
+  const evil = { ...PRODUCT, image: 'images/a"onerror="alert(1).jpg' };
+  const out = renderProductPage(evil, CHROME);
+  // The raw quote-breakout sequence must not appear anywhere in the markup.
+  const markup = out.replace(LD_RE, '');
+  assert.ok(!markup.includes('a"onerror='), 'unescaped quote reached the markup');
+  assert.ok(markup.includes('images/a&quot;onerror=&quot;alert(1).jpg'));
+  // JSON-LD keeps the raw value (JSON.stringify escapes it), never HTML entities.
+  const ld = JSON.parse(LD_RE.exec(out)[1]);
+  assert.ok(ld.image.endsWith('images/a"onerror="alert(1).jpg'));
+  assert.ok(!LD_RE.exec(out)[1].includes('&quot;'));
+});
