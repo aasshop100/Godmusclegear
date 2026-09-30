@@ -759,6 +759,20 @@ img { max-width: 100%; display: block; }
   border-color: var(--orange, #ff4500);
 }
 
+/* Links on generated product pages. Without this they inherit the body colour
+   with no underline, so they read as plain text and nobody clicks them. */
+.product-link {
+  color: var(--orange, #ff4500);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.product-link:hover, .product-link:focus-visible {
+  color: var(--black, #111);
+  text-decoration-thickness: 2px;
+}
+
 .card .btn.btn-warning  { background: #f59e0b !important; }
 .card .btn.btn-secondary { background: var(--grey) !important; }
 

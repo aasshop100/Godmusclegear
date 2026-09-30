@@ -69,11 +69,13 @@ function renderProductPage(product, chrome) {
     },
   });
 
+  // .product-link is what makes these read as links. Without it they inherit the
+  // body colour with no underline and are indistinguishable from plain text.
   const guideLink = guide
-    ? `<p class="mt-3"><a href="/${guide}">Read the ${escapeHtml(title)} guide</a></p>`
+    ? `<p class="mt-3"><a class="product-link" href="/${guide}">Read the ${escapeHtml(title)} guide &rarr;</a></p>`
     : '';
   const calcLink = isPeptide
-    ? `<p class="mt-2"><a href="/peptide-calculator.html">Work out your dose with the peptide calculator</a></p>`
+    ? `<p class="mt-2"><a class="product-link" href="/peptide-calculator.html">Work out your dose with the peptide calculator &rarr;</a></p>`
     : '';
 
   return `<!DOCTYPE html>
@@ -118,7 +120,7 @@ ${jsonLd}
 <body>
 ${chrome.nav}
 <main class="container py-4">
-<nav aria-label="Breadcrumb" class="mb-3"><a href="/products.html">&larr; All products</a></nav>
+<nav aria-label="Breadcrumb" class="mb-3"><a class="product-link" href="/products.html">&larr; All products</a></nav>
 <div class="row g-4">
 <div class="col-12 col-md-6">
 <div class="card" data-brand="${escapeHtml(brand)}" data-type="${escapeHtml(type)}">
