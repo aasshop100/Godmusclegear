@@ -31,6 +31,12 @@ exclude:
   - payment-matching.js
   - chain-parsing.js
 
+  # Build tooling for the per-product pages under p/. p/ itself is the
+  # published output and must NEVER be excluded.
+  - product-data.js
+  - product-page-template.js
+  - build-product-pages.js
+
   # Test suite - states every tolerance and its boundary explicitly
   - tests/
 

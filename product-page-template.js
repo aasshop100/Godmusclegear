@@ -27,6 +27,12 @@ function metaDescription(s) {
   return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
+// The single definition of the share icon button. Used by the product page
+// template and by the products.html card editing script.
+function shareButtonHtml({ url, title }) {
+  return `<button type="button" class="share-btn" data-share-url="${url}" data-share-title="${escapeHtml(title)}" aria-label="Share ${escapeHtml(title)}" title="Copy link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>`;
+}
+
 function renderProductPage(product, chrome) {
   // id is lowercase and used for the URL. domId keeps the exact casing of the
   // products.html grid card and is used for markup: addToCart dedupes on an
@@ -121,7 +127,7 @@ ${chrome.nav}
 <p class="card-text">${escapeHtml(description)}</p>
 <div class="price-row">
 <span class="fw-bold" data-price-for="${escapeHtml(domId)}">$${price.toFixed(2)}</span>
-<button type="button" class="share-btn" data-share-url="${url}" data-share-title="${escapeHtml(title)}" aria-label="Share ${escapeHtml(title)}" title="Copy link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+${shareButtonHtml({ url, title })}
 </div>
 <button class="add-to-cart" data-id="${escapeHtml(domId)}" data-image="${escapeHtml(image)}" data-name="${escapeHtml(cartName)}" data-price="${price.toFixed(2)}">Add to Cart</button>
 </div>
@@ -149,4 +155,4 @@ ${chrome.scripts}
 `;
 }
 
-module.exports = { renderProductPage, escapeHtml, metaDescription, SHIPPING_RATES, BASE };
+module.exports = { renderProductPage, shareButtonHtml, escapeHtml, metaDescription, SHIPPING_RATES, BASE };
