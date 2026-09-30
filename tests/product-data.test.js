@@ -50,6 +50,25 @@ test('ids are already lowercase and trimmed', () => {
   }
 });
 
+test('every domId lowercased equals its id', () => {
+  for (const p of parseProducts(html)) {
+    assert.equal(typeof p.domId, 'string', `${p.id} has no domId`);
+    assert.equal(p.domId.toLowerCase(), p.id);
+  }
+});
+
+test('every domId appears verbatim in products.html as data-id', () => {
+  for (const p of parseProducts(html)) {
+    assert.ok(html.includes(`data-id="${p.domId}"`), `data-id="${p.domId}" not found verbatim in products.html`);
+  }
+});
+
+test('regression guard: mixed-case data-id keeps its case in domId so cart lines dedupe', () => {
+  const p = parseProducts(html).find(x => x.id === 'dhb1testc100mg');
+  assert.ok(p, 'dhb1testc100mg product not found');
+  assert.equal(p.domId, 'dhb1TestC100mg');
+});
+
 test('guideFor maps known products to guides', () => {
   assert.equal(guideFor('Anavar, 50mg'), 'blog/anavar-guide.html');
   assert.equal(guideFor('SIXPEX BPC-157 5mg'), 'blog/bpc157-complete-guide.html');

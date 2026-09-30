@@ -50,7 +50,11 @@ function parseProducts(html) {
     if (!btn || !brandType || !title || !desc) continue;
 
     products.push({
+      // id is for URLs and filenames (always lowercase). domId must match the
+      // data-id in products.html exactly, because addToCart dedupes cart lines
+      // case-sensitively; a case mismatch would split one product into two lines.
       id: btn[1].trim().toLowerCase(),
+      domId: btn[1].trim(),
       image: img ? img[1] : btn[2],
       cartName: collapse(btn[3]),
       price: Number(btn[4]),
