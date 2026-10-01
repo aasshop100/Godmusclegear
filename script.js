@@ -729,10 +729,10 @@ const FEATURED_CATALOG = (function () {
     ['npp100mg',                   'Npp, 100mg (1 vial)',                        58.65, 'images/npp100mg.jpg',                   'Beligas', 'Injectable'],
     ['npp150mg',                   'Npp, 150mg (1 vial)',                        75.90, 'images/npp150mg.jpg',                   'Beligas', 'Injectable'],
     ['hexotren100mg',              'Hexo Trenbolone, 100mg',                    120.75, 'images/hexotren100mg.jpg',              'Beligas', 'Injectable'],
-    ['testc200mg',                 'Testosterone Cypionate, 200mg (1 vial)',     62.10, 'images/testc200mg.png',                 'Beligas', 'Injectable'],
-    ['teste300mg',                 'Testosterone Enanthate, 300mg (1 vial)',     65.55, 'images/teste300mg.png',                 'Beligas', 'Injectable'],
+    ['testc200mg',                 'Testosterone Cypionate, 200mg (1 vial)',     62.10, 'images/testc200mg.jpg',                 'Beligas', 'Injectable'],
+    ['teste300mg',                 'Testosterone Enanthate, 300mg (1 vial)',     65.55, 'images/teste300mg.jpg',                 'Beligas', 'Injectable'],
     ['testnpp1500mg',              'Testosterone NPP Blend, 150mg (1 vial)',     86.25, 'images/testnpp1500mg.jpg',              'Beligas', 'Injectable'],
-    ['testp100mg',                 'Testosterone Propionate, 100mg (1 vial)',    48.30, 'images/testp100mg.png',                 'Beligas', 'Injectable'],
+    ['testp100mg',                 'Testosterone Propionate, 100mg (1 vial)',    48.30, 'images/testp100mg.jpg',                 'Beligas', 'Injectable'],
     ['testsuspension100mg',        'Testosterone Suspension, 100mg (1 vial)',    51.75, 'images/testsuspension100mg.jpg',        'Beligas', 'Injectable'],
     ['testtrenboldblend400mg',     'Test Tren Bold Blend, 400mg (1 vial)',      162.15, 'images/testtrenboldblend400mg.jpg',     'Beligas', 'Injectable'],
     ['testtrenlong300mg',          'Test Tren Long, 300mg (1 vial)',            138.00, 'images/testtrenlong300mg.jpg',          'Beligas', 'Injectable'],
@@ -1221,7 +1221,7 @@ function initPromoCode() {
     id: 'free-testc200mg',
     name: 'Testosterone Cypionate, 200mg (1 vial)',
     price: 0.00,
-    image: 'images/testc200mg.png',
+    image: 'images/testc200mg.jpg',
     quantity: 1,
     brand: 'Beligas'
   };
