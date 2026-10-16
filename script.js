@@ -35,7 +35,7 @@ const MAINTENANCE_MESSAGE = 'We are upgrading our order system. Browsing is open
   const onCheckout = /checkout\.html$/i.test(location.pathname);
 
   document.addEventListener('DOMContentLoaded', function () {
-    const telegram = '<a href="https://t.me/Godmusclegears" style="color:#fff; text-decoration:underline; font-weight:700;">order via Telegram</a>';
+    const telegram = '<a href="https://t.me/Godmusclegear" style="color:#fff; text-decoration:underline; font-weight:700;">order via Telegram</a>';
 
     // Banner on every page, so nobody reaches checkout surprised.
     const bar = document.createElement('div');
@@ -71,7 +71,7 @@ const MAINTENANCE_MESSAGE = 'We are upgrading our order system. Browsing is open
     notice.innerHTML = '<strong>Checkout is temporarily paused</strong><br>'
       + 'We are upgrading our order system and expect to be back within an hour or two. '
       + 'Your cart is saved. To order right now, message us on '
-      + '<a href="https://t.me/Godmusclegears" style="color:#0088cc; font-weight:700;">Telegram @Godmusclegears</a> '
+      + '<a href="https://t.me/Godmusclegear" style="color:#0088cc; font-weight:700;">Telegram @Godmusclegear</a> '
       + 'and we will take care of it personally.';
     if (btn && btn.parentElement) {
       btn.parentElement.insertBefore(notice, btn);

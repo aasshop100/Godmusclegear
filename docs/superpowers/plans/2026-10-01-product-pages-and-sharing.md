@@ -820,7 +820,7 @@ test('rewrites document-relative URLs to root-relative', () => {
 
 test('leaves absolute, anchor, mailto and tel URLs alone', () => {
   const untouched = [
-    '<a href="https://t.me/Godmusclegears">',
+    '<a href="https://t.me/Godmusclegear">',
     '<a href="//cdn.example.com/x.js">',
     '<a href="#top">',
     '<a href="mailto:admin@example.com">',

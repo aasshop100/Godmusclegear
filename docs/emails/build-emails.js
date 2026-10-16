@@ -167,7 +167,7 @@ const customerHtml =
   + paymentBlock
   + '<p style="margin-top:25px;">If you have any questions, reply directly to this email.<br>We appreciate your trust and support!</p>'
   + '<p><strong>GOD MUSCLE GEARS</strong></p>'
-  + '<p style="margin-top:20px;"><a href="https://t.me/Godmusclegears" style="background-color:#0088cc; color:#ffffff; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:bold; display:inline-block;">Chat with us on Telegram</a></p>'
+  + '<p style="margin-top:20px;"><a href="https://t.me/Godmusclegear" style="background-color:#0088cc; color:#ffffff; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:bold; display:inline-block;">Chat with us on Telegram</a></p>'
   + '</div>';
 
 // ── owner email ──────────────────────────────────────────────────────
