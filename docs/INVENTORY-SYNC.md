@@ -29,6 +29,48 @@ distinct failure has collapsed into the same thing: a non-number.
 destroys that row's link to the master permanently. To change stock, the master
 changes — not this sheet.
 
+### The storefront sheet holds the whole business now (2026-10-16)
+
+It is no longer an inventory-only file. The order and daily-post tabs were
+merged into it so there is **one spreadsheet to check** instead of three:
+
+```
+Sheet1              ← the inventory mirror. MUST STAY FIRST (index 0).
+Stock View
+Not On Website
+Sheet1 BACKUP …     ← two dated snapshots
+Orders              ← moved in from the old GMG Orders file
+processed_tx        ← moved in from the old GMG Orders file
+GMG_Daily_Posts     ← moved in from the old daily-post file
+```
+
+**This file was chosen as the host for one reason: the Apps Script web app is
+container-bound to it.** Move `Sheet1` out and the storefront's stock feed dies
+until the script is repointed *and redeployed* — a new `/exec` URL, which means
+editing `script.js` and deploying the site. Moving the other tabs *in* costs
+nothing. If this is ever revisited, the host is whichever file the Apps Script
+is bound to.
+
+**The feed targets its tab by name, not by position.** Verified 2026-10-16 by
+parking an empty tab at index 0 for two seconds: the feed kept serving all 134
+inventory rows. That is what makes it safe for customer order data to sit in
+the same container as a web app published to "anyone" — a *positional* script
+would have served the `Orders` tab, names and addresses included, to the open
+internet.
+
+Two consequences worth keeping in mind:
+
+- **Never rename `Sheet1`**, and never add a second tab called `Sheet1`. The
+  script finds its data by that name.
+- **Re-check the feed after any change to the tab layout.** It should return 134
+  rows whose keys are exactly `ID`, `Stock`, `Master Product Name`,
+  `Website Name`, `Brand Section`, `Master Row` — and no order fields. If an
+  order field ever appears there, stop and treat it as a data leak.
+
+The n8n workflows reach this file as a **service account**, which needs Editor
+access on it. Reads and writes both fail silently-ish without that — the
+workflow errors rather than corrupting anything, but nothing gets written.
+
 ### Two column layouts, both correct
 
 The master is not uniform, and a formula has to read the right column for its

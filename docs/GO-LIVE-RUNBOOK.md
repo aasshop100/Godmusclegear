@@ -14,6 +14,21 @@ customers can reach has changed — unpublish the workflows and stop.
 > automated flow. Kept as the record of what was done and as the rollback
 > reference, not as a to-do list.
 >
+> **⚠ The system has moved on since this ran. Before using any step below as a
+> rollback reference, note:**
+>
+> - **The order tabs are not in their own spreadsheet any more.** `Orders` and
+>   `processed_tx` were merged into the storefront inventory spreadsheet on
+>   2026-10-16, alongside `Sheet1` and the daily-post queue. Any step here that
+>   says "the GMG Orders sheet" now means those tabs in that file. The n8n nodes
+>   address tabs **by name**, so the instructions still read correctly — only the
+>   containing file changed. See `INVENTORY-SYNC.md`.
+> - **The USDT quote window is 360 minutes, not 30** (2026-10-16).
+> - **There is a fourth customer email**, sent when a quote expires (2026-10-16).
+>   An expired order used to notify the customer of nothing.
+> - **The Telegram contact is `@Godmusclegear`**, a group — not the old
+>   `@Godmusclegears` broadcast channel (2026-10-16).
+>
 > **Deviations from the plan as written:**
 >
 > - **Step 6 shipped behind a maintenance notice.** `MAINTENANCE_MODE` in

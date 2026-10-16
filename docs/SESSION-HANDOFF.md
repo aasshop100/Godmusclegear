@@ -3,6 +3,22 @@
 Written at the end of the go-live session. **Everything described here is done,
 published and verified unless it says otherwise.**
 
+> ## ⚠ READ THIS FIRST — what has changed since 2026-08-26
+>
+> This file is a dated record, kept for its reasoning and its traps. Several
+> claims below are no longer true:
+>
+> | Claim below | Status now |
+> |---|---|
+> | "No crypto payment has ever been detected end-to-end" | **Closed 2026-09-25.** A real BTC payment was read off-chain correctly. It arrived 4h16m after expiry and short by a withdrawal fee, which no tolerance band would match — fixed with `EXPIRED_NEAR` → `REVIEW`. |
+> | "three n8n workflows" | **Four.** `GMG - Daily Telegram Post` joined on 2026-10-02, replacing a Make.com scenario. |
+> | "both sheet tabs" (a separate `GMG Orders` file) | **Merged 2026-10-16.** `Orders` and `processed_tx` now live in the storefront inventory spreadsheet, alongside `Sheet1` and the daily-post queue. One file to check. See `INVENTORY-SYNC.md`. |
+> | Customer emails: order confirmation, PAID, REVIEW | **Four now.** An expiry email was added 2026-10-16 — an expired order previously emailed the customer nothing. |
+> | USDT quote window 30 minutes | **360 minutes** since 2026-10-16, for the same reason BTC went to 720: exchanges batch withdrawals. |
+> | Telegram `@Godmusclegears` | **`@Godmusclegear`** (no trailing `s`) since 2026-10-16 — a group, not the old broadcast channel. |
+>
+> The traps section at the bottom is still accurate and still worth reading.
+
 ---
 
 ## Where things stand
