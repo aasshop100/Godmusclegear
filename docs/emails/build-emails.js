@@ -165,6 +165,13 @@ const customerHtml =
   + (body.shippingNote ? '<p style="font-size:13px; color:#555; margin-top:10px;">' + esc(body.shippingNote) + '</p>' : '')
   + '<h3 style="color:' + ORANGE + '; margin-top:25px;">Shipping To:</h3><p>' + esc(order.fullAddress) + '</p>'
   + paymentBlock
+  // Shown for BOTH crypto and bank transfer, which is why it sits after
+  // paymentBlock rather than inside either branch. Worded "once your payment is
+  // confirmed" deliberately: at this point nothing has been paid yet, so an
+  // unconditional "within 24 hours" would start the clock at the wrong moment.
+  + '<div style="background:#f5f5f5; border-left:5px solid ' + ORANGE + '; padding:12px; margin-top:20px;">'
+  + '<p style="margin:0; font-size:14px; line-height:1.6; color:#333;">Once your payment is confirmed, your <strong>tracking number</strong> will be emailed to you within <strong>24 hours</strong> (excluding weekends).</p>'
+  + '</div>'
   + '<p style="margin-top:25px;">If you have any questions, reply directly to this email.<br>We appreciate your trust and support!</p>'
   + '<p><strong>GOD MUSCLE GEARS</strong></p>'
   + '<p style="margin-top:20px;"><a href="https://t.me/Godmusclegear" style="background-color:#0088cc; color:#ffffff; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:bold; display:inline-block;">Chat with us on Telegram</a></p>'

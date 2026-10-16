@@ -20,8 +20,14 @@
   │ payment those differ, and asserting a received amount would be false.    │
   └──────────────────────────────────────────────────────────────────────────┘
 
-  Also never promise shipping here. Nothing auto-ships — a human releases
+  Do not claim an order has SHIPPED here. Nothing auto-ships — a human releases
   every order — so "being prepared" is true and "dispatched" is not.
+
+  The 24-hour tracking-number line (added 2026-10-16, Lester's decision) is a
+  deliberate exception and a PROMISE A HUMAN HAS TO KEEP: nothing in this system
+  sends a tracking number. It is worded "within 24 hours (excluding weekends)",
+  which excludes Sat/Sun but NOT Philippine holidays. If fulfilment ever slips
+  past that regularly, change this copy rather than letting the email lie.
 -->
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5; padding:24px 0; font-family:Arial,Helvetica,sans-serif;">
@@ -59,13 +65,19 @@
                   <p style="margin:0; font-size:18px; font-weight:bold; color:#111111;">
                     {{ $("Match Payments").item.json.expectedAmount }} {{ $("Match Payments").item.json.coin }}
                   </p>
+                  <!-- BTC only: a satoshi figure means nothing to most buyers, so the
+                       dollar value is printed beside it. Reads usdTotal off the order
+                       row already in memory rather than calling a rate API again.
+                       Returns "" for USDT, which is already dollars. -->
+                  {{ (function () { if ($("Match Payments").item.json.coin !== "BTC") return ""; const id = $("Match Payments").item.json.matchedOrderId; const row = $("Read Orders").all().find(function (r) { return r.json.orderId === id; }); const usd = row ? Number(row.json.usdTotal) : NaN; return usd > 0 ? '<p style="margin:4px 0 0; font-size:13px; color:#666666;">≈ $' + usd.toFixed(2) + ' USD</p>' : ""; })() }}
                 </td>
               </tr>
             </table>
 
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">
-              Your order is confirmed and is being prepared. We'll be in touch with
-              shipping details shortly. No further action is needed from you.
+              Your order is confirmed and is being prepared. Your <strong>tracking number</strong>
+              will be emailed to you within <strong>24 hours</strong> (excluding weekends).
+              No further action is needed from you.
             </p>
 
             <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">

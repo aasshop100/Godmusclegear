@@ -1,0 +1,52 @@
+<!--
+GOD MUSCLE GEARS — "quote expired" email
+Sent by the GMG - Payment Watcher when an order reaches EXPIRED.
+
+An expired order is NOT a cancelled one. Since the late-payment fix, a payment
+that arrives after the window still matches as EXPIRED_NEAR and goes to REVIEW
+for a human decision — a real BTC payment once landed 7h16m after its quote.
+So this email must never say "cancelled", never say "do not pay", and never
+imply the money would be lost. Its job is to stop the silence, not to close
+the sale.
+
+Two readers, opposite needs, so both are addressed explicitly:
+  - already sent  -> do NOT send again (a second payment means a manual refund)
+  - not sent yet  -> the order is still here, ask for a fresh quote
+
+No tracking-number promise here: nothing has been paid, so there is nothing to
+start that clock on.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5; padding:24px 0; font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden;">
+        <tr>
+          <td style="background:#111111; padding:20px 24px;">
+            <p style="margin:0; font-size:15px; font-weight:bold; letter-spacing:2px; color:#ffffff;">GOD MUSCLE GEARS</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 24px 8px;">
+            <p style="margin:0 0 6px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#b45309;">Payment window closed</p>
+            <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">Your quote has expired</p>
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">The payment window for order <strong style="color:#111111;">{{ $('Find Expired Orders').item.json.orderId }}</strong> has passed, so the amount we quoted is no longer held at that rate.</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
+              <tr>
+                <td style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:16px;">
+                  <p style="margin:0; font-size:15px; line-height:1.6; color:#333333;"><strong style="color:#111111;">Already sent your payment? Please don't send it again.</strong> It will still reach us. We check every payment that arrives, and we'll confirm your order by hand once we see it. Sending a second time would create a payment we'd have to refund separately.</p>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;"><strong style="color:#111111;">Haven't sent it yet?</strong> Nothing is lost and your order is still here. Reply to this email and we'll issue a fresh quote at the current rate.</p>
+            <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">You can also message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #e5e5e5; padding:16px 24px;">
+            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>This is an automated message about order {{ $('Find Expired Orders').item.json.orderId }}.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
