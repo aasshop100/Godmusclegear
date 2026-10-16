@@ -199,6 +199,11 @@ Same branded shell as the other four emails.
   the rest of my order?".
 - **Later send** — "another parcel is on its way", carrying only the new number.
 
+Every send also states the delivery window: **allow 4–7 business days**. It sits
+apart from the tracking-behaviour note so it reads as a commitment rather than
+fine print, and it matches the wording the storefront already uses. Business
+days, not calendar days.
+
 Which one is chosen depends on whether `trackingEmailed` was empty, so it needs
 no extra state.
 
