@@ -1,5 +1,39 @@
 # Tracking-number email Implementation Plan
 
+> ## EXECUTED — 2026-10-16. Three steps below were WRONG; read this first.
+>
+> All nine tasks are done and `GMG - Tracking Emails` (`0JvCQIgVoRfEhUP2`) is
+> published and active. Kept as the record, not as a to-do list.
+>
+> **Task 8 Step 1 told you to paste `tracking-email.js` "verbatim" and Step 2 to
+> verify it byte-identical by sha256. Both are wrong.** The UMD wrapper cannot
+> run inside a Code node: `module` and `window` are both undefined there, so it
+> builds the API object and discards it, leaving every function unreachable. The
+> live `Match Payments` node has the module BODY inlined flat with the wrapper
+> stripped, and so does this one. Derive it mechanically and check it
+> *behaviourally* against the tested module instead.
+>
+> **Task 8 Step 3 said to dry-run with the send node disabled. That is not safe.**
+> A disabled n8n node PASSES ITS INPUT THROUGH, so `Stamp Emailed` ran and marked
+> the order as emailed while nothing was sent. In production that means the next
+> run finds no new numbers, skips, and the customer is never told. **Disable the
+> stamp too, or disconnect it.**
+>
+> That accident also exposed a real bug the dry run would otherwise have hidden:
+> an emailSend node outputs the SMTP result (`accepted`, `messageId`,
+> `response`), not the data that fed it. `Stamp Emailed` and `Alert Send Failed`
+> read `$json.orderId`, which resolved ONLY because the disabled node was passing
+> through. Enabled, the stamp would have written an empty id and matched no row.
+> Both now read `$('Decide Sends').item.json` — the same reason the Payment
+> Watcher's alert reads `$("Match Payments")`.
+>
+> **Task 9 Step 4 said to create a cron-job.org job. Not needed.** This workflow
+> carries its own Schedule Trigger, so publishing IS the schedule. The Sales Ops
+> jobs live on cron-job.org only because Vercel Hobby caps crons at two.
+>
+> Also added after the plan was written: every tracking email states **"allow
+> 4–7 business days"** for delivery.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **No spreadsheet IDs, URLs, secrets or credential values in this file.** This
