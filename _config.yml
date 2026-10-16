@@ -30,6 +30,7 @@ exclude:
   # so the payment logic can be unit-tested outside n8n.
   - payment-matching.js
   - chain-parsing.js
+  - tracking-email.js
 
   # Build tooling for the per-product pages under p/. p/ itself is the
   # published output and must NEVER be excluded.
