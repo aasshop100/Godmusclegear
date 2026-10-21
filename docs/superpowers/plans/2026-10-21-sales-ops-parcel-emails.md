@@ -58,7 +58,7 @@ Nothing consumes `customerEmail` until Phase 3, so all of Phase 1 can go live im
 
 **Interfaces:** `ParsedOrder` gains `customerEmail: string` (empty when none found). `shippingAddress` must **exclude** the email line.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Cover, at minimum:
 - a message with an email on its own line → `customerEmail` set, **and the line absent from `shippingAddress`**
@@ -69,11 +69,11 @@ Cover, at minimum:
 - uppercase input → stored lower-cased and trimmed
 - a malformed near-miss (`foo@bar`, no dot) → **not** extracted, and left in the address rather than silently eaten
 
-- [ ] **Step 2: Implement until green**
+- [x] **Step 2: Implement until green**
 
 Add an `isEmailLine` test alongside `isItemLine` / `isTotalLine` / `isShippingLine`, and exclude those lines when slicing `addressLines`. Keep the module free of React and Next APIs — a client component and a server route both import it.
 
-- [ ] **Step 3: Run the whole suite**
+- [x] **Step 3: Run the whole suite**
 
 `npm test`. The pre-existing parser tests must still pass untouched; if one changed, the address slicing regressed.
 
@@ -129,7 +129,7 @@ A message with an address and one without, through the flow, asserting both the 
 
 **Files:** modify `src/lib/website-shipments.ts` · `src/app/api/website-shipments/route.ts` and tests
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 - a tagged website order → returned as today, **with no address** (it has a better source)
 - an order with `customerEmail` and **no** tag → returned as a Sales Ops shipment **with** the address
