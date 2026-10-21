@@ -99,7 +99,7 @@ An email field on the order form, loaded in `orderForm` and saved trimmed and lo
 
 Where the paste box maps a `ParsedOrder` onto a new order, map `customerEmail` too. Without this, Task 1 extracts an address nobody stores.
 
-- [ ] **Step 5: Verify the round trip** — **needs Lester: save, reload, confirm it stuck**
+- [x] **Step 5: Verify the round trip** — *confirmed by full page reload 2026-10-21; the normaliser holds*
 
 Save an order with an address, **reload the page**, confirm it is still there. That is the exact check that would have caught the `websiteOrderId` bug, and the only one that proves the normaliser.
 
