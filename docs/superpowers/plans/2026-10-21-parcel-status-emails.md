@@ -345,19 +345,54 @@ With node 6 **and node 7** both disabled (trap 1 — a disabled send alone still
 
 **Files:** none in git.
 
-- [ ] **Step 1: Create the webhook**
+> **⚠ EXECUTED 2026-10-21 — Steps 1 and 2 are done but in the OPPOSITE order,
+> and Steps 3 and 4 are BLOCKED on reality, not on anything in this build.**
+>
+> **Publish first, then create the webhook.** Creating a Shippo webhook that
+> points at an unpublished n8n workflow means the URL 404s until it is
+> published. The receiver was published first, the live URL probed, and only
+> then was the webhook created. The plan's own reasoning supports this; its
+> step order did not.
+>
+> **The live endpoint was measured, not assumed.** Four probes: 3.6s cold,
+> then 2.4s / 1.2s / 1.1s warm. The chain itself takes longer than that, so
+> `responseMode: onReceived` really is answering before the workflow finishes
+> — which is what keeps Shippo from retrying and double-processing. Each probe
+> produced an `unknown-number` Telegram alert, as designed.
+>
+> **Steps 3 and 4 CANNOT be completed yet: there is no parcel to register.**
+> A dry run of the nightly workflow returned `[]` from `Fetch Shipments` — no
+> website order currently carries a tracking number. So there is nothing to
+> register, and no scan to watch. **The first real shipment is the live test.**
+>
+> **The dry run was made safe first.** `Send Tracking Email` is ENABLED in
+> that workflow, so a plain manual run would have emailed a real customer
+> ahead of schedule. Both it *and* `Stamp Emailed` were disabled for the run
+> (disabling the send alone lets the stamp mark orders as emailed while
+> nothing was sent), then both restored and **verified node-by-node as
+> `disabled: false`** afterwards. The active version was never touched.
+>
+> **Registration is now enabled** in the draft. With zero shipments it
+> registers nothing today, and it is the correct state for the first real
+> order. **The credential value is still unproven** — the first registration
+> either succeeds or returns 401, and a 401 now reaches Telegram properly
+> because the Markdown bug above is fixed.
+
+- [x] **Step 1: Create the webhook** — *done second, not first*
+
+Created live: one `track_updated` webhook, `active: true`, `is_test: false`, pointed at the published receiver. Listing confirms **exactly one** — a duplicate would mean duplicate emails and duplicate charges.
 
 Register a `track_updated` webhook, environment **live**, pointed at the Task 5 URL. Confirm the account lists exactly one — it listed zero on 2026-10-21, so a second entry means a duplicate and duplicate notifications.
 
-- [ ] **Step 2: Publish the receiver, sends still disabled**
+- [x] **Step 2: Publish the receiver, sends still disabled**
 
 The webhook needs a live listener. Publish Task 5 with nodes 6 and 7 disabled so real callbacks are recorded and alerted on, but nothing is emailed or stamped.
 
-- [ ] **Step 3: Enable registration for exactly one parcel**
+- [ ] **Step 3: Enable registration for exactly one parcel** — **BLOCKED: no website order has a tracking number yet**
 
 Enable the Task 4 HTTP node and run the nightly workflow manually against **one** real website order with a real tracking number. Confirm: Shippo returns success, `trackingRegistered` holds that number, and no other order was registered.
 
-- [ ] **Step 4: Watch one real scan arrive**
+- [ ] **Step 4: Watch one real scan arrive** — **BLOCKED: waiting on the first real shipment**
 
 Wait for a genuine carrier scan. Confirm the webhook fires, `Decide Event` resolves the number to the right order, and nothing is sent. **This is the first proof the whole push path works end to end** — do not skip it for a sample payload.
 
