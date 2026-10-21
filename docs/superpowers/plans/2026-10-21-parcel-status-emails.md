@@ -184,25 +184,60 @@ Wait for one `GMG - Payment Watcher` execution (every 2 minutes) and confirm `su
 
 > **Order matters: Shippo requires the webhook to exist before any number is registered.** Do not enable this task's HTTP node until Task 6 Step 1 has created the webhook. Build it disabled.
 
-- [ ] **Step 1: Add a Shippo credential**
+> **⚠ EXECUTED 2026-10-21 — Step 2 as written would have shipped a silent bug,
+> and Step 5 was wrong.**
+>
+> **Step 2 said to extend `Decide Sends`. Do not.** That node `return`s early
+> when an order has no NEW numbers to email. Every number already emailed
+> before this feature existed — the entire backlog — would therefore never
+> have been registered, and no status email would ever fire for those parcels.
+> Nothing would have reported it. Registration is now its **own Code node,
+> `Decide Registrations`, running in PARALLEL off `Read Orders`**, which also
+> leaves the proven email path byte-identical instead of editing it.
+>
+> **Step 5 said one alert node fed by both error outputs.** That works in the
+> email branch because `Send Tracking Email` and `Stamp Emailed` both descend
+> linearly from `Decide Sends`, so `$('Decide Sends').item` resolves from
+> either. Here `Collect Registered` **aggregates** N items into M, which
+> breaks paired-item resolution — an alert reading `$('Decide Registrations')`
+> from the stamp branch could not resolve. There are **two** alert nodes:
+> `Alert Registration Failed` (HTTP error, reads `Decide Registrations`) and
+> `Alert Registration Stamp Failed` (stamp error, reads `Collect Registered`).
+>
+> **A node the plan never mentioned was required: `Collect Registered`.**
+> `trackingRegistered` is a whole-cell write, so two parcels of one order
+> stamped separately would both read the same stale cell and the second would
+> erase the first — leaving a registered number unrecorded, re-registered
+> tomorrow, and billed and emailed twice. Successes are grouped per order
+> before a single stamp.
+>
+> **Trap 1 applies to `Stamp Registered` too, so it also starts disabled.** A
+> disabled `Register Tracking` passes its input straight through, so the stamp
+> would mark numbers as registered while nothing was registered — and nothing
+> would ever retry them.
+>
+> **Not published.** The draft holds all this; `activeVersionId` is still the
+> 9-node version, so tonight's 21:30 run is unaffected. Task 6 Step 2 publishes.
 
-Add the **live** key as an n8n credential. The test key cannot do live tracking. Do not paste the key into a node field.
+- [ ] **Step 1: Add a Shippo credential** — *Lester's step; the MCP can list credentials but not create them*
 
-- [ ] **Step 2: Extend `Decide Sends`**
+Add the **live** key as an n8n Header Auth credential (`Authorization` = `ShippoToken <live key>`). The test key cannot do live tracking. Do not paste the key into a node field. Then attach it to `Register Tracking`.
 
-The node already computes new numbers per order. Add the registration diff alongside it and emit, per order, a `toRegister` array. **Do not change the existing email decision** — re-run the Task 1 suite plus the existing `tracking-email` suite and confirm the send behaviour is untouched.
+- [x] **Step 2: Add `Decide Registrations`** *(not "extend Decide Sends" — see above)*
 
-- [ ] **Step 3: Add `Register Tracking` (disabled)**
+A parallel Code node off `Read Orders` holding the `parcel-status.js` body inlined flat. Emits **one item per number** that needs registering. Skips orders with no row or a non-shippable status: `Decide Sends` already alerts on both, and registering there would spend money subscribing to a parcel whose status would be emailed to the wrong customer.
+
+- [x] **Step 3: Add `Register Tracking` (disabled)**
 
 HTTP Request, `POST` to the Shippo tracks endpoint, one call per number, carrier `usps`, timeout 10000 ms, `onError: continueErrorOutput`. Start **disabled**.
 
-- [ ] **Step 4: Add `Stamp Registered`**
+- [x] **Step 4: Add `Collect Registered` and `Stamp Registered` (both disabled)**
 
-Sheets update on `Orders`, matched by `orderId`, appending **only the numbers that returned success** to `trackingRegistered`. A number left out is retried tomorrow; a number wrongly added is never registered and goes silent forever — so on partial failure, stamp the successes and alert on the rest.
+`Collect Registered` groups successful numbers per order; `Stamp Registered` writes `trackingRegistered` once per row. Only successes reach it — a number left out is retried tomorrow; a number wrongly recorded is never registered and goes silent forever.
 
-- [ ] **Step 5: Add `Alert Registration Failed`**
+- [x] **Step 5: Add the two alert nodes**
 
-Telegram, its own node, fed by the error outputs of Steps 3 and 4. **Not a shared alert node** — `Alert Payment Email Failed` reads `$("Match Payments")`, absent from this branch, and reusing it fails exactly when a failure needs reporting.
+One per branch, each reading only its own branch's data.
 
 ---
 
