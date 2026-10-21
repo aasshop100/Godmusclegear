@@ -16,6 +16,15 @@ published and verified unless it says otherwise.**
 > | Customer emails: order confirmation, PAID, REVIEW | **Four now.** An expiry email was added 2026-10-16 — an expired order previously emailed the customer nothing. |
 > | USDT quote window 30 minutes | **360 minutes** since 2026-10-16, for the same reason BTC went to 720: exchanges batch withdrawals. |
 > | Telegram `@Godmusclegears` | **`@Godmusclegear`** (no trailing `s`) since 2026-10-16 — a group, not the old broadcast channel. |
+> | "four n8n workflows" | **EIGHT**, after the parcel-email chain of 2026-10-16/21: `Tracking Emails` → `Parcel Status` (webhook) → `Parcel In Transit` (sweep) → `Parcel Reconcile` (nightly net). |
+> | Customer emails: order, PAID, REVIEW, expiry | **Seven.** Added 2026-10-16/21: tracking number ready, on its way, delivered. All three have fired live. |
+> | The tracking email says "your order has shipped" | **No.** It fires at LABEL CREATION, which on the first real order was **three days** before USPS took the parcel. It now announces the NUMBER, and the 4–7 day window starts when the carrier has it. **No estimate for that gap** — a promise about USPS we cannot keep. |
+>
+> Design and plan for the parcel chain:
+> `docs/superpowers/specs/2026-10-21-parcel-status-emails-design.md` and
+> `docs/superpowers/plans/2026-10-21-parcel-status-emails.md`. **Read the
+> EXECUTED banner at the top of the plan first** — four real bugs, three of
+> which would have shipped silently.
 >
 > The traps section at the bottom is still accurate and still worth reading.
 
