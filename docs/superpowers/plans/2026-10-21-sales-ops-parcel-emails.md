@@ -207,8 +207,20 @@ Keep the route read-only and secret-gated.
 
 - [ ] **Step 1:** registration now covers Sales Ops shipments. Watch the first one register, and confirm **exactly one** parcels row appears.
 - [ ] **Step 2: One real order, the owner's own address first.** Record the customer's real address before changing it, and restore it the moment the test is done — a delivery scan can land at any time, and whoever is in the field at that moment receives the email.
-- [ ] **Step 3: Prove the no-email case stays silent** — an order without an address produces no item, no email and no Telegram.
-- [ ] **Step 4: Prove the both-fields case sends once** — an order carrying a website id and a typed address must be treated as a website order only.
+- [ ] **Step 3: Branch registration on the status it gets back**
+
+An address added late must not restart the sequence. The registration response already carries the parcel's current status, so use it:
+
+- **`Delivered`** → send nothing, mark all three emails as already sent so none fires later, and Telegram the owner once.
+- **Moving** → number-ready as normal; the on-its-way email follows.
+- **anything else** → unchanged.
+
+**Why this is not optional:** a delivered parcel is terminal, so no callback is coming, and the reconcile sweep skips `Delivered` by design. Without this branch, an address added after delivery sends the customer a "your label has just been created" email **and nothing else, ever** — the wrong email, and the right one never arrives.
+
+Test all three, including that a delivered-at-registration parcel ends with every emailed flag set and nothing sent.
+
+- [ ] **Step 4: Prove the no-email case stays silent** — an order without an address produces no item, no email and no Telegram.
+- [ ] **Step 5: Prove the both-fields case sends once** — an order carrying a website id and a typed address must be treated as a website order only.
 
 ### Task 9: Close out
 

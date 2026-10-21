@@ -165,6 +165,35 @@ a fallback for orders that have no such source. It never competes.
 > must never start returning addresses for website orders, which already have
 > a better source.
 
+## ⚠ An address added LATE must not send the wrong email
+
+The address is only a flag, so nothing cares when it is set. An order given
+one a week after it shipped simply becomes eligible on the next nightly run
+and **starts the sequence from the beginning** — registering the parcel and
+sending "your tracking number is ready", which says the label has just been
+created and the parcel is on its way to the carrier. By then it may be
+halfway across the country.
+
+**And if the parcel is already delivered, that wrong email is the ONLY one
+the customer ever gets.** The delivered email fires from a carrier callback,
+a delivered parcel is terminal so no callback is coming, and the
+reconciliation sweep deliberately skips `Delivered` — which is exactly what
+stops it re-checking every parcel ever shipped. So the right email never
+arrives and nothing reports it.
+
+**The fix costs nothing, because registration already knows.** The
+registration response carries the parcel's current status — the same fact
+that closed the first-callback race. Branch on it:
+
+| Status at registration | What happens |
+|---|---|
+| `Delivered` | **Send nothing.** Mark all three emails as already sent so none fires later, and Telegram the owner once: an address was added to a parcel that has already arrived. The customer has the box; silence is correct. |
+| Moving (`In Transit` / `Accepted`) | Send the number-ready email as normal. The on-its-way email follows shortly after — slightly redundant, not wrong. |
+| `Label Created` / anything else | Exactly as designed. |
+
+This is the difference between "adds a late address" being a silent
+wrong-email case and a handled one.
+
 ## ⚠ The typed address is the weak point
 
 For a website order the address comes from where the customer typed it. Here
