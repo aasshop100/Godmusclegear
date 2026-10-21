@@ -495,9 +495,39 @@ Confirm one order with two moving parcels yields **one** decision naming both, a
 > runs; the delivered email fires on the delivery scan. Nothing more to build.
 > Step 5 is done — the backlog was this one order.
 >
-> ⏰ **HARD DEADLINE: restore the customer's real email before 2026-10-23.**
-> That is the carrier's ETA, and the delivered email will go to whoever is in
-> the Orders row at that moment.
+> ✅ **The customer's real email was restored 2026-10-21** and verified in the
+> row. The temporary swap is over.
+>
+> **⚠ THE FIRST CALLBACK IS ALWAYS REJECTED — found live, fixed.** Shippo
+> pushes a `track_updated` within a SECOND of the registration POST, before
+> `Stamp Registered` has written the number. The receiver reads the sheet,
+> does not find it in `trackingRegistered`, and correctly refuses it. Proven
+> by the timestamps: genuine callback (`isTest: false`) at **07:24:46.7**,
+> stamp at **07:24:47.4**.
+>
+> Nothing is lost by it, but the status went unrecorded, which is why the
+> parcel sat with an empty `parcelStatus` after a real callback had already
+> arrived. **Fix: take the status from the registration RESPONSE, which
+> already contains it, instead of racing the callback.** `Decide
+> Registrations` now carries `parcelStatusBefore`, `Collect Registered` maps
+> the response's `tracking_status.status` and merges it, and `Stamp
+> Registered` writes `parcelStatus` and `parcelStatusAt` alongside
+> `trackingRegistered`. A parcel registered mid-transit therefore gets its
+> on-its-way email at the next sweep rather than waiting for another scan.
+>
+> Verified against the **real captured Shippo response**, 5/5: records
+> `In Transit`; merges into a sibling's status instead of overwriting;
+> two parcels of one order produce ONE stamp carrying both; an unrecognised
+> status is left unrecorded rather than guessed; a response with no status
+> does not crash. It could not be re-tested live, because re-registering the
+> same number would mean a duplicate subscription and a duplicate charge.
+>
+> The `unknown-number` alert now names this expected case, so one harmless
+> rejection per newly registered parcel does not read as a fault.
+>
+> **✅ ALL THREE CUSTOMER EMAILS HAVE NOW FIRED LIVE** (to the owner's inbox,
+> during the swap): tracking number ready, on its way (through the real
+> sweep), and delivered (through the real webhook, SMTP `250 OK` each time).
 >
 > ⚠ **`ORDER-1792078425067`'s email is temporarily `lstrmrcd@gmail.com` for
 > this test.** The real address is recorded in the local scratchpad note and
