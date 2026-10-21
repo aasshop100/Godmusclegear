@@ -476,9 +476,28 @@ Confirm one order with two moving parcels yields **one** decision naming both, a
 > the one thing about that credential this build could never read back, and it
 > is the mistake flagged in Task 4 Step 1.
 >
-> **Steps 2, 4 and 5 remain blocked** until that credential is corrected: with
-> nothing registered, Shippo sends no callbacks, so there is no delivered
-> scan and no multi-parcel path to prove.
+> **✅ RESOLVED SAME DAY — prefix added, registration succeeded.** The re-run
+> registered `9205590327908756965825` and Shippo returned the live Track
+> object: USPS Priority Mail, **currently `TRANSIT`** ("arrived at the USPS
+> regional origin facility", Las Vegas NV), **ETA 2026-10-23**, with history
+> back to the label on 2026-10-16. `Stamp Registered` wrote the number into
+> `trackingRegistered`. **The parcel is now subscribed and the next carrier
+> scan will push a callback.**
+>
+> **The re-run sent NO duplicate email.** `Decide Sends` emitted zero items
+> because `trackingEmailed` already held that number — the set difference
+> doing exactly what it exists for. Registration and emailing are independent
+> branches, so one could run without the other, which is why they are
+> parallel rather than nested.
+>
+> **Steps 2 and 4 now wait on the carrier, not on us.** The in-transit email
+> fires after the next scan writes `parcelStatus` and the following sweep
+> runs; the delivered email fires on the delivery scan. Nothing more to build.
+> Step 5 is done — the backlog was this one order.
+>
+> ⏰ **HARD DEADLINE: restore the customer's real email before 2026-10-23.**
+> That is the carrier's ETA, and the delivered email will go to whoever is in
+> the Orders row at that moment.
 >
 > ⚠ **`ORDER-1792078425067`'s email is temporarily `lstrmrcd@gmail.com` for
 > this test.** The real address is recorded in the local scratchpad note and
@@ -489,7 +508,7 @@ Confirm one order with two moving parcels yields **one** decision naming both, a
 
 Enable nodes 6 and 7 on the receiver and republish. Confirm `activeVersionId` equals `versionId` — a draft that is not published is not what runs.
 
-- [ ] **Step 2: Prove delivered on a real parcel** — **BLOCKED: Shippo credential returns 401**
+- [ ] **Step 2: Prove delivered on a real parcel** — **waiting on the delivery scan, ETA 2026-10-23**
 
 Using a `BANK_TRANSFER` test order (written at checkout with no money moving, and already in `SHIPPABLE`) to the owner's own address. Expected, all four:
 1. the email arrives when the carrier scans delivered, and says USPS *reports* it delivered;
@@ -501,11 +520,11 @@ Using a `BANK_TRANSFER` test order (written at checkout with no money moving, an
 
 Enable nodes 4 and 5 on Task 7 and publish. Confirm a run with nothing to do sends nothing and says nothing.
 
-- [ ] **Step 4: Prove the multi-parcel path** — **BLOCKED: nothing registered yet**
+- [ ] **Step 4: Prove the multi-parcel path** — **needs a future two-parcel order**
 
 A two-parcel order: both parcels moving between sweeps must produce **one** in-transit email naming both, then **two** separate delivered emails, the first carrying `outstanding: 1`.
 
-- [ ] **Step 5: Register the backlog** — **BLOCKED: Shippo credential returns 401**
+- [x] **Step 5: Register the backlog**
 
 Only now, run the nightly workflow across all existing website orders so their numbers are registered. Doing this earlier would have pointed real callbacks at an untested receiver.
 
