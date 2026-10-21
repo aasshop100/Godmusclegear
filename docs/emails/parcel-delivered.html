@@ -1,0 +1,61 @@
+<!--
+  GOD MUSCLE GEARS — "delivered" email
+  Sent by GMG - Parcel Status when the carrier scans a parcel delivered. ONE
+  email per parcel, not per order.
+
+  ┌─ THE ONE RULE FOR THIS FILE ─────────────────────────────────────────────┐
+  │ REPORT, DO NOT ASSERT.                                                   │
+  │                                                                          │
+  │ This email must say USPS *reports* the parcel as delivered. It must      │
+  │ never state that it WAS delivered.                                       │
+  │                                                                          │
+  │ USPS scans parcels delivered early, and occasionally scans them          │
+  │ delivered when they are not. A flat assertion against a parcel still on  │
+  │ the truck starts a dispute with a customer who cannot complain loudly    │
+  │ about this product, and leaves us having called them wrong.              │
+  │                                                                          │
+  │ Same discipline as the expiry email's "never say cancelled" rule: the    │
+  │ copy must not foreclose an outcome the system will still honour.         │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  WHY THIS IS PER PARCEL. Shipping is billed per brand and each brand ships
+  separately. A delivery is a record the customer may need in a dispute, so it
+  names ONE number. `outstandingLine` says how many parcels are still coming,
+  so nobody reads this as "the order is complete" when it is not — it is built
+  in the Code node and is an empty string on the last parcel.
+
+  `greeting`, `intro`, `numberHtml` and `outstandingLine` are all built in the
+  Code node so this template holds no branching.
+
+  Paste as the HTML body of the "Send Delivered Email" node, in expression
+  mode (prefixed with =) so the expressions resolve.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5; padding:24px 0; font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden;">
+        <tr>
+          <td style="background:#111111; padding:20px 24px;">
+            <p style="margin:0; font-size:15px; font-weight:bold; letter-spacing:2px; color:#ffffff;">GOD MUSCLE GEARS</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 24px 8px;">
+            <p style="margin:0 0 6px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#047857;">Marked delivered</p>
+            <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">{{ $json.greeting }}</p>
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
+            {{ $json.numberHtml }}
+            {{ $json.outstandingLine }}
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;"><strong>Has it not arrived?</strong> Carriers sometimes record a delivery a little before the parcel is handed over. Please check with anyone else at the address and with your immediate neighbours first. If it still has not turned up after 24 hours, reply to this message or contact us on Telegram and we will take it from there.</p>
+            <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">Message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #e5e5e5; padding:16px 24px;">
+            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>This is an automated message about order {{ $json.orderId }}.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

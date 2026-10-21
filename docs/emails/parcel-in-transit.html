@@ -1,0 +1,61 @@
+<!--
+  GOD MUSCLE GEARS — "on its way" email
+  Sent by GMG - Parcel In Transit when one or more parcels on an order start
+  moving. ONE email per order per sweep, however many parcels moved.
+
+  ┌─ THE ONE RULE FOR THIS FILE ─────────────────────────────────────────────┐
+  │ THE NUMBER IS TEXT FIRST, LINK SECOND.                                   │
+  │                                                                          │
+  │ The USPS deep link often lands on a blank Akamai block page on a plain   │
+  │ left-click and only works reliably on Ctrl/Cmd+click. Every click in an  │
+  │ email is a plain click. So the number is rendered large and selectable,  │
+  │ which always works because it can be pasted anywhere, and the link is a  │
+  │ convenience that may not cooperate.                                      │
+  │                                                                          │
+  │ Never demote the number to being the link's text.                        │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  WHY THIS IS COMBINED AND THE DELIVERED EMAIL IS NOT. Shipping is billed per
+  brand and each brand ships separately, so a three-brand order has three
+  parcels. "It's moving" is reassurance and reads fine for several parcels at
+  once; "it arrived" is a record the customer may need in a dispute, so that
+  one names a single parcel. Two parcels that start moving between sweeps get
+  ONE of these; a parcel that starts moving a week later gets its own.
+
+  `greeting`, `intro` and `numbersHtml` are built in the Code node so this
+  template holds no branching. `numbersHtml` carries every number in
+  `newNumbers`, each as selectable text with the carrier link beneath it.
+
+  Paste as the HTML body of the "Send In Transit Email" node, in expression
+  mode (prefixed with =) so the expressions resolve.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5; padding:24px 0; font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden;">
+        <tr>
+          <td style="background:#111111; padding:20px 24px;">
+            <p style="margin:0; font-size:15px; font-weight:bold; letter-spacing:2px; color:#ffffff;">GOD MUSCLE GEARS</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 24px 8px;">
+            <p style="margin:0 0 6px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#047857;">On its way</p>
+            <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">{{ $json.greeting }}</p>
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
+            {{ $json.numbersHtml }}
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Please allow <strong>4&ndash;7 business days</strong> for delivery.</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Your order ships as <strong>one package per brand</strong>, so you may receive more than one tracking number and the parcels may arrive on different days. We will email you as each one is delivered.</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Tracking can take a few hours to show movement after a scan. If the link does not load, copy the number above and paste it into the carrier's site.</p>
+            <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">Questions about your order? Message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #e5e5e5; padding:16px 24px;">
+            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>This is an automated message about order {{ $json.orderId }}.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

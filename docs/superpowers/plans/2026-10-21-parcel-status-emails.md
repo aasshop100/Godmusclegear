@@ -112,24 +112,24 @@ Create `tests/parcel-status.test.js` covering, at minimum:
 - Consumes: the shared visual shell used by the six existing templates.
 - Produces: two bodies with no branching — all conditional text is built in the Code node and injected.
 
-- [ ] **Step 1: Copy the shell**
+- [x] **Step 1: Copy the shell**
 
 Start from `docs/emails/tracking-shipped.html` so the header, footer, typography and the `@Godmusclegear` group link match exactly. Do not hand-build a new shell.
 
-- [ ] **Step 2: Write `parcel-in-transit.html`**
+- [x] **Step 2: Write `parcel-in-transit.html`**
 
 Covers one or more parcels in a single email. Must contain:
 - every number in `newNumbers`, **as selectable text first, the USPS link beneath** — the deep link lands on a blank Akamai block page on a plain left-click, and in an email every click is a plain click;
 - a line explaining that the order ships **one package per brand**, so more than one number is expected;
 - **"allow 4–7 business days"**, matching the storefront and the tracking email.
 
-- [ ] **Step 3: Write `parcel-delivered.html`**
+- [x] **Step 3: Write `parcel-delivered.html`**
 
 **The copy rule is the point of this template.** It must say **"USPS reports this parcel as delivered"** — never "your package was delivered". USPS scans early and occasionally scans wrongly, and a flat assertion against a parcel still on the truck starts a dispute.
 
 Must contain: the parcel's number; what to do if it has not arrived (check with the household and neighbours, then reply); and, when `outstanding > 0`, a line saying how many parcels are still on the way so the customer does not think the order is complete.
 
-- [ ] **Step 4: Render both with stub data**
+- [x] **Step 4: Render both with stub data**
 
 Build each with a stub substitution and read the visible text. Check: no unreplaced placeholders, no empty `<a>`, the group handle is singular, and the delivered copy nowhere asserts delivery as fact.
 
