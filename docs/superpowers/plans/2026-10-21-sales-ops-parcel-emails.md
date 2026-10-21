@@ -181,17 +181,17 @@ Keep the route read-only and secret-gated.
 
 ### Task 5: Create the parcels tab
 
-- [ ] **Step 1: Read the current header row of the Orders tab and record it**
-- [ ] **Step 2: Create the tab** with `trackingNumber` · `source` · `orderRef` · `status` · `statusAt` · `registered` · `transitEmailed` · `deliveredEmailed`. Remember a Sheets grid has a fixed column count — widen with `appendDimension` before writing past the last column.
-- [ ] **Step 3: Migrate** whatever per-order state exists into one row per parcel, and verify each parcel's status and emailed flags survive exactly.
-- [ ] **Step 4: Leave the old per-order columns in place.** They are retired in Task 9, a week later, in a separate change.
+- [x] **Step 1: Read the current header row of the Orders tab and record it**
+- [x] **Step 2: Create the tab** with `trackingNumber` · `source` · `orderRef` · `status` · `statusAt` · `registered` · `transitEmailed` · `deliveredEmailed`. Remember a Sheets grid has a fixed column count — widen with `appendDimension` before writing past the last column.
+- [x] **Step 3: Migrate** whatever per-order state exists into one row per parcel, and verify each parcel's status and emailed flags survive exactly.
+- [x] **Step 4: Leave the old per-order columns in place.** They are retired in Task 9, a week later, in a separate change.
 
 ### Task 6: Repoint the decision module
 
 **Files:** modify `parcel-status.js` · `tests/parcel-status.test.js` (GMG repo)
 
-- [ ] **Step 1: Write the failing tests** — the same behavioural table as today, against one row per parcel instead of newline sets. The `MOVING` rule, the never-announce-a-delivered-parcel rule, the outstanding count and the unknown-status rule must all survive unchanged.
-- [ ] **Step 2: Implement until green**, then run the whole suite.
+- [x] **Step 1: Write the failing tests** — the same behavioural table as today, against one row per parcel instead of newline sets. The `MOVING` rule, the never-announce-a-delivered-parcel rule, the outstanding count and the unknown-status rule must all survive unchanged.
+- [x] **Step 2: Implement until green**, then run the whole suite.
 - [ ] **Step 3: Delete the set-parsing helpers** only once nothing imports them — grep the repo and both Code nodes first.
 
 ### Task 7: Repoint the three workflows
