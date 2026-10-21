@@ -196,8 +196,41 @@ Keep the route read-only and secret-gated.
 
 ### Task 7: Repoint the three workflows
 
-- [ ] **Step 1:** registration branch, receiver, sweep and reconcile all read and write the parcels tab. Inline the module body flat, wrapper stripped; verify behaviourally.
-- [ ] **Step 2: Prove the WEBSITE path still works end to end before anything new is enabled.** It is the one already keeping a promise to real customers. A regression here is worse than the feature being late.
+> **⚠ EXECUTED 2026-10-21 — FOUR workflows, not three, and all verified live.**
+>
+> The reconcile sweep was built after this plan was written, so it had to be
+> repointed too. All four now read the parcels tab.
+>
+> **Registration got simpler, not harder.** It now APPENDS one row per
+> parcel instead of rewriting a per-order cell. An append does not read
+> first, so the read-modify-write that caused the delivered-email race is
+> gone from that branch entirely.
+>
+> **`Read Parcels` is `executeOnce` in all three places it was chained after
+> a multi-item Sheets read**, or it would have run once per order.
+>
+> **⚠ `updateNodeParameters` with `replace: true` replaces the WHOLE
+> parameter object.** It silently dropped `authentication: serviceAccount`
+> and `documentId` from the append node, which then fell back to OAuth2.
+> Publishing refused it and named both — the publish gate caught what the
+> edit did not.
+>
+> **Verified live, on the published versions:**
+> - the nightly run found both shipments, emailed nothing and registered
+>   nothing — the existing parcel row was recognised
+> - the sweep read the parcels tab and stayed silent
+> - a backdated parcel was picked up by reconcile, looked up at Shippo,
+>   replayed into the receiver, and **the receiver wrote the parcels row**:
+>   statusAt moved from the backdated value to the current Manila time with
+>   the emailed flags untouched
+>
+> **⚠ One real run slipped through on the OLD version.** The 21:30 schedule
+> fired seconds before the publish landed. It did nothing either way, but it
+> is why a repoint should be published before the next scheduled run, not
+> during it.
+
+- [x] **Step 1:** registration branch, receiver, sweep and reconcile all read and write the parcels tab. Inline the module body flat, wrapper stripped; verify behaviourally.
+- [x] **Step 2: Prove the WEBSITE path still works end to end before anything new is enabled.** It is the one already keeping a promise to real customers. A regression here is worse than the feature being late.
 
 ---
 
