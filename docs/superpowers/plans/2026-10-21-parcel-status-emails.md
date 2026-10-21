@@ -564,13 +564,45 @@ Only now, run the nightly workflow across all existing website orders so their n
 
 **Files:** none in git.
 
-- [ ] **Step 1: Build the nightly sweep**
+> **⚠ EXECUTED 2026-10-21 — built and published, with one deliberate
+> departure from the plan.**
+>
+> **It does NOT re-implement `decideWebhook`.** The plan said to feed the
+> lookup "through the same logic"; building a second copy of that logic is
+> how two copies drift. Instead the sweep **replays the missed callback into
+> the receiver's own webhook** — look the parcel up, wrap the response as a
+> `track_updated` payload, POST it at the live endpoint. The recovered status
+> then goes through exactly the same decision, email, stamp and alert path a
+> pushed callback would. One implementation, not two.
+>
+> **This also makes the sweep self-limiting.** The receiver stamps
+> `parcelStatusAt` when it records, which resets the staleness clock, and
+> `Delivered` is skipped as terminal — so the candidate set shrinks as
+> parcels land instead of growing forever.
+>
+> **Staleness is judged per ROW, not per parcel**, because `parcelStatusAt`
+> is one cell. A row where any parcel moved recently is left alone; its
+> quieter parcels are picked up on a later night. Cutoff: two days.
+>
+> **Verified live:** a quiet run emitted **zero items**. Backdating the real
+> order's `parcelStatusAt` to six days ago then produced exactly one item
+> (`lastStatus: In Transit`), fetched the parcel from Shippo, replayed it,
+> and the receiver ran as a genuine webhook execution and re-stamped
+> `parcelStatusAt` to the current time. No email, because the status had not
+> changed — correct.
+>
+> **What this did NOT prove:** recovery of a missed *delivery*. USPS still
+> reports the parcel in transit, so the delivered branch could not be forced.
+> It runs through the same receiver code already proven to send a delivered
+> email, but the end-to-end recovery of a delivery remains unexercised.
+
+- [x] **Step 1: Build the nightly sweep**
 
 Schedule Trigger, Asia/Manila. For parcels in `trackingRegistered` whose `parcelStatus` is **not** `Delivered` and whose `parcelStatusAt` is older than a set number of days, make **one** Shippo `GET` per parcel and feed the result through the same `decideWebhook` logic, so a recovered delivery emails exactly as a pushed one would.
 
 This is the only place this feature spends money on status, and it is bounded to stale parcels.
 
-- [ ] **Step 2: Prove it recovers a dropped callback**
+- [x] **Step 2: Prove it recovers a dropped callback** — **the record path; a missed DELIVERY remains unexercised**
 
 Set a registered parcel's `parcelStatus` back to `In Transit` by hand while USPS reports it delivered, and run. Expected: the delivered email sends and the row is corrected. **This is the test that the net actually catches.**
 
