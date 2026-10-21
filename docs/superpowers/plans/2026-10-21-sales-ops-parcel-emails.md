@@ -83,23 +83,23 @@ Add an `isEmailLine` test alongside `isItemLine` / `isTotalLine` / `isShippingLi
 
 **Files:** modify `src/app/page.tsx`
 
-- [ ] **Step 1: Add `customerEmail?` to the `Order` type**
+- [x] **Step 1: Add `customerEmail?` to the `Order` type**
 
 Optional, no migration — the same pattern as `cancelled?` / `noTrackingNeeded?` / `websiteOrderId?`.
 
-- [ ] **Step 2: Add it to `normalizeOrder` IN THE SAME COMMIT**
+- [x] **Step 2: Add it to `normalizeOrder` IN THE SAME COMMIT**
 
 `...(order.customerEmail ? { customerEmail: order.customerEmail } : {})`. **Not a later step. Not a follow-up.** See the constraint above.
 
-- [ ] **Step 3: Add the form input**
+- [x] **Step 3: Add the form input**
 
 An email field on the order form, loaded in `orderForm` and saved trimmed and lower-cased. Empty means silent; that is a valid, common state and must not look like an error.
 
-- [ ] **Step 4: Carry the parsed email through the paste box**
+- [x] **Step 4: Carry the parsed email through the paste box**
 
 Where the paste box maps a `ParsedOrder` onto a new order, map `customerEmail` too. Without this, Task 1 extracts an address nobody stores.
 
-- [ ] **Step 5: Verify the round trip**
+- [ ] **Step 5: Verify the round trip** — **needs Lester: save, reload, confirm it stuck**
 
 Save an order with an address, **reload the page**, confirm it is still there. That is the exact check that would have caught the `websiteOrderId` bug, and the only one that proves the normaliser.
 
@@ -109,17 +109,17 @@ Save an order with an address, **reload the page**, confirm it is still there. T
 
 **Files:** modify `src/lib/telegram-order-flow.ts` · `src/lib/order-message.ts` and their tests
 
-- [ ] **Step 1: Carry `customerEmail` into the appended order**
+- [x] **Step 1: Carry `customerEmail` into the appended order**
 
 The flow already maps `parsed.shippingAddress` and `parsed.clientName`; add the address alongside them. No new parsing — Task 1 did it.
 
-- [ ] **Step 2: Echo it in the confirmation message**
+- [x] **Step 2: Echo it in the confirmation message**
 
 The bot's confirmation must show the address it captured, or say plainly that it found none.
 
 **This is the only defence against a typo.** A mistyped address does not error: it bounces, or it reaches a stranger holding a tracking number and a delivery address. Showing it back once is the difference between a typo being visible and being invisible.
 
-- [ ] **Step 3: Tests**
+- [x] **Step 3: Tests**
 
 A message with an address and one without, through the flow, asserting both the stored field and the confirmation text.
 
@@ -137,13 +137,13 @@ A message with an address and one without, through the flow, asserting both the 
 - an order with neither → absent, exactly as today
 - a cancelled order → absent, either way
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 Keep the route read-only and secret-gated.
 
 > **⚠ This is the one place the endpoint stops being free of customer data.** It was built to return none, deliberately, and that comment is in the file. Update the comment to say what changed and why — an address for Sales Ops parcels only, because there is no other source — so the next reader does not think the property was lost by accident.
 
-- [ ] **Step 3: Full suite, then deploy**
+- [x] **Step 3: Full suite, then deploy**
 
 `npm test` and `npm run build`. Deploying is safe: nothing consumes the new field yet.
 
