@@ -18,6 +18,22 @@
   payment-confirmed emails make: a tracking number within 24 hours, excluding
   weekends. Nothing else sends one.
 
+  ┌─ IT ANNOUNCES THE NUMBER, NOT THE SHIPMENT ──────────────────────────────┐
+  │ This fires when a tracking number is typed into Sales Ops, which is when │
+  │ the LABEL is created — not when the carrier has the parcel. Those are    │
+  │ days apart: on the first real order the label was made on 16 Oct and     │
+  │ USPS did not take possession until 19 Oct.                               │
+  │                                                                          │
+  │ So it must NOT say "your order is on its way", and it must not start the │
+  │ 4-7 business day clock, because neither is true yet. It sets the         │
+  │ expectation that tracking will look static for a day or two, and says    │
+  │ two more emails are coming.                                              │
+  │                                                                          │
+  │ "On its way" belongs to parcel-in-transit.html, which fires on the       │
+  │ carrier's first real scan. Keep the two distinct or the customer gets    │
+  │ the same message twice and the first one is a lie.                       │
+  └──────────────────────────────────────────────────────────────────────────┘
+
   An order can have several numbers arriving nights apart, because shipping is
   billed per brand and each brand ships separately. `headline`, `greeting`,
   `intro` and `numbersHtml` are built in the Code node so this template holds
@@ -41,8 +57,10 @@
             <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">{{ $json.greeting }}</p>
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
             {{ $json.numbersHtml }}
-            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Please allow <strong>4&ndash;7 business days</strong> for delivery.</p>
-            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Tracking can take a few hours to show movement after the label is scanned. If the link does not load, copy the number above and paste it into the carrier's site.</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Tracking will not show movement until the carrier scans the parcel in, which usually takes <strong>a day or two</strong> after the label is created. That is normal and nothing has gone wrong.</p>
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">We will email you again as soon as it starts moving, and once more when it is delivered.</p>
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Delivery usually takes <strong>4&ndash;7 business days</strong> once the carrier has the parcel.</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">If the link does not load, copy the number above and paste it into the carrier's site.</p>
             <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">Questions about your order? Message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
           </td>
         </tr>
