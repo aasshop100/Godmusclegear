@@ -103,7 +103,15 @@
 
 ### ⚠ One hole this plan does not close
 
-The receiver does a read-modify-write on multi-line cells. **Two parcels of the same order scanned delivered within the same few seconds can lose one stamp**, producing a duplicate email on the next event. Accepted for now: different parcels ride different trucks, so simultaneity is rare, and the failure is a duplicate rather than a silence. **The named remedy if it bites** is an append-only `parcel_events` tab with `deliveredEmailed` derived from it rather than stored — appends do not read first, so they cannot lose a sibling. Do not attempt that in this build.
+The receiver does a read-modify-write across `Read Orders` → `Decide Event` → `Stamp Delivered`, a window measured at **~2.5–3 seconds** in live executions. **Two parcels of the same order scanned delivered inside that window lose one stamp**: both read the old set, the second write clobbers the first, and the next callback for the clobbered parcel sends a **duplicate delivered email**. No data is lost and the failure is loud rather than silent.
+
+> **⚠ An earlier version of this note said "different parcels ride different trucks, so simultaneity is rare." That reasoning was WRONG and is corrected here.** Two parcels going to the same address are usually on the same route and scanned at the same stop, seconds apart. For a store that ships **one package per brand**, that is a normal delivery, not an edge case. The risk is higher than first judged; only the severity is low.
+
+**Deferred deliberately on 2026-10-21, with a trigger.** One order has been through the chain, so restructuring live data now would be preventing something that has not happened.
+
+**Build it when either happens:** the first real multi-brand order goes out for delivery, or a duplicate delivered email is actually observed.
+
+**When you do, prefer ONE ROW PER PARCEL over the append-only log.** The contention exists only because per-parcel state is packed into per-order cells; a `parcels` tab keyed by tracking number means two parcels write different rows and cannot collide by construction. It also fixes a compromise in Task 9, where `parcelStatusAt` is per-row so staleness is judged per order rather than per parcel. The append-only `parcel_events` tab is the lighter alternative and still leaves a narrower race for the same number arriving twice. A Wait node with random jitter is a same-day stopgap only — it shrinks the window without closing it. Do not attempt any of this in this build.
 
 ---
 
