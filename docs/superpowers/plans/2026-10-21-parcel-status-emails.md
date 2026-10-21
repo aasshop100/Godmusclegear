@@ -219,9 +219,24 @@ Wait for one `GMG - Payment Watcher` execution (every 2 minutes) and confirm `su
 > **Not published.** The draft holds all this; `activeVersionId` is still the
 > 9-node version, so tonight's 21:30 run is unaffected. Task 6 Step 2 publishes.
 
-- [ ] **Step 1: Add a Shippo credential** — *Lester's step; the MCP can list credentials but not create them*
+- [x] **Step 1: Add a Shippo credential** — *Lester's step; the MCP can list credentials but not create them*
 
 Add the **live** key as an n8n Header Auth credential (`Authorization` = `ShippoToken <live key>`). The test key cannot do live tracking. Do not paste the key into a node field. Then attach it to `Register Tracking`.
+
+> Done 2026-10-21: credential `Shippo` (httpHeaderAuth), attached to
+> `Register Tracking`, node still disabled.
+>
+> **⚠ The credential VALUE cannot be verified from here** — n8n never returns
+> it and the UI masks it. The likely mistake is a missing `ShippoToken `
+> prefix (Shippo does **not** use `Bearer`). This fails safe: a wrong value
+> returns 401, `continueErrorOutput` routes it to `Alert Registration Failed`,
+> the number is left out of `trackingRegistered`, and **nothing is charged**.
+> Task 6 Step 3 — one real number — is where this is actually proven.
+>
+> The key lives only in the Sales Ops `.env.local` as `SHIPPO_API_TOKEN`; the
+> Vercel copy is masked and Shippo shows a key once. Do not delete the `fe92`
+> key to make a new one — Sales Ops authenticates every tracking lookup with
+> it. Two live keys are allowed if a separate one is ever wanted.
 
 - [x] **Step 2: Add `Decide Registrations`** *(not "extend Decide Sends" — see above)*
 
