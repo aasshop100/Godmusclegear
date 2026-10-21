@@ -447,11 +447,49 @@ Confirm one order with two moving parcels yields **one** decision naming both, a
 
 ### Task 8: Go live
 
-- [ ] **Step 1: Enable delivered**
+> **⚠ EXECUTED 2026-10-21 — all three workflows published. The first live run
+> proved the chain and found the credential wrong.**
+>
+> **A prerequisite bug had to be fixed first, in Sales Ops.** `normalizeOrder`
+> rebuilds every order from an allow-list and silently drops anything unlisted
+> — and `websiteOrderId` was never added when the tag shipped on 2026-10-16.
+> `normalizeOrders` runs on every cloud load, so the link was stripped in
+> memory and the next save persisted the loss. **Linking an order never
+> stuck**, and that, not "nothing has shipped", is why the Task 6 dry run
+> returned an empty shipment list. Fixed, 249 tests, build clean, deployed.
+>
+> **First live run (`Lester1017` → `ORDER-1792078425067`), all verified:**
+> - `Fetch Shipments` returned the order with a real USPS number — **the link
+>   fix holds.**
+> - The tracking email **sent** (SMTP `accepted`, `250 2.0.0 OK`) and
+>   `trackingEmailed` + `trackingEmailedAt` were stamped.
+> - **`Register Tracking` failed 401** —
+>   `{"detail":"Authentication credentials were not provided."}`
+> - The failure behaved exactly as designed: `continueErrorOutput` → the
+>   number was **left out of `trackingRegistered`** → `Alert Registration
+>   Failed` fired. Nothing was charged, and tonight's run retries.
+>
+> **The 401 is diagnosed, not guessed.** Three requests with the same live key:
+> `ShippoToken <key>` → 200; **bare `<key>` → the exact error n8n got**;
+> `Bearer <key>` → a *different* error ("Invalid access token"). So the
+> credential's Value is the raw key with **no `ShippoToken ` prefix**. It is
+> the one thing about that credential this build could never read back, and it
+> is the mistake flagged in Task 4 Step 1.
+>
+> **Steps 2, 4 and 5 remain blocked** until that credential is corrected: with
+> nothing registered, Shippo sends no callbacks, so there is no delivered
+> scan and no multi-parcel path to prove.
+>
+> ⚠ **`ORDER-1792078425067`'s email is temporarily `lstrmrcd@gmail.com` for
+> this test.** The real address is recorded in the local scratchpad note and
+> **must be restored before that parcel is delivered**, or the customer's
+> delivery email goes to the wrong inbox.
+
+- [x] **Step 1: Enable delivered**
 
 Enable nodes 6 and 7 on the receiver and republish. Confirm `activeVersionId` equals `versionId` — a draft that is not published is not what runs.
 
-- [ ] **Step 2: Prove delivered on a real parcel**
+- [ ] **Step 2: Prove delivered on a real parcel** — **BLOCKED: Shippo credential returns 401**
 
 Using a `BANK_TRANSFER` test order (written at checkout with no money moving, and already in `SHIPPABLE`) to the owner's own address. Expected, all four:
 1. the email arrives when the carrier scans delivered, and says USPS *reports* it delivered;
@@ -459,15 +497,15 @@ Using a `BANK_TRANSFER` test order (written at checkout with no money moving, an
 3. `deliveredEmailed` holds the number;
 4. a replayed identical callback sends nothing.
 
-- [ ] **Step 3: Enable the sweep**
+- [x] **Step 3: Enable the sweep**
 
 Enable nodes 4 and 5 on Task 7 and publish. Confirm a run with nothing to do sends nothing and says nothing.
 
-- [ ] **Step 4: Prove the multi-parcel path**
+- [ ] **Step 4: Prove the multi-parcel path** — **BLOCKED: nothing registered yet**
 
 A two-parcel order: both parcels moving between sweeps must produce **one** in-transit email naming both, then **two** separate delivered emails, the first carrying `outstanding: 1`.
 
-- [ ] **Step 5: Register the backlog**
+- [ ] **Step 5: Register the backlog** — **BLOCKED: Shippo credential returns 401**
 
 Only now, run the nightly workflow across all existing website orders so their numbers are registered. Doing this earlier would have pointed real callbacks at an untested receiver.
 
