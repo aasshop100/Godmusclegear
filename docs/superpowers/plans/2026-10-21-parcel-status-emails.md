@@ -142,19 +142,33 @@ Build each with a stub substitution and read the visible text. Check: no unrepla
 **Interfaces:**
 - Produces: headers `trackingRegistered`, `parcelStatus`, `parcelStatusAt`, `transitEmailed`, `deliveredEmailed` at the end of the Orders header row.
 
-- [ ] **Step 1: Read the current header row**
+> **⚠ EXECUTED 2026-10-21 — Step 2 as written was wrong.** There were no empty
+> header cells to write into: the Orders grid was **exactly 26 columns wide**,
+> so every write to `AA1`–`AE1` failed with *"Range exceeds grid limits. Max
+> rows: 1023, max columns: 26"*. The grid has to be widened first with a
+> `spreadsheets.batchUpdate` `appendDimension` request (`COLUMNS`, length 5).
+> `appendDimension` adds at the END only — it cannot insert, reorder or touch
+> existing cells, which is exactly the guarantee this task needs.
+>
+> **Second trap, nearly costly:** `sheets-manager.js write` passes its cell
+> argument straight through as the API range, so a bare `AA1` resolves to the
+> **first sheet in the file — `Sheet1`, the inventory mirror** — not to Orders.
+> Always fully qualify the range as `Orders!AA1`. A bare reference here would
+> have written header text into the live stock feed.
+
+- [x] **Step 1: Read the current header row**
 
 Using the local `gdrive` OAuth token, read the Orders header row and record the exact current list. It should end with `trackingEmailedAt` at 26 columns after the 2026-10-16 build.
 
-- [ ] **Step 2: Append the five headers**
+- [x] **Step 2: Append the five headers**
 
-Write them into the first five empty header cells after the last populated one — **append only**. No reorder, no rename, no insert.
+Widen the grid by five columns with `appendDimension`, then write the headers to `Orders!AA1:AE1` — **append only**. No reorder, no rename, no insert.
 
-- [ ] **Step 3: Verify nothing moved**
+- [x] **Step 3: Verify nothing moved**
 
 Re-read the header row: the existing headers byte-identical to Step 1, the five new ones following. Re-read a known data row and confirm its values are unchanged.
 
-- [ ] **Step 4: Confirm the live workflows still run**
+- [x] **Step 4: Confirm the live workflows still run**
 
 Wait for one `GMG - Payment Watcher` execution (every 2 minutes) and confirm `success`. It reads and writes this tab, so a green run proves the append was harmless. Then confirm `GMG - Tracking Emails` still runs clean.
 
