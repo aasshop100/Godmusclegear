@@ -264,11 +264,56 @@ One per branch, each reading only its own branch's data.
 - Consumes: `parcel-status.js` `decideWebhook`, `docs/emails/parcel-delivered.html`, the five columns.
 - Produces: workflow `GMG - Parcel Status`.
 
-- [ ] **Step 1: Confirm the real payload shape first**
+> **⚠ EXECUTED 2026-10-21 — a live-proven bug, and three things the plan had
+> wrong.**
+>
+> **THE BUG: Telegram parses alert text as Markdown, and ONE underscore kills
+> the whole message.** Both alert branches failed live with
+> `400 Bad Request: can't parse entities: Can't find end of the entity
+> starting at byte offset 78`. Byte 78 was the `_` in **`track_updated`** — a
+> string in every single Shippo callback. Shippo statuses do it too
+> (`PRE_TRANSIT`, `SOMETHING_NEW`). An unmatched `_` opens a Markdown italic
+> that never closes, Telegram rejects the message, and **the alert is lost
+> precisely when something has gone wrong.** The node type definition claims
+> `parse_mode` defaults to HTML; at runtime it does not. Fixed by setting
+> `parse_mode: 'HTML'` explicitly, and by stripping `<>&` from interpolated
+> error messages so free text cannot open an HTML entity either.
+>
+> **This was latent in `GMG - Tracking Emails` too** — its two registration
+> alerts carry `track_updated`, and all four of its alerts interpolate error
+> messages that can contain anything. All four were fixed in the same pass.
+> The reason it had never fired: the existing alert text happens to contain no
+> underscores. **Every Telegram alert in this instance is worth auditing.**
+>
+> **Step 2's "Respond 200" node is unnecessary.** The Webhook node's default
+> `responseMode: 'onReceived'` already answers immediately, before the rest of
+> the chain runs. A `Respond to Webhook` node would add a failure surface for
+> nothing.
+>
+> **The SDK sandbox rejects ordinary JavaScript.** `.join()` on an array and
+> `function` declarations are both refused ("not an allowed SDK method" /
+> "Function declarations are not allowed"), so a long `jsCode` string cannot
+> be assembled in the SDK and switch rules cannot be built by a helper. Create
+> the workflow with `jsCode: 'return [];'` and set the real body afterwards
+> with `setNodeParameter` — which is also the only way to be sure the stored
+> text is what you meant.
+>
+> **Added, not in the plan: a `no-customer-email` guard.** An `emailSend` with
+> an empty recipient fails at the SMTP layer with a message about the address,
+> which reads like a bug rather than a missing field. It now reports as what
+> it is and is never stamped as emailed.
+>
+> **Step 3 was done by live execution, not a local differential run.** Running
+> real payloads through the stored node proves the thing a local test cannot:
+> that the `/[\n,;/]+/` regexes survived JSON escaping into n8n. They did.
+
+- [x] **Step 1: Confirm the real payload shape first**
+
+Confirmed from Shippo's docs: the envelope is `{ event, test, data }`, with `tracking_number` and `carrier` directly on `data` and the status at `data.tracking_status.status`. The receiver also accepts a bare payload, so a hand-posted sample behaves exactly like a real callback.
 
 Fetch a sample `track_updated` payload from Shippo's API Portal and record the exact envelope — where `tracking_number` and `tracking_status.status` actually sit. **Do not code against an assumed shape.** The fields below are the intent, not a verified contract.
 
-- [ ] **Step 2: Build the workflow with the send node DISABLED**
+- [x] **Step 2: Build the workflow with the send node DISABLED**
 
 Nodes, in order:
 
@@ -284,15 +329,15 @@ Nodes, in order:
 10. **Alert Unknown Event** — Telegram, for `unknown-number`, `ambiguous-number`, `unknown-status`.
 11. **Alert Send Failed** — Telegram, fed by the error outputs of 6 and 7, referencing only this branch's data.
 
-- [ ] **Step 3: Verify the inlined module behaviourally**
+- [x] **Step 3: Verify the inlined module behaviourally**
 
 Not by hash. Run the same table of cases from Task 1 Step 1 through the Code node and compare outputs to the tested module. A hand-retyped copy is how a tested module silently diverges from the one that runs.
 
-- [ ] **Step 4: Exercise every path with sample payloads**
+- [x] **Step 4: Exercise every path with sample payloads**
 
 With node 6 **and node 7** both disabled (trap 1 — a disabled send alone still lets the stamp run), post sample payloads directly at the webhook and confirm each decision: a `TRANSIT` for a registered number → `record`; a `DELIVERED` → `deliver` with the right `outstanding`; an unregistered number → `unknown-number`, nothing written; a nonsense status → `unknown-status`; a `RETURNED` → `exception`, Telegram only.
 
-- [ ] **Step 5: Do NOT publish yet**
+- [x] **Step 5: Do NOT publish yet**
 
 ---
 
