@@ -406,7 +406,31 @@ Wait for a genuine carrier scan. Confirm the webhook fires, `Decide Event` resol
 - Consumes: `decideTransitSweep`, `docs/emails/parcel-in-transit.html`, `parcelStatus`, `transitEmailed`.
 - Produces: workflow `GMG - Parcel In Transit`.
 
-- [ ] **Step 1: Build it**
+> **⚠ EXECUTED 2026-10-21 — built and dry-run green on four cases.**
+>
+> Schedule is `0 8-22/2 * * *` Asia/Manila (every two hours, 08:00–22:00). The
+> workflow carries its own trigger, so **publishing IS the schedule** — no
+> cron-job.org entry.
+>
+> **A `Route Transit` switch was added, which the plan did not list.** The
+> `no-customer-email` guard needs somewhere to go, and routing it exactly as
+> `GMG - Tracking Emails` routes its own alert keeps the three workflows the
+> same shape.
+>
+> **Dry run, send AND stamp disabled (trap 1), all four cases green:**
+> 1. nothing moving → **zero items, no Telegram.** Silence when idle.
+> 2. two parcels moving (`In Transit` + `Accepted`) → **ONE** email item
+>    naming both, `totalParcels: 2`, subject "Your order is on its way".
+> 3. one already in `transitEmailed` → only the other parcel, worded as a
+>    follow-up, and `transitAfter` correctly accumulates both.
+> 4. parcels in `deliveredEmailed` while their status still reads moving →
+>    **zero items.** A parcel that has landed is never announced as on its way.
+>
+> Sentinel data lived on an already-EXPIRED order, was written and cleared
+> guarded by exact `orderId`, and the row's own fields were re-read afterwards
+> and are untouched.
+
+- [x] **Step 1: Build it**
 
 1. **Schedule** — every two hours during waking hours, Asia/Manila. The workflow carries its own trigger, so **publishing IS the schedule** — no cron-job.org entry is needed (those exist only because Vercel Hobby caps crons at two).
 2. **Read Orders** — Sheets read, tab by NAME, `returnAllMatches` on.
@@ -415,7 +439,7 @@ Wait for a genuine carrier scan. Confirm the webhook fires, `Decide Event` resol
 5. **Stamp Transit** — appends `newNumbers` to `transitEmailed`. Reads `$('Decide Transit').item.json`.
 6. **Alert Transit Send Failed** — its own Telegram node.
 
-- [ ] **Step 2: Dry run with BOTH the send and the stamp disabled**
+- [x] **Step 2: Dry run with BOTH the send and the stamp disabled**
 
 Confirm one order with two moving parcels yields **one** decision naming both, and an order whose parcels are all already in `transitEmailed` yields nothing. **Nothing to do must say nothing** — no Telegram on a quiet run.
 
