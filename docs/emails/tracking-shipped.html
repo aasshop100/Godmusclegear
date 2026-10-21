@@ -26,8 +26,13 @@
   │                                                                          │
   │ So it must NOT say "your order is on its way", and it must not start the │
   │ 4-7 business day clock, because neither is true yet. It sets the         │
-  │ expectation that tracking will look static for a day or two, and says    │
-  │ two more emails are coming.                                              │
+  │ expectation that tracking will look static at first, and says two more   │
+  │ emails are coming.                                                       │
+  │                                                                          │
+  │ NO TIMEFRAME for that gap. An earlier draft said "usually a day or two"; │
+  │ Lester removed it on 2026-10-21 because it is a promise about the        │
+  │ carrier's behaviour that we cannot keep. Say the link may show little or │
+  │ nothing at first and that this is normal - never how long.               │
   │                                                                          │
   │ "On its way" belongs to parcel-in-transit.html, which fires on the       │
   │ carrier's first real scan. Keep the two distinct or the customer gets    │
@@ -57,7 +62,7 @@
             <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">{{ $json.greeting }}</p>
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
             {{ $json.numbersHtml }}
-            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Tracking will not show movement until the carrier scans the parcel in, which usually takes <strong>a day or two</strong> after the label is created. That is normal and nothing has gone wrong.</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Tracking will not show movement until the carrier scans the parcel in, so the link may show little or nothing at first. That is normal and nothing has gone wrong.</p>
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">We will email you again as soon as it starts moving, and once more when it is delivered.</p>
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Delivery usually takes <strong>4&ndash;7 business days</strong> once the carrier has the parcel.</p>
             <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">If the link does not load, copy the number above and paste it into the carrier's site.</p>
