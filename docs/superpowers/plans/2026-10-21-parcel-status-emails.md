@@ -1,5 +1,75 @@
 # Parcel status emails Implementation Plan
 
+> ## EXECUTED — 2026-10-21. Read this before the plan; several steps were WRONG.
+>
+> **All four workflows are published and all three customer emails have fired
+> live.** `GMG - Tracking Emails` (`0JvCQIgVoRfEhUP2`) · `GMG - Parcel Status`
+> (`XiPL7yjHFVnNu1Qb`) · `GMG - Parcel In Transit` (`MAWxcX6CDx1vWFnv`) ·
+> `GMG - Parcel Reconcile` (`DIo9VnxUXijW3v5M`). Kept as the record, not as a
+> to-do list. Each task's own banner has the detail; this is what to know
+> first.
+>
+> ### Four real bugs, three of which would have shipped silently
+>
+> **1. ONE UNDERSCORE KILLED EVERY ALERT.** The n8n Telegram node parses as
+> Markdown at runtime despite its type definition claiming HTML, so an
+> unmatched `_` makes Telegram reject the whole message with 400. The
+> offender was **`track_updated`** — in every single Shippo callback. Found
+> only because a live run exercised the alert branch. It was latent in
+> `GMG - Tracking Emails` too. Fix: explicit `parse_mode: 'HTML'`, and strip
+> `<>&` from interpolated error text. **Audit every Telegram node you own.**
+>
+> **2. THE PLAN PUT REGISTRATION IN THE WRONG NODE.** Task 4 said to extend
+> `Decide Sends`. That node returns early when there is nothing new to email,
+> so the entire backlog would never have been registered and no status email
+> would ever have fired for those parcels — silently. Registration is a
+> parallel node.
+>
+> **3. `normalizeOrder` IN SALES OPS WAS EATING THE LINK.** Not in this plan
+> at all, and it blocked everything: `websiteOrderId` was missing from an
+> allow-list that runs on every cloud load, so linking an order never stuck.
+> `/api/website-shipments` returned `[]`, which reads as "nothing has
+> shipped" and actually meant "nothing is linked". Fixed and deployed
+> (`2d56544`).
+>
+> **4. THE FIRST CALLBACK IS ALWAYS REJECTED.** Shippo pushes within a second
+> of the registration POST, before the stamp lands, so the receiver refuses
+> it as an unknown number (callback 07:24:46.7, stamp 07:24:47.4). Fixed by
+> taking the status from the registration **response**, which already has it.
+>
+> ### Copy that was wrong, and the rule behind it
+>
+> **The tracking-number email announced a shipment that had not happened.**
+> It fires at label creation; on the first real order USPS did not take
+> possession for **three days**. It now announces the NUMBER, and the 4–7 day
+> clock starts when the carrier has the parcel. **No estimate for that gap** —
+> Lester removed "usually a day or two" as a promise about USPS we cannot
+> keep.
+>
+> ### Steps that were wrong in smaller ways
+>
+> - **Task 3:** there were no empty header cells — the grid was exactly 26
+>   columns and had to be widened with `appendDimension` first. And
+>   `sheets-manager.js write` resolves a bare `AA1` to **`Sheet1`, the live
+>   inventory mirror**; always qualify as `Orders!AA1`.
+> - **Task 5:** the planned "Respond 200" node is unnecessary (the webhook
+>   already answers on `onReceived`), and the SDK sandbox rejects `.join()`
+>   and function declarations, so a long `jsCode` must be set after creation.
+> - **Task 6:** publish BEFORE creating the Shippo webhook, or it points at a
+>   404.
+> - **Task 9:** do not re-implement the receiver's decision logic. Replay the
+>   missed callback into its webhook instead — one implementation, and it
+>   makes the sweep self-limiting.
+>
+> ### Still open
+>
+> - **Recovery of a missed DELIVERY is unexercised** (USPS had the test parcel
+>   in transit), as is the **multi-parcel path** (needs a two-parcel order).
+> - **The read-modify-write hole is still open by choice** — two parcels of
+>   one order scanned delivered within seconds can lose a stamp and duplicate
+>   an email. Remedy named in the spec; not attempted.
+> - **Task 10 Step 1 waits on the next `TRACK_FEE` invoice.**
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **No spreadsheet IDs, URLs, secrets or credential values in this file.** This
@@ -388,11 +458,11 @@ Register a `track_updated` webhook, environment **live**, pointed at the Task 5 
 
 The webhook needs a live listener. Publish Task 5 with nodes 6 and 7 disabled so real callbacks are recorded and alerted on, but nothing is emailed or stamped.
 
-- [ ] **Step 3: Enable registration for exactly one parcel** — **BLOCKED: no website order has a tracking number yet**
+- [x] **Step 3: Enable registration for exactly one parcel** — *done once the Sales Ops link bug was fixed; one number registered*
 
 Enable the Task 4 HTTP node and run the nightly workflow manually against **one** real website order with a real tracking number. Confirm: Shippo returns success, `trackingRegistered` holds that number, and no other order was registered.
 
-- [ ] **Step 4: Watch one real scan arrive** — **BLOCKED: waiting on the first real shipment**
+- [ ] **Step 4: Watch one real scan arrive** — **a real Shippo callback DID arrive on registration (and exposed the race); a fresh CARRIER scan is still unobserved**
 
 Wait for a genuine carrier scan. Confirm the webhook fires, `Decide Event` resolves the number to the right order, and nothing is sent. **This is the first proof the whole push path works end to end** — do not skip it for a sample payload.
 
@@ -610,15 +680,15 @@ Set a registered parcel's `parcelStatus` back to `In Transit` by hand while USPS
 
 ### Task 10: Close out
 
-- [ ] **Step 1: Decide the importer's redundant lookup**
+- [ ] **Step 1: Decide the importer's redundant lookup** — **waiting on the next TRACK_FEE invoice**
 
 Once the receiver is writing status, the Sales Ops importer's Shippo `GET` is redundant for website orders. Check the next `TRACK_FEE` invoice: if registrations billed on top of lookups, remove that call for tagged orders. If billing deduplicated by number, leave it. **A flag, not a redesign** — do not pre-empt the invoice.
 
-- [ ] **Step 2: Update the memory cards**
+- [x] **Step 2: Update the memory cards**
 
 Record in `ecommerce-stores.md` and `sales-ops-webapp.md`: the two new workflows and their ids, the five new columns, the Shippo webhook and credential, the registration guard, the reconciliation schedule, and the read-modify-write hole with its named remedy.
 
-- [ ] **Step 3: Record what was wrong**
+- [x] **Step 3: Record what was wrong**
 
 Add an EXECUTED banner to the top of this plan naming any step that turned out wrong, as the 2026-10-16 plan does. That banner is the most valuable part of these documents.
 
