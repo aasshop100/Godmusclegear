@@ -151,7 +151,33 @@ Keep the route read-only and secret-gated.
 
 ## PHASE 2 — one row per parcel ⏰ WAIT FOR NOTHING IN FLIGHT
 
-> **Do not start Phase 2 while a registered parcel is undelivered.** Moving live state under a parcel mid-journey either loses its delivered email or sends it twice. Check that every registered parcel is `Delivered` first. Migrating one parcel's state is trivial; fifty is a project — so do this early, just not while one is moving.
+> **Do Phase 2 at the QUIETEST moment available — not "once nothing is in flight".**
+>
+> The original wording was *"wait until no registered parcel is outstanding"*.
+> That is fine at today's volume and **becomes a trap at any other**: once
+> orders flow continuously there may never again be a moment with nothing in
+> flight, and a gate like that defers itself forever. Do not let it.
+>
+> **Why quiet matters, in order of weight:**
+>
+> 1. **You lose the ability to tell what broke.** The delivered email has
+>    never run on a real carrier scan — every test so far replayed a payload
+>    we posted ourselves. Restructure before that baseline exists and a later
+>    failure has two candidate causes, the restructure or the feature, with no
+>    way to separate them.
+> 2. **Migration ordering.** Repoint before migrating and a delivered callback
+>    finds no row, is rejected as `unknown-number`, and the customer is never
+>    told. Migrate before repointing and a stamp written to the old columns is
+>    missed, so they are told twice. This is a window of minutes, not a reason
+>    to wait days.
+>
+> **If a quiet moment does not arrive, proceed anyway** with
+> migrate → repoint → verify, in that order, and watch the first callback
+> after the cutover. The small window is an acceptable price; an indefinite
+> deferral is not.
+>
+> Migrating one parcel's state is trivial; fifty is a project. **Do this
+> early.**
 
 ### Task 5: Create the parcels tab
 
