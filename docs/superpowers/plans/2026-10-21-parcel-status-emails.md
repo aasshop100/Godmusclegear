@@ -80,7 +80,7 @@ The receiver does a read-modify-write on multi-line cells. **Two parcels of the 
 `decideTransitSweep` returns `{action:'skip', orderId}` or
 `{action:'send', orderId, newNumbers:string[], transitAfter:string, totalParcels:number}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/parcel-status.test.js` covering, at minimum:
 
@@ -93,11 +93,11 @@ Create `tests/parcel-status.test.js` covering, at minimum:
 
 **Why `UNKNOWN` maps to Label Created and not Exception.** Sales Ops maps Shippo `UNKNOWN`→`Exception` because there a failed *lookup* is worth flagging. A *pushed* `UNKNOWN` means the carrier has no scan yet, which is normal and must not page the owner. Deliberate divergence; keep the comment in the code.
 
-- [ ] **Step 2: Implement until green**
+- [x] **Step 2: Implement until green**
 
 `module.exports` at the bottom guarded for the browser, same UMD shape as `tracking-email.js` — but remember trap 3: only the BODY goes into a Code node.
 
-- [ ] **Step 3: Run the suite**
+- [x] **Step 3: Run the suite**
 
 `node --test tests/*.test.js` — the new file green and every pre-existing test still green.
 
