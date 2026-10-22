@@ -871,7 +871,7 @@ const FEATURED_CATALOG = (function () {
     ['xeno-primo-s',                  'Primo S',                                75.00, 'images/xeno-primo-s.jpg',                 'Xeno', 'Oral'],
     ['xeno-superdrol',                'Superdrol',                              55.00, 'images/xeno-superdrol.jpg',               'Xeno', 'Oral'],
     ['xeno-turinabol',                'Turinabol',                              68.00, 'images/xeno-turinabol.jpg',               'Xeno', 'Oral'],
-    ['xeno-tamox',                    'Tamox',                                  50.00, 'images/xeno-tamox.jpg',                   'Xeno', 'Oral'],
+    ['xeno-tamox',                    'Tamox',                                  47.00, 'images/xeno-tamox.jpg',                   'Xeno', 'Oral'],
     ['xeno-clomiphene',               'Clomiphene',                             80.00, 'images/xeno-clomiphene.jpg',              'Xeno', 'Oral'],
     ['xeno-clenbuterol',              'Clenbuterol',                           138.00, 'images/xeno-clenbuterol.jpg',             'Xeno', 'Oral'],
   ];
