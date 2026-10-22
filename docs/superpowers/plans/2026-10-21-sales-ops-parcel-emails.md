@@ -238,9 +238,50 @@ Keep the route read-only and secret-gated.
 
 ### Task 8: Go live
 
-- [ ] **Step 1:** registration now covers Sales Ops shipments. Watch the first one register, and confirm **exactly one** parcels row appears.
-- [ ] **Step 2: One real order, the owner's own address first.** Record the customer's real address before changing it, and restore it the moment the test is done — a delivery scan can land at any time, and whoever is in the field at that moment receives the email.
-- [ ] **Step 3: Branch registration on the status it gets back**
+> **⚠ EXECUTED 2026-10-22 — Sales Ops orders are live, and two things bit.**
+>
+> **The number-ready email is sent from the REGISTRATION branch**, decided by
+> Lester after the fork was put to him. Decide Sends and Decide Registrations
+> run in parallel, so the parcel row does not exist when Decide Sends runs,
+> and making them sequential would stop the email branch on every night that
+> nothing needs registering. Registration is also where the carrier status is
+> known, which the late-address rule needs anyway.
+>
+> **A Sales Ops parcel's number-ready state is `numberEmailed` on the parcel
+> row**, because a Sales Ops order has no Orders sheet row. A website parcel's
+> row is written `numberEmailed: yes` at birth so nothing ever thinks it is
+> outstanding — that email still belongs to Decide Sends.
+>
+> **⚠ AN APPEND NEEDS `columns.schema` WITH `defineBelow`; AN UPDATE DOES
+> NOT.** Every other stamp in this system is an update, which is why this
+> only surfaced on the one append. The node's own error named the fix:
+> `autoMapInputData` with `value: {}`, which works because Collect Registered
+> already names its fields exactly after the parcels columns.
+>
+> **⚠ THE FAILED APPEND LEFT A PARCEL REGISTERED WITH NO ROW.** Shippo had
+> taken the registration before the row was written, so the guard that
+> prevents a second registration — "a parcel is registered if it has a row" —
+> had nothing to see. The retry registered it a **second time**: one extra
+> 2¢ and a duplicate subscription that cannot be deleted (Shippo has no
+> DELETE for tracks). Harmless here only because every decision is
+> idempotent: a repeated `record` rewrites the same status, and `deliver` is
+> guarded by `deliveredEmailed`. **If this recurs at volume, add the row
+> before the Shippo call and remove it on failure** — the opposite of the
+> current order, and a trade: a crash between the two would then leave a row
+> for a parcel that is not subscribed.
+>
+> **Verified live:** the endpoint returned both shipments; the Sales Ops one
+> registered, appended exactly one row, emailed the owner's address
+> (SMTP `250 OK`) and stamped `numberEmailed`. Two parcel rows, no duplicate.
+>
+> **Also proven, unprompted:** a genuine carrier scan arrived overnight
+> (`isTest: false`), resolved against the new parcels tab, decided `record`
+> because the parcel was still in transit, and wrote the row. The push path
+> is now proven end to end on real carrier data.
+
+- [x] **Step 1:** registration now covers Sales Ops shipments. Watch the first one register, and confirm **exactly one** parcels row appears.
+- [x] **Step 2: One real order, the owner's own address first.** Record the customer's real address before changing it, and restore it the moment the test is done — a delivery scan can land at any time, and whoever is in the field at that moment receives the email.
+- [x] **Step 3: Branch registration on the status it gets back** — *built; the Delivered branch is not yet exercised live*
 
 An address added late must not restart the sequence. The registration response already carries the parcel's current status, so use it:
 
