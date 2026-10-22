@@ -10,7 +10,7 @@ const scriptJs = fs.readFileSync(path.join(ROOT, 'script.js'), 'utf8');
 
 test('parses every product card', () => {
   const products = parseProducts(html);
-  assert.equal(products.length, 144);
+  assert.equal(products.length, 155);
 });
 
 test('parses a known product completely', () => {
@@ -99,11 +99,11 @@ test('checkPriceParity reports a deliberately broken price', () => {
   assert.ok(problems.some(p => p.includes('sustanon400mg')));
 });
 
-test('isPeptideProduct matches exactly the 13 real peptide products', () => {
+test('isPeptideProduct matches exactly the 24 real peptide products', () => {
   const ids = parseProducts(html).filter(p => isPeptideProduct(p.title)).map(p => p.id).sort();
-  const expected = ['sixpex-hcg5000','sixpex-hgh100','sixpex-bpc157','sixpex-igf1-lr3-01','sixpex-ipamorelin','sixpex-semaglutide','sixpex-sermorelin','sixpex-tb500','xeno-semaglutide','xeno-epitalon','xeno-bpc-15710mg','xeno-semax','xeno-hcg'].sort();
+  const expected = ['sixpex-hcg5000','sixpex-hgh100','sixpex-bpc157','sixpex-igf1-lr3-01','sixpex-ipamorelin','sixpex-semaglutide','sixpex-sermorelin','sixpex-tb500','sixpex-cagrilintide','sixpex-ghk-cu-50','sixpex-hexarelin','sixpex-mazdutide-10','sixpex-pt-141','sixpex-retatrutide','sixpex-tesamorelin-5','sixpex-tirzepatide-10','xeno-semaglutide','xeno-epitalon','xeno-bpc-15710mg','xeno-semax','xeno-hcg','xeno-retatrutide','xeno-selank','xeno-tirzepatide'].sort();
   assert.deepEqual(ids, expected);
-  assert.equal(ids.length, 13);
+  assert.equal(ids.length, 24);
   assert.equal(isPeptideProduct('Testosterone Cypionate, 250mg'), false);
   assert.equal(isPeptideProduct(undefined), false);
 });
