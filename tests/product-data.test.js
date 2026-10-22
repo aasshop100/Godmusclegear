@@ -10,7 +10,7 @@ const scriptJs = fs.readFileSync(path.join(ROOT, 'script.js'), 'utf8');
 
 test('parses every product card', () => {
   const products = parseProducts(html);
-  assert.equal(products.length, 133);
+  assert.equal(products.length, 144);
 });
 
 test('parses a known product completely', () => {
