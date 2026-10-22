@@ -19,6 +19,7 @@ published and verified unless it says otherwise.**
 > | "four n8n workflows" | **EIGHT**, after the parcel-email chain of 2026-10-16/21: `Tracking Emails` → `Parcel Status` (webhook) → `Parcel In Transit` (sweep) → `Parcel Reconcile` (nightly net). |
 > | Customer emails: order, PAID, REVIEW, expiry | **Seven.** Added 2026-10-16/21: tracking number ready, on its way, delivered. All three have fired live. |
 > | The tracking email says "your order has shipped" | **No.** It fires at LABEL CREATION, which on the first real order was **three days** before USPS took the parcel. It now announces the NUMBER, and the 4–7 day window starts when the carrier has it. **No estimate for that gap** — a promise about USPS we cannot keep. |
+> | "133 products" anywhere | **155** since 2026-10-22 — 11 Beligas orals and 11 Sixpex/Xeno peptides added from the sheet's `Not On Website` backlog, which is the working list of master products not yet sold here. The catalog count and the peptide-id list are both hardcoded in `tests/product-data.test.js`; see `INVENTORY-SYNC.md`. |
 >
 > Design and plan for the parcel chain:
 > `docs/superpowers/specs/2026-10-21-parcel-status-emails-design.md` and
