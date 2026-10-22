@@ -1,5 +1,73 @@
 # Parcel emails for every order — Implementation Plan
 
+> ## EXECUTED — 2026-10-21/22. Read this before the plan; several steps were WRONG.
+>
+> **Every order can now get the three parcel emails, whether or not it went
+> through the website.** Kept as the record, not a to-do list. Each task's own
+> banner has the detail; this is what to know first.
+>
+> ### The parser bug this plan was reordered around
+>
+> **An email pasted into an order message was silently swallowed into the
+> shipping address.** `parseOrderText` tells an item line from an address line
+> by looking for a `$`; an email has none, so it fell inside the address
+> block. The email was lost **and the address came out carrying it** — on
+> something that gets printed on a label. Both the paste box and the Telegram
+> bot shared the parser, so both had it. That is why Task 1 is the parser and
+> nothing else.
+>
+> ### What the plan got wrong
+>
+> **Task 7 said three workflows. It is four** — the reconcile sweep was built
+> after this plan was written.
+>
+> **Task 8 Step 1 was a one-liner hiding a design fork.** The number-ready
+> email's "already sent" state has no home for an order with no Orders sheet
+> row, and `Decide Sends` runs in PARALLEL with registration, so the parcel
+> row does not exist when it runs. Making them sequential is worse: on the
+> common night when nothing needs registering, the email branch would never
+> run at all. **Resolved by Lester: send it from the registration branch**,
+> which is also where the carrier status is known, which the late-address
+> rule needs anyway.
+>
+> ### Traps worth more than the code
+>
+> **An APPEND needs `columns.schema` with `defineBelow`; an UPDATE does not.**
+> Every other stamp here is an update, so this surfaced on the one append.
+> Fix: `autoMapInputData` with `value: {}`.
+>
+> **⚠ A FAILED APPEND LEFT A PARCEL REGISTERED WITH NO ROW**, and the guard
+> against double-registration is "a parcel is registered if it has a row" —
+> so the retry registered it twice. An extra 2¢ and a duplicate subscription
+> Shippo offers no way to delete. Harmless only because every decision is
+> idempotent. At volume, write the row before the Shippo call instead.
+>
+> **`updateNodeParameters` with `replace: true` replaces the WHOLE parameter
+> object** — it silently dropped a node's `authentication` and `documentId`.
+> The publish gate caught it; the edit did not.
+>
+> **`Read Parcels` must be `executeOnce`** wherever it is chained after a
+> multi-item Sheets read, or it runs once per order.
+>
+> **A repoint should land clear of a scheduled run.** The 21:30 trigger fired
+> seconds before a publish, so one real run used the old version.
+>
+> ### What the restructure bought
+>
+> One row per parcel means two parcels of an order delivered seconds apart
+> touch **different rows**, so the delivered-email race is gone by
+> construction rather than mitigated. It also made staleness per parcel
+> instead of per order, and removed the need for any database write path.
+>
+> ### Still open
+>
+> - **Old per-order columns are still on the Orders tab**, to be retired a
+>   week after the cutover in a change of their own.
+> - **Unproven live:** a Sales Ops order with no address staying silent; an
+>   order carrying both a website id and a typed address sending once; the
+>   late-address `Delivered` branch; and recovery of a missed *delivery*.
+> - **The typed address remains the weak point.** A typo does not error.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **No spreadsheet IDs, URLs, secrets or credential values in this file.** This
@@ -299,8 +367,8 @@ Test all three, including that a delivered-at-registration parcel ends with ever
 ### Task 9: Close out
 
 - [ ] **Step 1: Retire the old per-order columns**, a week after Phase 2, in a change of their own.
-- [ ] **Step 2: Update the memory cards** — `ecommerce-stores.md`, `sales-ops-webapp.md`, `n8n-workflows.md`.
-- [ ] **Step 3: Add an EXECUTED banner** to the top of this plan naming every step that turned out wrong. That banner is the most valuable part of these documents.
+- [x] **Step 2: Update the memory cards** — `ecommerce-stores.md`, `sales-ops-webapp.md`, `n8n-workflows.md`.
+- [x] **Step 3: Add an EXECUTED banner** to the top of this plan naming every step that turned out wrong. That banner is the most valuable part of these documents.
 
 ---
 
