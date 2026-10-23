@@ -6,7 +6,26 @@
 > through the website.** Kept as the record, not a to-do list. Each task's own
 > banner has the detail; this is what to know first.
 >
-> ### The parser bug this plan was reordered around
+> ### Done after the plan closed (2026-10-22/23)
+>
+> Three things this plan never scoped, added once it was live:
+>
+> - **`customerEmail`, `customerName` and `orderNumber` on the parcels tab.**
+>   Display and audit only; nothing sends from them. `orderNumber` exists
+>   because `orderRef` is an unreadable UUID for a Sales Ops order.
+> - **`GMG - Parcel Sync` (`PcUoEmSDMbSUB6fm`), daily 06:00 Manila.** Those
+>   two customer columns are a COPY written once at append, so they drift the
+>   moment an order is corrected — which happened within a day. Sync diffs
+>   each row against the live source and never blanks a value.
+> - **`Orders!AA:AE` retired** 2026-10-23 after reading all five workflows
+>   node by node. A name-only grep could not settle it: the parcels tab has
+>   its own `transitEmailed`/`deliveredEmailed` columns.
+>
+> **Proven unattended to real customers 2026-10-23:** the delivered email
+> (Brandon, genuine USPS scan, 00:21) and the Sales Ops in-transit email
+> (Doug and Ryan, 08:00 sweep). What remains unexercised needs traffic, not
+> work — see `ecommerce-stores.md` → PARCEL STATUS EMAILS → Proof log.
+>> ### The parser bug this plan was reordered around
 >
 > **An email pasted into an order message was silently swallowed into the
 > shipping address.** `parseOrderText` tells an item line from an address line
