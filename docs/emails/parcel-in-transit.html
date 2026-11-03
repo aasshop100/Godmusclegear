@@ -26,6 +26,28 @@
   template holds no branching. `numbersHtml` carries every number in
   `newNumbers`, each as selectable text with the carrier link beneath it.
 
+┌─ THE UNBOXING-VIDEO RULE (added 2026-11-04, Lester) ─────────────────────┐
+  │ The customer must film one unbroken video of the sealed package being   │
+  │ opened. No video, no free reship. Strict, and applied to every order.   │
+  │                                                                          │
+  │ IT IS SCOPED TO CONTENTS — missing, damaged or wrong items. It must     │
+  │ NEVER be worded so it also covers a parcel that never arrived: a        │
+  │ customer whose parcel was stolen has nothing to film, and telling them  │
+  │ "no video, no reship" loses a conversation we actually want to have.    │
+  │                                                                          │
+  │ WHY ALL THREE EMAILS CARRY IT. A rule the customer learns AFTER they    │
+  │ have opened the box is not a rule, it is a trap — and an unenforceable  │
+  │ one. The repetition is deliberate: say it early, say it again when the  │
+  │ parcel is closest, and say it once more at handover.                    │
+  │                                                                          │
+  │ The wording asks people to film EVEN WHEN THEY EXPECT NOTHING WRONG.    │
+  │ Someone who films only when suspicious has no video on the one order    │
+  │ that actually goes wrong, which is the only order it mattered on.       │
+  └──────────────────────────────────────────────────────────────────────────┘
+  This is the copy most likely to be read in time, being closest to actual
+  arrival. It also tells a multi-parcel order to film each parcel
+  separately — one video cannot cover three boxes arriving on three days.
+
   Paste as the HTML body of the "Send In Transit Email" node, in expression
   mode (prefixed with =) so the expressions resolve.
 -->
@@ -45,7 +67,16 @@
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
             {{ $json.numbersHtml }}
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Please allow <strong>4&ndash;7 business days</strong> for delivery.</p>
-            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Your order ships as <strong>one package per brand</strong>, so you may receive more than one tracking number and the parcels may arrive on different days. We will email you as each one is delivered.</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
+              <tr>
+                <td style="background:#fffbeb; border-left:3px solid #d97706; border-radius:6px; padding:16px 18px;">
+                  <p style="margin:0 0 8px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#92400e;">Before it arrives &mdash; please read</p>
+                  <p style="margin:0 0 10px; font-size:15px; line-height:1.6; color:#333333;">When your parcel arrives, <strong>record one unbroken video of yourself opening it.</strong> Start filming with the sealed package and the shipping label in frame, before anything is cut open, and keep recording until everything is unpacked.</p>
+                  <p style="margin:0; font-size:14px; line-height:1.6; color:#555555;">If an item is missing, damaged or wrong, that video is what lets us reship it to you <strong>free of charge</strong>. <strong>No video, no reship</strong> &mdash; we apply this to every order, without exception, so please film it even when you are sure everything is fine.</p>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Your order ships as <strong>one package per brand</strong>, so you may receive more than one tracking number and the parcels may arrive on different days. We will email you as each one is delivered. <strong>Film each parcel separately.</strong></p>
             <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">Tracking can take a few hours to show movement after a scan. If the link does not load, copy the number above and paste it into the carrier's site.</p>
             <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">Questions about your order? Message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
           </td>

@@ -27,6 +27,30 @@
   `greeting`, `intro`, `numberHtml` and `outstandingLine` are all built in the
   Code node so this template holds no branching.
 
+┌─ THE UNBOXING-VIDEO RULE (added 2026-11-04, Lester) ─────────────────────┐
+  │ The customer must film one unbroken video of the sealed package being   │
+  │ opened. No video, no free reship. Strict, and applied to every order.   │
+  │                                                                          │
+  │ IT IS SCOPED TO CONTENTS — missing, damaged or wrong items. It must     │
+  │ NEVER be worded so it also covers a parcel that never arrived: a        │
+  │ customer whose parcel was stolen has nothing to film, and telling them  │
+  │ "no video, no reship" loses a conversation we actually want to have.    │
+  │                                                                          │
+  │ WHY ALL THREE EMAILS CARRY IT. A rule the customer learns AFTER they    │
+  │ have opened the box is not a rule, it is a trap — and an unenforceable  │
+  │ one. The repetition is deliberate: say it early, say it again when the  │
+  │ parcel is closest, and say it once more at handover.                    │
+  │                                                                          │
+  │ The wording asks people to film EVEN WHEN THEY EXPECT NOTHING WRONG.    │
+  │ Someone who films only when suspicious has no video on the one order    │
+  │ that actually goes wrong, which is the only order it mattered on.       │
+  └──────────────────────────────────────────────────────────────────────────┘
+  Here it reads as act-now, and this is the ONE place the contents/
+  non-delivery distinction can be misread, because the "Has it not
+  arrived?" paragraph sits directly beneath. The block says in as many
+  words that a parcel which never came needs no video. Do not delete
+  that sentence to save space.
+
   Paste as the HTML body of the "Send Delivered Email" node, in expression
   mode (prefixed with =) so the expressions resolve.
 -->
@@ -46,6 +70,16 @@
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
             {{ $json.numberHtml }}
             {{ $json.outstandingLine }}
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
+              <tr>
+                <td style="background:#fffbeb; border-left:3px solid #d97706; border-radius:6px; padding:16px 18px;">
+                  <p style="margin:0 0 8px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#92400e;">Film it before you open it</p>
+                  <p style="margin:0 0 10px; font-size:15px; line-height:1.6; color:#333333;">If you have not opened the package yet, <strong>record one unbroken video of yourself opening it.</strong> Start filming with the sealed package and the shipping label in frame, before anything is cut open, and keep recording until everything is unpacked.</p>
+                  <p style="margin:0 0 10px; font-size:14px; line-height:1.6; color:#555555;">If an item is missing, damaged or wrong, that video is what lets us reship it to you <strong>free of charge</strong>. <strong>No video, no reship</strong> &mdash; we apply this to every order, without exception.</p>
+                  <p style="margin:0; font-size:14px; line-height:1.6; color:#777777;">This is about what is inside the package. If the parcel never reached you at all, no video is needed &mdash; see the note below.</p>
+                </td>
+              </tr>
+            </table>
             <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;"><strong>Has it not arrived?</strong> Carriers sometimes record a delivery a little before the parcel is handed over. Please check with anyone else at the address and with your immediate neighbours first. If it still has not turned up after 24 hours, reply to this message or contact us on Telegram and we will take it from there.</p>
             <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">Message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
           </td>
