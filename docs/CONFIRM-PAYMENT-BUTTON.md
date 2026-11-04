@@ -81,5 +81,23 @@ chain parsing had never run against real money before this). Watcher matched it
 
 The two message-rewrite nodes were disabled for those runs only - the pinned
 callback named a Telegram message that never existed - and re-enabled and
-republished afterwards. **The Telegram leg itself (real tap -> real rewrite ->
-button disappears) is still unproven; the next real REVIEW is that test.**
+republished afterwards.
+
+**The Telegram leg was then proven for real**, execution 56248, mode `webhook` -
+an actual tap, not pinned data. Dress rehearsal against a throwaway order
+`ORDER-BUTTONTEST-1`: mismatch alert, button message, "being checked" email,
+tap, row -> PAID with `paidAt` and the audit note, confirmation email sent.
+Both test rows were deleted afterwards by exact id, row counts checked either
+side, six real orders untouched.
+
+## Rehearsing this again without spending money
+
+Write a test row to `Orders` with **`status: REVIEW` from the start**.
+`isMatchable()` is `AWAITING_PAYMENT`/`PAYMENT_SEEN`/`EXPIRED` only, and
+`Find Expired Orders` sweeps `AWAITING_PAYMENT` only - so a REVIEW row is
+invisible to real payment matching AND to the expiry sweep, and cannot collide
+with live money while it sits there. Point its `email` at your own address.
+
+Then run the watcher pinning **only `Match Payments`** with a `NEAR_OVER` item.
+Everything downstream that is not pinned runs for real - which is the point.
+Clean up both tabs by exact id afterwards, never by position.
