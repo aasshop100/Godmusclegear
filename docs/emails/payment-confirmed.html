@@ -1,4 +1,17 @@
 <!--
+  ⚠ THERE ARE TWO COPIES OF THIS EMAIL. Changing this file is HALF the job.
+
+  1. "Send Confirmed Email" in GMG - Payment Watcher  (UEIXJauCOKOhxIUh)
+     - expressions read $("Match Payments")
+  2. "Send Confirmed Email" in GMG - Confirm Payment  (knwXYGN0tl2R67ct)
+     - expressions read $("Check Order"), and the BTC USD figure comes
+       straight off that node instead of re-finding the row
+
+  Node 2 fires when the owner confirms a REVIEW payment from Telegram.
+  Nothing enforces the two staying in step - this file drifted from the live
+  node once already (the BTC USD line, restored 2026-10-16). Update BOTH.
+-->
+<!--
   GOD MUSCLE GEARS — "payment confirmed" email
   Sent by the GMG - Payment Watcher when an order reaches PAID.
 

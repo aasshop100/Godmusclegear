@@ -21,6 +21,11 @@ published and verified unless it says otherwise.**
 > | Customer emails: order, PAID, REVIEW, expiry | **Seven.** Added 2026-10-16/21: tracking number ready, on its way, delivered. **As of 2026-10-23 all three have fired unattended to real customers** — the delivered one on a genuine USPS scan at 00:21 that morning, which closed the last untested link. |
 > | The tracking email says "your order has shipped" | **No.** It fires at LABEL CREATION, which on the first real order was **three days** before USPS took the parcel. It now announces the NUMBER, and the 4–7 day window starts when the carrier has it. **No estimate for that gap** — a promise about USPS we cannot keep. |
 > | "133 products" anywhere | **155** since 2026-10-22 — 11 Beligas orals and 11 Sixpex/Xeno peptides added from the sheet's `Not On Website` backlog, which is the working list of master products not yet sold here. The catalog count and the peptide-id list are both hardcoded in `tests/product-data.test.js`; see `INVENTORY-SYNC.md`. |
+> | "No crypto payment has ever been detected end-to-end" (the USDT half) | **Closed 2026-11-04.** The first real USDT payment arrived and TRC-20 chain parsing worked — that path had never run against real money since launch. It was over by 6.51, so `NEAR_OVER` → `REVIEW`, which is correct. **Nothing in this system is unproven against real money any more.** |
+> | Closing a REVIEW row by hand is fine | **No — it emails the customer NOTHING.** Both customer emails hang off the watcher's matched branch, which a manual sheet edit never reaches. It happened twice (Khaled 2026-09-25, Dvonta 2026-11-04) before anyone noticed. **Fixed 2026-11-04**: REVIEW alerts now carry a Confirm button. See `CONFIRM-PAYMENT-BUTTON.md`. |
+> | "EIGHT" n8n workflows | **NINE.** `GMG - Confirm Payment` (`knwXYGN0tl2R67ct`) joined 2026-11-04 — the only Telegram *receiver* in the instance, and therefore the holder of the bot's single allowed webhook. |
+> | USDT is tagged `(TRC-20)` | **The chain is now NAMED, everywhere** (2026-11-04). A wrong amount is a REVIEW; a wrong chain is gone forever. Checkout, success page, both order emails, FAQ and all 155 product pages now say TRON and name the chains that lose the money. |
+> | An expiry email was added 2026-10-16 | **It has never sent.** `Find Expired Orders` reads `r.customerEmail`, but the sheet column is `email`, so the gate downstream always closes. Found 2026-11-04, **deliberately not fixed** — switching it on starts mailing real customers. See Open items. |
 >
 > Design and plan for the parcel chain:
 > `docs/superpowers/specs/2026-10-21-parcel-status-emails-design.md` and
@@ -52,9 +57,14 @@ Shipped this session:
 
 ---
 
-## THE ONE THING THAT HAS NEVER RUN AGAINST REAL MONEY
+## ~~THE ONE THING THAT HAS NEVER RUN AGAINST REAL MONEY~~ — CLOSED
 
-**No crypto payment has ever been _detected_ end-to-end.**
+> **Both halves are closed.** BTC on 2026-09-25 (ORDER-1790270782250), USDT on
+> 2026-11-04 (ORDER-1793773311647). Chain parsing has now read real money off
+> both chains. The checklist below is still the right thing to watch on a
+> crypto order — it is just no longer a first run.
+
+**No crypto payment had ever been _detected_ end-to-end when this was written.**
 
 Matching is unit-tested (85 tests) and the BTC ceiling is pinned against real
 amounts from the receiving address, but **no real payment has ever been matched
@@ -109,6 +119,16 @@ Not `sourceOutput`, not `outputIndex` — both are silently ignored and everythi
 lands on output 0. That briefly put a captcha pass and a captcha reject on the
 same branch.
 
+**7. A field name that the source never emits fails CLOSED and looks normal.**
+`Find Expired Orders` builds `customerEmail: r.customerEmail || ''` from rows
+whose column is `email`. The value is always empty, the `Expired Needs Email?`
+gate always routes false, and `Send Expired Email` has never run — which is
+indistinguishable from "no expired order needed an email today". Nothing
+errors, so nothing alerts. **When you add a field to a Code node that reads a
+sheet, check it against the live header, not against the other node that
+already works** — `Match Payments` reads `m.order.email` correctly in the same
+workflow.
+
 **6. Workflow settings are not versioned.** `setWorkflowSettings` applies
 immediately; no publish needed. Node/connection changes DO need publishing.
 
@@ -116,16 +136,25 @@ immediately; no publish needed. Node/connection changes DO need publishing.
 
 ## Open items, roughly in priority order
 
-1. **Watch the first real crypto payment** (above). Nothing to build.
-2. **`Lester Domain staycation sample` is active with no trigger.** An active
+1. **DECISION NEEDED — the quote-expiry email has never sent.** One word
+   (`r.email` for `r.customerEmail` in `Find Expired Orders`). Not applied,
+   because switching it on starts sending real mail to every customer who
+   missed their window. Lester's call. The copy is already written and already
+   follows the rule of never saying "cancelled" or "do not pay".
+2. **The live chatbot system prompt still says only `USDT (TRC-20)`.** The
+   TRON-only wording is already in `godmuscle-system-prompt.txt`; it needs
+   pasting into the `AI Agent` node. Left as a manual paste rather than
+   retyping ~40 live product prices through a tool call.
+3. ~~**Watch the first real crypto payment.**~~ Done — both coins.
+4. **`Lester Domain staycation sample` is active with no trigger.** An active
    workflow nobody remembers is worth a look — decide whether to deactivate it.
-3. **8 workflows have `availableInMCP: false`** so they cannot be edited via MCP
+5. **8 workflows have `availableInMCP: false`** so they cannot be edited via MCP
    and have no error workflow. All inactive experiments; harmless until one is
    activated.
-4. **A `DMARC` record is deliberately absent.** Do not add one until there is a
+6. **A `DMARC` record is deliberately absent.** Do not add one until there is a
    real mailbox on the domain, or it will instruct receivers to bin GMG's own
    order confirmations.
-5. **The checkout took ~24s to respond once** (2026-08-26, one occurrence,
+7. **The checkout took ~24s to respond once** (2026-08-26, one occurrence,
    against 3–11s normally). Cause never identified; CoinGecko responds in 0.2s
    from here. Watch whether it recurs on real orders before chasing it.
 
@@ -139,5 +168,8 @@ immediately; no publish needed. Node/connection changes DO need publishing.
   plan, with a LIVE status section.
 - `docs/superpowers/plans/2026-08-26-silent-failure-alerts.md` — spec AND the
   verification log for the alerting work.
+- `docs/CONFIRM-PAYMENT-BUTTON.md` — the REVIEW→PAID Telegram button: which
+  payments get one and why the others must not, the four rules it keeps, and
+  how to dress-rehearse it without spending money.
 - `C:\Users\LESTER\memory\ecommerce-stores.md` and `n8n-workflows.md` — the
   working memory, both updated.
