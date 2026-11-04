@@ -58,6 +58,24 @@
          live countdown on screen after they have paid invites a second
          payment, which matches nothing and becomes a refund. -->
     <div id="pay-details">
+
+    <!-- Network warning, USDT only. It sits ABOVE the amount because the wrong
+         network is the one mistake on this page that loses the money outright:
+         a TRC-20 address cannot receive ERC-20 or BEP-20 USDT and nothing can
+         be recovered. A wrong amount is only a review; a wrong chain is gone.
+         Driven by JS like the rest of this panel, which is safe here because
+         without JS the panel has no address either. -->
+    <div id="pay-network-warn" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px 14px; margin:0 0 16px; text-align:left;">
+      <p style="margin:0 0 6px; font-size:0.8rem; font-weight:700; color:#991b1b;">
+        TRON network (TRC-20) only
+      </p>
+      <p style="margin:0; font-size:0.76rem; line-height:1.6; color:var(--charcoal);">
+        Withdraw your USDT on the <strong style="color:var(--black);">TRON (TRC-20)</strong> network.
+        USDT sent on ERC-20 (Ethereum), BEP-20 (BNB Chain), Polygon, Solana or Arbitrum will not arrive
+        at this address and cannot be recovered.
+      </p>
+    </div>
+
     <p style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--charcoal); margin:0 0 14px;">
       Send exactly
     </p>
@@ -158,7 +176,14 @@
   document.getElementById('pay-coin').textContent    = p.coin;
   document.getElementById('pay-address').textContent = p.address;
   document.getElementById('pay-network').textContent =
-    p.coin === 'USDT' ? 'TRC-20 / Tron network' : 'Bitcoin network';
+    p.coin === 'USDT' ? 'TRON network (TRC-20)' : 'Bitcoin network';
+
+  // USDT only. BTC has one chain, so a network warning there would be noise
+  // that trains buyers to skip the box that matters.
+  (function () {
+    var warn = document.getElementById('pay-network-warn');
+    if (warn && p.coin === 'USDT') warn.style.display = 'block';
+  })();
 
   // BTC only, and only when the quote actually carried a total. A quote sitting
   // in sessionStorage from before usdTotal was returned has none, and must still

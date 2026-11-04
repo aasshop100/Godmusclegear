@@ -23,6 +23,10 @@ const order = $('Build Order').first().json;
 const LOGO = 'https://raw.githubusercontent.com/aasshop100/Godmusclegearsample/refs/heads/main/images/logo.png';
 const ORANGE = '#ff4500';
 const isCrypto = order.status === 'AWAITING_PAYMENT';
+// USDT is the only coin here with more than one chain, and a TRC-20 address
+// cannot receive USDT sent on ERC-20 or BEP-20 - that money is gone, unlike a
+// wrong amount, which is only a review. So the network is stated, not implied.
+const isUsdt = String(order.coin || '').toUpperCase() === 'USDT';
 
 function esc(value) {
   return String(value === undefined || value === null ? '' : value)
@@ -132,9 +136,17 @@ const paymentBlock = isCrypto
     + '<p style="margin:0 0 4px; font-size:13px; color:#666;">Send exactly</p>'
     + '<p style="margin:0 0 18px; font-size:26px; font-weight:bold; color:' + ORANGE + '; word-break:break-all;">'
       + esc(order.expectedAmount) + ' ' + esc(order.coin) + '</p>'
-    + '<p style="margin:0 0 4px; font-size:13px; color:#666;">To this address</p>'
+    + '<p style="margin:0 0 4px; font-size:13px; color:#666;">To this address &middot; <strong style="color:#111;">'
+      + (isUsdt ? 'TRON network (TRC-20)' : 'Bitcoin network') + '</strong></p>'
     + '<p style="margin:0 0 18px; padding:12px; background:#ffffff; border:1px solid #ddd; border-radius:6px; font-family:monospace; font-size:13px; color:#111; word-break:break-all;">'
       + esc(order.address) + '</p>'
+    + (isUsdt
+      ? '<div style="background:#fef2f2; border-left:5px solid #dc2626; padding:12px; margin-bottom:16px;">'
+        + '<p style="margin:0 0 6px; font-size:14px; font-weight:bold; color:#991b1b;">TRON network (TRC-20) only</p>'
+        + '<p style="margin:0; font-size:14px; line-height:1.6; color:#333;">Withdraw your USDT on the <strong>TRON (TRC-20)</strong> network. '
+        + 'USDT sent on ERC-20 (Ethereum), BEP-20 (BNB Chain), Polygon, Solana or Arbitrum will not arrive at this address '
+        + 'and cannot be recovered.</p></div>'
+      : '')
     + '<div style="background:#fff3cd; border-left:5px solid ' + ORANGE + '; padding:12px; margin-bottom:16px;">'
     + '<p style="margin:0; font-size:14px; line-height:1.6; color:#333;">If there is a fee when you send, add it on top so the full <strong>'
       + esc(order.expectedAmount) + ' ' + esc(order.coin) + '</strong> arrives.</p></div>'
@@ -190,6 +202,7 @@ const ownerPaymentBlock = isCrypto
     + '<tr><td style="padding:8px; border:1px solid #ddd; width:40%;">Amount</td><td style="padding:8px; border:2px solid ' + ORANGE + ';"><strong style="color:' + ORANGE + '; font-size:16px;">'
       + esc(order.expectedAmount) + ' ' + esc(order.coin) + '</strong></td></tr>'
     + '<tr><td style="padding:8px; border:1px solid #ddd;">Address</td><td style="padding:8px; border:1px solid #ddd; font-family:monospace; word-break:break-all;">' + esc(order.address) + '</td></tr>'
+    + '<tr><td style="padding:8px; border:1px solid #ddd;">Network</td><td style="padding:8px; border:1px solid #ddd;">' + (isUsdt ? 'TRON (TRC-20)' : 'Bitcoin') + '</td></tr>'
     + '<tr><td style="padding:8px; border:1px solid #ddd;">Quote expires</td><td style="padding:8px; border:1px solid #ddd;">' + esc(order.expiresAt) + ' (Manila) &mdash; ' + esc(easternText(order.expiresAt)) + '</td></tr>'
     + '</table>'
   : '<h3 style="color:' + ORANGE + '; margin-top:25px;">Payment Expected</h3>'

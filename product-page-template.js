@@ -146,7 +146,7 @@ ${shareButtonHtml({ url, title })}
 <h2 class="h5 mt-4">Shipping</h2>
 <p>${escapeHtml(brand)} items ship as their own package at <strong>$${rate}</strong> per 10 units. Brands ship separately, so an order spanning brands arrives in more than one package. Discreet USA shipping, 4&ndash;7 days, with a reship guarantee.</p>
 <h2 class="h5 mt-4">Payment</h2>
-<p>USDT (TRC-20), Bitcoin, or bank transfer.</p>
+<p>USDT on the <strong>TRON network (TRC-20) only</strong>, Bitcoin, or bank transfer.</p>
 ${guideLink}
 ${calcLink}
 </div>
