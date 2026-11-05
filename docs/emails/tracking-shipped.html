@@ -1,4 +1,20 @@
 <!--
+  ⚠ THIS FILE BACKS TWO NODES WHOSE FOOTERS NOW DIFFER.
+
+  Send Tracking Email  (GMG - Tracking Emails) - WEBSITE orders only.
+    Footer below is correct as written: $json.orderId is the ORDER-… id,
+    which the customer has on their order confirmation.
+
+  Send Number Ready    (GMG - Tracking Emails) - SALES OPS orders only.
+    Subject is a bare "Your tracking number is ready" and the footer is the
+    static sentence "This is an automated message about your order." That
+    node never handles a website parcel, so there is nothing to vary.
+
+  The reason: `Lester####` is an INTERNAL label that reached real customers
+  in the subject line until 2026-11-05. See parcel-in-transit.html for the
+  customerRef / aboutLine rule the other two emails use.
+-->
+<!--
   GOD MUSCLE GEARS — "shipped / tracking number" email
   Sent by GMG - Tracking Emails when a website order gains a tracking number.
 

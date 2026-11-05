@@ -1,4 +1,22 @@
 <!--
+  ⚠ NEVER PUT THE SALES OPS ORDER NUMBER IN A CUSTOMER EMAIL.
+
+  `Lester####` is an INTERNAL label. A Sales Ops customer has never seen it,
+  it tells them nothing, and it leaks how orders are numbered. It reached
+  real customers in the subject line and the footer of three emails until
+  2026-11-05.
+
+  The rule now: the Code node computes `customerRef`, which is the ORDER-… id
+  for a WEBSITE order (the customer has that one - it is on their order
+  confirmation) and EMPTY for a Sales Ops order. Subject appends it only when
+  it is non-empty, and the footer uses `aboutLine`, which is either
+  "order ORDER-…" or "your order".
+
+  `orderLabel` / `orderId` keep the internal label on purpose - the parcels
+  tab, the stamps and the owner alerts all want the number that matches
+  Sales Ops. Only what the CUSTOMER sees is scrubbed.
+-->
+<!--
   GOD MUSCLE GEARS — "on its way" email
   Sent by GMG - Parcel In Transit when one or more parcels on an order start
   moving. ONE email per order per sweep, however many parcels moved.
@@ -85,7 +103,7 @@
         </tr>
         <tr>
           <td style="border-top:1px solid #e5e5e5; padding:16px 24px;">
-            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>This is an automated message about order {{ $json.orderId }}.</p>
+            <p style="margin:0; font-size:12px; line-height:1.6; color:#999999;">GOD MUSCLE GEARS · <a href="https://godmusclegears.com" style="color:#999999; text-decoration:underline;">godmusclegears.com</a><br>This is an automated message about {{ $json.aboutLine }}.</p>
           </td>
         </tr>
       </table>
