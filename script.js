@@ -755,7 +755,7 @@ const FEATURED_CATALOG = (function () {
     ['superdrol10mg100tabs',       'Superdrol, 10mg (100tabs)',                  93.15, 'images/superdrol10mg100tabs.jpg',       'Beligas', 'Oral'],
     ['winstrol20mg100tabs',        'Winstrol, 20mg (100tabs)',                  120.75, 'images/winstrol20mg100tabs.jpg',        'Beligas', 'Oral'],
     ['winstrol50mg100tabs',        'Winstrol, 50mg (100tabs)',                  193.20, 'images/winstrol50mg100tabs.jpg',        'Beligas', 'Oral'],
-    ['cialis25mg50tabs',           'Cialis, 25mg (50 Tabs)',                     48.00, 'images/cialis25mg50tabs.jpg',           'Beligas', 'Oral'],
+    ['cialis25mg50tabs',           'Cialis, 25mg (50 Tabs)',                     79.00, 'images/cialis25mg50tabs.jpg',           'Beligas', 'Oral'],
     ['cialis5mg100tabs',           'Cialis, 5mg (100 Tabs)',                     59.34, 'images/cialis5mg100tabs.jpg',           'Beligas', 'Oral'],
     ['t4100mcg',                   'T4, 100mcg (100 Tabs)',                      86.25, 'images/t4100mcg.jpg',                   'Beligas', 'Oral'],
     ['turinabol10mg',              'Turinabol, 10mg (100 Tabs)',                 89.70, 'images/turinabol10mg.webp',             'Beligas', 'Oral'],
@@ -768,7 +768,7 @@ const FEATURED_CATALOG = (function () {
     ['accutane20mg100tabs',         'Accutane, 20mg (100 tabs)',                 124.20, 'images/accutane20mg100tabs.jpg',       'Beligas', 'Oral'],
     ['raloxifene20mg',              'Raloxifene, 20mg (50 tabs)',                 75.90, 'images/raloxifene20mg.jpg',            'Beligas', 'Oral'],
     ['dianabollite10mg100tabs',     'Dianabol lite, 10mg (100 tabs)',             69.00, 'images/dianabollite10mg100tabs.jpg',   'Beligas', 'Oral'],
-    ['nolvadex20mg50tabs',          'Nolvadex, 20mg (50 tabs)',                   57.00, 'images/nolvadex20mg50tabs.jpg',        'Beligas', 'Oral'],
+    ['nolvadex20mg50tabs',          'Nolvadex, 20mg (50 tabs)',                   80.00, 'images/nolvadex20mg50tabs.jpg',        'Beligas', 'Oral'],
     ['protesofensine0-25mg100tabs', 'Pro-Tesofensine, 0.25mg (100 tabs)',        120.75, 'images/protesofensine0-25mg100tabs.jpg','Beligas', 'Oral'],
     ['clomid50mg50tabs',            'Clomid, 50mg (50 tabs)',                     65.55, 'images/clomid50mg50tabs.jpg',          'Beligas', 'Oral'],
     // Sixpex — Injectables
