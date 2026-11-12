@@ -112,7 +112,14 @@
               </tr>
             </table>
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">We will email you again as soon as it starts moving, and once more when it is delivered.</p>
-            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Delivery usually takes <strong>4&ndash;7 business days</strong> once the carrier has the parcel.</p>
+            <!-- ⚠ THE TWO NODES DIVERGE HERE TOO, not just in the footer.
+                 Send Tracking Email (website orders) carries the Ultima sentence below.
+                 Send Number Ready (Sales Ops orders) ends at "once the carrier has the
+                 parcel" and must NOT gain it: Sales Ops is Beligas wholesale and can
+                 never contain an Ultima item, so a 20-25 day caveat there is noise.
+                 Unlike parcel-in-transit.html this is NOT conditional - the two nodes
+                 hold different literal text, so edit both deliberately. -->
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Delivery usually takes <strong>4&ndash;7 business days</strong> once the carrier has the parcel. <strong>Ultima</strong> items are the exception: they ship from our international warehouse and take <strong>20&ndash;25 days</strong> from the date the tracking number is issued.</p>
             <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#666666;">If the link does not load, copy the number above and paste it into the carrier's site.</p>
             <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#666666;">Questions about your order? Message us on Telegram at <a href="https://t.me/Godmusclegear" style="color:#0088cc; text-decoration:none;">@Godmusclegear</a>.</p>
           </td>

@@ -86,7 +86,8 @@
             <p style="margin:0 0 18px; font-size:22px; font-weight:bold; color:#111111;">{{ $json.greeting }}</p>
             <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">{{ $json.intro }}</p>
             {{ $json.numbersHtml }}
-            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Please allow <strong>4&ndash;7 business days</strong> for delivery.</p>
+            <!-- customerRef is non-empty ONLY for website orders (Decide Transit leaves it blank for salesops). Sales Ops orders are Beligas wholesale and can never contain Ultima, so the international line is shown only to website customers. -->
+            <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#333333;">Please allow <strong>4&ndash;7 business days</strong> for delivery.{{ $json.customerRef ? ' <strong>Ultima</strong> items are the exception: they ship from our international warehouse and take <strong>20&ndash;25 days</strong> from the date the tracking number is issued.' : '' }}</p>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
               <tr>
                 <td style="background:#fffbeb; border-left:3px solid #d97706; border-radius:6px; padding:16px 18px;">
