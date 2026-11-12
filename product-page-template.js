@@ -7,7 +7,21 @@ const BASE = 'https://godmusclegears.com';
 
 // Per-brand shipping, mirroring shipping.js. Each brand ships as its own
 // package; these never pool.
-const SHIPPING_RATES = { Beligas: 20, Sixpex: 25, Xeno: 25 };
+const SHIPPING_RATES = { Beligas: 20, Sixpex: 25, Xeno: 25, Ultima: 50 };
+
+// Units per parcel, mirroring BRAND_UNITS_PER_PACKAGE in shipping.js. Ultima's
+// international parcel holds 12; the US brands hold 10. Stating a flat 10 here
+// would quote a price the cart does not charge.
+const UNITS_PER_PACKAGE = { Beligas: 10, Sixpex: 10, Xeno: 10, Ultima: 12 };
+
+// Delivery window per brand, mirroring BRAND_DELIVERY in shipping.js. Ultima
+// ships from an international warehouse; the other three ship domestically.
+const DELIVERY_COPY = {
+  Beligas: 'Discreet USA shipping, 4&ndash;7 days, with a reship guarantee.',
+  Sixpex:  'Discreet USA shipping, 4&ndash;7 days, with a reship guarantee.',
+  Xeno:    'Discreet USA shipping, 4&ndash;7 days, with a reship guarantee.',
+  Ultima:  'Ships from our international warehouse: <strong>20&ndash;25 days from the tracking number</strong>. Available to the United States, United Kingdom (incl. Northern Ireland), Australia, China, Japan, Malaysia, Singapore, France, Cambodia and Thailand only &mdash; Ultima cannot ship to Canada, the Philippines, New Zealand or the rest of the EU.'
+};
 
 // Ampersand MUST be replaced first or later replacements double-escape.
 function escapeHtml(s) {
@@ -42,15 +56,23 @@ function renderProductPage(product, chrome) {
   const imageUrl = `${BASE}/${String(image).replace(/^\/+/, '')}`;
   const desc = metaDescription(description);
   const rate = SHIPPING_RATES[brand] || 25;
+  const units = UNITS_PER_PACKAGE[brand] || 10;
+  const delivery = DELIVERY_COPY[brand] || DELIVERY_COPY.Beligas;
   const guide = guideFor(title);
   const isPeptide = isPeptideProduct(title);
+
+  // A price of 0 means "not priced yet" (Ultima Tadalafil). Such a product must
+  // never display $0.00, never be purchasable, and never advertise an offer to
+  // Google. Stock would also disable it at runtime, but the markup must not
+  // depend on a sheet fetch that can fail.
+  const unpriced = !(Number(price) > 0);
 
   // An unescaped "</script>" inside any string would terminate the JSON-LD
   // block early and inject live markup. Escaping "<" makes that impossible
   // while remaining valid JSON.
   const jsonSafe = obj => JSON.stringify(obj, null, 2).replace(/</g, '\\u003c');
 
-  const jsonLd = jsonSafe({
+  const jsonLd = jsonSafe(Object.assign({
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: title,
@@ -59,6 +81,7 @@ function renderProductPage(product, chrome) {
     brand: { '@type': 'Brand', name: brand },
     category: type,
     url,
+  }, unpriced ? {} : {
     offers: {
       '@type': 'Offer',
       price: price.toFixed(2),
@@ -67,7 +90,7 @@ function renderProductPage(product, chrome) {
       // availability is deliberately omitted: stock is only known at runtime
       // (fetched from the sheet), so the build cannot state it truthfully.
     },
-  });
+  }));
 
   // .product-link is what makes these read as links. Without it they inherit the
   // body colour with no underline and are indistinguishable from plain text.
@@ -130,10 +153,10 @@ ${chrome.nav}
 <h1 class="card-title h3">${escapeHtml(title)}</h1>
 <p class="card-text">${escapeHtml(description)}</p>
 <div class="price-row">
-<span class="fw-bold" data-price-for="${escapeHtml(domId)}">$${price.toFixed(2)}</span>
+<span class="fw-bold" data-price-for="${escapeHtml(domId)}">${unpriced ? 'Coming Soon' : '$' + price.toFixed(2)}</span>
 ${shareButtonHtml({ url, title })}
 </div>
-<button class="add-to-cart" data-id="${escapeHtml(domId)}" data-image="${escapeHtml(image)}" data-name="${escapeHtml(cartName)}" data-price="${price.toFixed(2)}">Add to Cart</button>
+<button class="add-to-cart" data-id="${escapeHtml(domId)}" data-image="${escapeHtml(image)}" data-name="${escapeHtml(cartName)}" data-price="${price.toFixed(2)}"${unpriced ? ' disabled aria-disabled="true"' : ''}>${unpriced ? 'Coming Soon' : 'Add to Cart'}</button>
 </div>
 </div>
 </div>
@@ -144,7 +167,7 @@ ${shareButtonHtml({ url, title })}
 <li><strong>Type:</strong> ${escapeHtml(type)}</li>
 </ul>
 <h2 class="h5 mt-4">Shipping</h2>
-<p>${escapeHtml(brand)} items ship as their own package at <strong>$${rate}</strong> per 10 units. Brands ship separately, so an order spanning brands arrives in more than one package. Discreet USA shipping, 4&ndash;7 days, with a reship guarantee.</p>
+<p>${escapeHtml(brand)} items ship as their own package at <strong>$${rate}</strong> per ${units} units. Brands ship separately, so an order spanning brands arrives in more than one package. ${delivery}</p>
 <h2 class="h5 mt-4">Payment</h2>
 <p>USDT on the <strong>TRON network (TRC-20) only</strong>, Bitcoin, or bank transfer.</p>
 ${guideLink}
@@ -159,4 +182,4 @@ ${chrome.scripts}
 `;
 }
 
-module.exports = { renderProductPage, shareButtonHtml, escapeHtml, metaDescription, SHIPPING_RATES, BASE };
+module.exports = { renderProductPage, shareButtonHtml, escapeHtml, metaDescription, SHIPPING_RATES, UNITS_PER_PACKAGE, DELIVERY_COPY, BASE };

@@ -10,7 +10,7 @@ const scriptJs = fs.readFileSync(path.join(ROOT, 'script.js'), 'utf8');
 
 test('parses every product card', () => {
   const products = parseProducts(html);
-  assert.equal(products.length, 155);
+  assert.equal(products.length, 169);
 });
 
 test('parses a known product completely', () => {
@@ -30,12 +30,52 @@ test('decodes HTML entities in the description', () => {
   assert.ok(!p.description.includes('&amp;'), 'entity was not decoded');
 });
 
+// Products awaiting a supplier price. A zero price is only tolerated for these,
+// and only because the card is built unbuyable — see the test below. Delete an
+// id from here the moment it is priced; an unlisted zero price is a bug.
+const UNPRICED_IDS = new Set(['ultima-tadalafil-25']);
+
 test('every product has the fields the template requires', () => {
   for (const p of parseProducts(html)) {
     for (const field of ['id', 'title', 'cartName', 'description', 'image', 'brand', 'type']) {
       assert.ok(p[field], `${p.id} is missing ${field}`);
     }
-    assert.ok(Number.isFinite(p.price) && p.price > 0, `${p.id} has a bad price`);
+    if (UNPRICED_IDS.has(p.id)) {
+      assert.equal(p.price, 0, `${p.id} is listed unpriced but carries a price`);
+    } else {
+      assert.ok(Number.isFinite(p.price) && p.price > 0, `${p.id} has a bad price`);
+    }
+  }
+});
+
+test('an unpriced product is never purchasable and never shows $0.00', () => {
+  for (const p of parseProducts(html)) {
+    if (!UNPRICED_IDS.has(p.id)) continue;
+
+    // Isolate this product's card markup. Must match on domId, not id: some
+    // data-id values are mixed case (dhb1TestC100mg) while id is lowercased.
+    const chunk = html.split('<div class="card"').find(c => c.includes(`data-id="${p.domId}"`));
+    assert.ok(chunk, `${p.id}: card not found`);
+
+    const button = /<button class="add-to-cart"[^>]*>/.exec(chunk);
+    assert.ok(button, `${p.id}: add-to-cart button not found`);
+    assert.match(button[0], /\sdisabled\b/, `${p.id}: unpriced product must be disabled`);
+
+    assert.ok(/<span class="fw-bold">Coming Soon<\/span>/.test(chunk),
+      `${p.id}: unpriced product must display "Coming Soon", never a figure`);
+    assert.ok(!/<span class="fw-bold">\$0\.00<\/span>/.test(chunk),
+      `${p.id}: $0.00 must never be displayed`);
+  }
+});
+
+test('every priced product is purchasable', () => {
+  for (const p of parseProducts(html)) {
+    if (UNPRICED_IDS.has(p.id)) continue;
+    const chunk = html.split('<div class="card"').find(c => c.includes(`data-id="${p.domId}"`));
+    assert.ok(chunk, `${p.id}: card not found`);
+    const button = /<button class="add-to-cart"[^>]*>/.exec(chunk);
+    assert.ok(button && !/\sdisabled\b/.test(button[0]),
+      `${p.id} is priced but its button is disabled`);
   }
 });
 

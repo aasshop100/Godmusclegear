@@ -71,6 +71,7 @@
             <li><a class="dropdown-item" href="products.html?brand=Beligas">Beligas</a></li>
             <li><a class="dropdown-item" href="products.html?brand=Sixpex">Sixpex</a></li>
             <li><a class="dropdown-item" href="products.html?brand=Xeno">Xeno Labs</a></li>
+            <li><a class="dropdown-item" href="products.html?brand=Ultima">Ultima</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="blog.html">Blog</a></li>
@@ -144,14 +145,20 @@
               </div>
               <div class="col-md-4 mb-3">
                 <label for="country" class="form-label">Country</label>
+                <!-- Options are rebuilt from the cart by buildCountryOptions()
+                     in script.js: each brand's warehouse reaches a different
+                     set of countries and only the common ones are offered.
+                     These five are the no-Ultima fallback, so the field still
+                     works if JavaScript fails. -->
                 <select class="form-select" id="country" name="country" required>
                   <option value="">Select Country</option>
                   <option value="US">United States</option>
                   <option value="PH">Philippines</option>
                   <option value="CA">Canada</option>
-                  <option value="UK">United Kingdom</option>
+                  <option value="UK">United Kingdom (incl. Northern Ireland)</option>
                   <option value="AU">Australia</option>
                 </select>
+                <small id="country-note" style="display:none; margin-top:6px; font-size:0.75rem; line-height:1.5; color:var(--grey);"></small>
               </div>
             </div>
 

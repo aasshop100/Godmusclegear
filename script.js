@@ -170,6 +170,31 @@ function renderShippingBreakdown(containerEl, result) {
     );
   }
 
+  // International-order notice. The cart and the checkout summary are the last
+  // two things a buyer reads before paying, and until now neither said how long
+  // anything takes — the 20-25 day window only appeared on the product card and
+  // the product page. Someone who went straight from a search result to the
+  // cart would have paid without ever being told.
+  //
+  // Driven off the breakdown's own brand rows rather than a separate cart read,
+  // so the notice cannot disagree with the parcels it is describing.
+  const brandsHere = result.breakdown.map(row => row.brand);
+  if (brandsHere.indexOf('Ultima') !== -1) {
+    const domestic = brandsHere.filter(b => b !== 'Ultima');
+    const mixed = domestic.length
+      ? ` Your ${domestic.join(' and ')} ${domestic.length > 1 ? 'items ship' : 'items ship'} separately and arrive in the usual <strong>4&ndash;7 days</strong>.`
+      : '';
+    parts.push(
+      `<div style="margin-top:10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;">
+         <p style="margin:0;font-size:0.75rem;line-height:1.6;color:var(--charcoal);">
+           <strong style="color:var(--black);">&#9888; International order &mdash; 20&ndash;25 days.</strong>
+           Your <strong>Ultima</strong> items ship from our international warehouse and take
+           <strong>20&ndash;25 days from the date the tracking number is issued</strong>, not the usual 4&ndash;7.${mixed}
+         </p>
+       </div>`
+    );
+  }
+
   containerEl.innerHTML = parts.join('');
 }
 
@@ -264,6 +289,14 @@ function addToCart(button) {
   const name  = button.dataset.name  || 'Unknown Item';
   const price = Number(button.dataset.price) || 0;
   const id    = button.dataset.id    || name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+  // Last line of defence for a product with no price yet. The button is built
+  // disabled and the inventory sync re-disables it, but neither is a guarantee:
+  // a $0.00 line must never reach the cart, the order email or the invoice.
+  if (!(price > 0)) {
+    showCartNotification(`${name} is not available to order yet.`);
+    return;
+  }
   const image = button.dataset.image || 'images/default-supplement.png';
 
   // Brand lives on the product card, not the button — each brand ships separately,
@@ -403,6 +436,47 @@ function sendTelegramNotification(orderId, fullName, phone, whatsapp, fullAddres
 }
 
 // ─────────────────────────────────────────────
+// CHECKOUT COUNTRY OPTIONS
+// ─────────────────────────────────────────────
+// The destination list is a property of the cart, not of the site. Ultima's
+// warehouse reaches ten countries; the US brands reach five; only three are
+// common to both. The <select> is rebuilt from whatever is in the cart so a
+// customer is never offered a destination their order cannot be sent to.
+function buildCountryOptions() {
+  const select = document.getElementById('country');
+  if (!select) return;
+
+  const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+  const allowed = allowedCountries(storedCart, window.FEATURED_CATALOG);
+  const previous = select.value;
+
+  select.innerHTML =
+    '<option value="">Select Country</option>' +
+    allowed.map(code =>
+      `<option value="${code}">${countryName(code)}</option>`
+    ).join('');
+
+  // Keep the customer's choice only if it survived the rebuild.
+  select.value = allowed.indexOf(previous) !== -1 ? previous : '';
+
+  // Explain a shortened list rather than letting countries vanish silently.
+  const note = document.getElementById('country-note');
+  if (note) {
+    const brands = brandsInCart(storedCart, window.FEATURED_CATALOG);
+    if (brands.indexOf('Ultima') !== -1) {
+      const others = brands.filter(b => b !== 'Ultima');
+      note.innerHTML = others.length
+        ? `Your cart mixes <strong>Ultima</strong> with ${others.join(' and ')}, so only countries both warehouses reach are listed. Ultima cannot ship to Canada or the Philippines.`
+        : `<strong>Ultima</strong> ships from our international warehouse. These are the countries it can reach &mdash; Canada, the Philippines, New Zealand and the rest of the EU are not available.`;
+      note.style.display = '';
+    } else {
+      note.textContent = '';
+      note.style.display = 'none';
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
 // CHECKOUT SUBMIT (order + emails handled by n8n)
 // ─────────────────────────────────────────────
 
@@ -470,7 +544,27 @@ async function handleCheckoutSubmit(event) {
   }
 
   const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
-  if (storedCart.length === 0) { alert('🛒 Your cart is empty!'); return; }
+  if (storedCart.length === 0) { alert('🛒 Your cart is empty!'); releaseButton(); return; }
+
+  // ─── COUNTRY GATE ───
+  // Ultima ships from an international warehouse that cannot reach every
+  // destination the US brands can (no Canada, no Philippines), and reaches
+  // several they cannot. The destination must therefore be valid for EVERY
+  // brand in the cart, not just the first one. The dropdown is already built
+  // from the cart (see buildCountryOptions), but this check is what actually
+  // stops the order: a stale page or a hand-edited <select> must not get
+  // through to payment for a parcel we cannot send.
+  if (!canShipTo(storedCart, country, window.FEATURED_CATALOG)) {
+    const blockers = blockingBrands(storedCart, country, window.FEATURED_CATALOG);
+    const who = blockers.length ? blockers.join(' and ') : 'This order';
+    alert(
+      `⚠ ${who} cannot ship to ${countryName(country)}.\n\n` +
+      `Remove the ${blockers.join(' and ') || 'affected'} items from your cart, ` +
+      `or choose a delivery country we can reach.`
+    );
+    releaseButton();
+    return;
+  }
 
   const subtotal      = storedCart.reduce((sum, i) => sum + (Number(i.price) * (i.quantity || 1)), 0);
   const shippingResult = computeShipping(storedCart, {
@@ -486,9 +580,19 @@ async function handleCheckoutSubmit(event) {
 
 
   // Short customer-facing sentence. Always populated so the email never renders a blank line.
-  const shippingNote = shippingResult.packageCount > 1
+  let shippingNote = shippingResult.packageCount > 1
     ? `Your order ships in ${shippingResult.packageCount} separate packages — each brand ships separately.`
     : 'Your order ships in 1 package.';
+
+  // State the delivery window per parcel. Without this the order email implies
+  // one arrival date for an order that can contain a 4-7 day parcel and a
+  // 20-25 day one.
+  const windows = deliveryWindows(storedCart, window.FEATURED_CATALOG);
+  if (windows.length) {
+    shippingNote += ' ' + windows
+      .map(w => `${w.brands.join(' / ')}: ${w.window}`)
+      .join('. ') + '.';
+  }
 
   // Apply percentage discount to subtotal only
   const pctDiscount = parseInt(localStorage.getItem('percentageDiscount') || '0');
@@ -874,6 +978,22 @@ const FEATURED_CATALOG = (function () {
     ['xeno-tamox',                    'Tamox',                                  47.00, 'images/xeno-tamox.jpg',                   'Xeno', 'Oral'],
     ['xeno-clomiphene',               'Clomiphene',                             80.00, 'images/xeno-clomiphene.jpg',              'Xeno', 'Oral'],
     ['xeno-clenbuterol',              'Clenbuterol',                           138.00, 'images/xeno-clenbuterol.jpg',             'Xeno', 'Oral'],
+    // Ultima — Injectables
+    ['ultima-enan-250',                 'ULTIMA ENAN 250MG (1 vial)',              35.00, 'images/ultima-enan-250.jpg', 'Ultima', 'Injectable'],
+    ['ultima-prop-100',                 'ULTIMA PROP 100MG (1 vial)',              30.00, 'images/ultima-prop-100.jpg', 'Ultima', 'Injectable'],
+    ['ultima-mix-250',                  'ULTIMA MIX 250MG (1 vial)',               37.00, 'images/ultima-mix-250.jpg', 'Ultima', 'Injectable'],
+    ['ultima-deca-250',                 'ULTIMA DECA 250MG (1 vial)',              63.00, 'images/ultima-deca-250.jpg', 'Ultima', 'Injectable'],
+    ['ultima-npp-100',                  'ULTIMA NPP 100MG (1 vial)',               33.00, 'images/ultima-coming-soon.jpg', 'Ultima', 'Injectable'],
+    ['ultima-cyp-250',                  'ULTIMA CYP 250MG (1 vial)',               34.00, 'images/ultima-cyp-250.jpg', 'Ultima', 'Injectable'],
+    ['ultima-bold-250',                 'ULTIMA BOLD 250MG (1 vial)',              40.00, 'images/ultima-bold-250.jpg', 'Ultima', 'Injectable'],
+    ['ultima-tren-a-100',               'ULTIMA TREN A 100MG (1 vial)',            42.00, 'images/ultima-tren-a-100.jpg', 'Ultima', 'Injectable'],
+    // Ultima — Orals
+    ['ultima-methandienone-25',         'ULTIMA Methandienone 25mg (100 tabs)',    31.00, 'images/ultima-coming-soon.jpg', 'Ultima', 'Oral'],
+    ['ultima-clomiphene-50',            'ULTIMA Clomiphene 50mg (50 tabs)',        26.00, 'images/ultima-clomiphene-50.jpg', 'Ultima', 'Oral'],
+    ['ultima-clenbuterol-40',           'ULTIMA Clenbuterol 40mcg (50 tabs)',      23.00, 'images/ultima-clenbuterol-40.jpg', 'Ultima', 'Oral'],
+    ['ultima-oxandrolone-10',           'ULTIMA Oxandrolone 10mg (100 tabs)',      43.00, 'images/ultima-coming-soon.jpg', 'Ultima', 'Oral'],
+    ['ultima-sildenafil-100',           'ULTIMA Sildenafil 100mg (50 tabs)',       35.00, 'images/ultima-sildenafil-100.jpg', 'Ultima', 'Oral'],
+    ['ultima-tadalafil-25',             'ULTIMA Tadalafil 25mg (50 tabs)',         0.00, 'images/ultima-tadalafil-25.jpg', 'Ultima', 'Oral'],
   ];
   return raw.map(([id, cartName, price, image, brand, type]) => ({
     id, cartName,
@@ -1129,6 +1249,21 @@ function initInventorySync() {
         const productId = button.dataset.id?.trim().toLowerCase();
         const stock     = inventoryMap[productId];
 
+        // No price yet outranks everything, including the feed.
+        // The feed FAILS OPEN: an id it does not know is re-enabled as
+        // "Add to Cart" a few lines below. Without this guard an unpriced
+        // product that has no sheet row yet becomes buyable at $0.00, and the
+        // build-time `disabled` attribute is silently undone the moment the
+        // sheet responds. Ultima Tadalafil is the live case.
+        if (!(parseFloat(button.dataset.price) > 0)) {
+          card.dataset.stockLevel = 0;
+          button.textContent = 'Coming Soon';
+          button.disabled    = true;
+          button.classList.remove('btn-primary', 'btn-warning');
+          button.classList.add('btn-secondary');
+          return;
+        }
+
         // Manual hold outranks the feed, in-stock or not.
         if (isHeld(productId)) {
           card.dataset.stockLevel = 0;
@@ -1164,9 +1299,9 @@ function initInventorySync() {
         }
       });
 
-      // Sort: stock status first (in stock > low > out), then brand (Beligas > Sixpex > Xeno)
+      // Sort: stock status first (in stock > low > out), then brand (Beligas > Sixpex > Xeno > Ultima)
       if (isProductPage) {
-        const brandOrder = { beligas: 1, sixpex: 2, xeno: 3 };
+        const brandOrder = { beligas: 1, sixpex: 2, xeno: 3, ultima: 4 };
         const getStockRank = s => {
           if (isNaN(s) || s === 999) return 1; // unknown = treat as in stock
           if (s < 20) return 3;                // out of stock = last
@@ -1182,7 +1317,7 @@ function initInventorySync() {
           // Stock status is the primary sort
           if (stockRankA !== stockRankB) return stockRankA - stockRankB;
 
-          // Within same stock group, sort by brand (Beligas > Sixpex > Xeno)
+          // Within same stock group, sort by brand (Beligas > Sixpex > Xeno > Ultima)
           const brandA = (a.dataset.brand || '').toLowerCase();
           const brandB = (b.dataset.brand || '').toLowerCase();
           const brandRankA = brandOrder[brandA] || 99;
@@ -1515,6 +1650,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCheckoutSummary();
     const form = document.getElementById('checkout-form');
     if (form) form.addEventListener('submit', handleCheckoutSubmit);
+    // Must run before the customer picks anything, so the list they see is
+    // already the list their cart allows.
+    buildCountryOptions();
   }
 
   // Features
