@@ -872,7 +872,7 @@ const FEATURED_CATALOG = (function () {
     ['accutane20mg100tabs',         'Accutane, 20mg (100 tabs)',                 124.20, 'images/accutane20mg100tabs.jpg',       'Beligas', 'Oral'],
     ['raloxifene20mg',              'Raloxifene, 20mg (50 tabs)',                 75.90, 'images/raloxifene20mg.jpg',            'Beligas', 'Oral'],
     ['dianabollite10mg100tabs',     'Dianabol lite, 10mg (100 tabs)',             69.00, 'images/dianabollite10mg100tabs.jpg',   'Beligas', 'Oral'],
-    ['nolvadex20mg50tabs',          'Nolvadex, 20mg (50 tabs)',                   80.00, 'images/nolvadex20mg50tabs.jpg',        'Beligas', 'Oral'],
+    ['nolvadex20mg50tabs',          'Nolvadex, 20mg (50 tabs)',                   95.00, 'images/nolvadex20mg50tabs.jpg',        'Beligas', 'Oral'],
     ['protesofensine0-25mg100tabs', 'Pro-Tesofensine, 0.25mg (100 tabs)',        120.75, 'images/protesofensine0-25mg100tabs.jpg','Beligas', 'Oral'],
     ['clomid50mg50tabs',            'Clomid, 50mg (50 tabs)',                     65.55, 'images/clomid50mg50tabs.jpg',          'Beligas', 'Oral'],
     // Sixpex — Injectables
