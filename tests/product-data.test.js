@@ -33,7 +33,12 @@ test('decodes HTML entities in the description', () => {
 // Products awaiting a supplier price. A zero price is only tolerated for these,
 // and only because the card is built unbuyable — see the test below. Delete an
 // id from here the moment it is priced; an unlisted zero price is a bug.
-const UNPRICED_IDS = new Set(['ultima-tadalafil-25']);
+//
+// Empty since 2026-11-17, when ultima-tadalafil-25 was priced at $41. The
+// machinery stays: the next product that goes up before its price is settled
+// adds its id here, and the "every priced product is purchasable" test below
+// then covers everything else.
+const UNPRICED_IDS = new Set();
 
 test('every product has the fields the template requires', () => {
   for (const p of parseProducts(html)) {

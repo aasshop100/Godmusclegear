@@ -993,7 +993,7 @@ const FEATURED_CATALOG = (function () {
     ['ultima-clenbuterol-40',           'ULTIMA Clenbuterol 40mcg (50 tabs)',      23.00, 'images/ultima-clenbuterol-40.jpg', 'Ultima', 'Oral'],
     ['ultima-oxandrolone-10',           'ULTIMA Oxandrolone 10mg (100 tabs)',      43.00, 'images/ultima-coming-soon.jpg', 'Ultima', 'Oral'],
     ['ultima-sildenafil-100',           'ULTIMA Sildenafil 100mg (50 tabs)',       35.00, 'images/ultima-sildenafil-100.jpg', 'Ultima', 'Oral'],
-    ['ultima-tadalafil-25',             'ULTIMA Tadalafil 25mg (50 tabs)',         0.00, 'images/ultima-tadalafil-25.jpg', 'Ultima', 'Oral'],
+    ['ultima-tadalafil-25',             'ULTIMA Tadalafil 25mg (50 tabs)',        41.00, 'images/ultima-tadalafil-25.jpg', 'Ultima', 'Oral'],
   ];
   return raw.map(([id, cartName, price, image, brand, type]) => ({
     id, cartName,
